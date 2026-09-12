@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+*.log
+.DS_Store
+.idea
+.vscode
+
+# Лок-файл в репозитории только npm-овский: остальные менеджеры
+# проверяются в CI установкой «с нуля», коммитить их локи не нужно.
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+bun.lock
