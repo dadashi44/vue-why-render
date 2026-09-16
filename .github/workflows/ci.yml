@@ -1,0 +1,150 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    quality:
+        name: lint + types + tests (node ${{ matrix.node }})
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                node: [20, 22, 24]
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Lint
+              run: npm run lint
+
+            - name: Typecheck
+              run: npm run typecheck
+
+            - name: Tests
+              run: npm run test:coverage
+
+            - name: Build
+              run: npm run build
+
+            - name: Upload coverage
+              if: matrix.node == 22
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage
+                  path: coverage
+                  retention-days: 7
+
+    package-managers:
+        name: ${{ matrix.manager }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                manager: [pnpm, yarn, bun]
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Setup pnpm
+              if: matrix.manager == 'pnpm'
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - name: Setup bun
+              if: matrix.manager == 'bun'
+              uses: oven-sh/setup-bun@v2
+
+            # Лок-файл в репозитории только npm-овский, поэтому остальные
+            # менеджеры ставят зависимости по package.json «с нуля».
+            - name: Install
+              run: |
+                  case "${{ matrix.manager }}" in
+                    pnpm) pnpm install --no-frozen-lockfile ;;
+                    yarn) corepack enable && yarn set version stable && yarn install --no-immutable ;;
+                    bun)  bun install ;;
+                  esac
+
+            - name: Tests
+              run: ${{ matrix.manager }} run test
+
+            - name: Build
+              run: ${{ matrix.manager }} run build
+
+    install-matrix:
+        name: install from tarball (${{ matrix.manager }})
+        runs-on: ubuntu-latest
+        needs: quality
+        strategy:
+            fail-fast: false
+            matrix:
+                manager: [npm, pnpm, yarn, bun]
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Setup pnpm
+              if: matrix.manager == 'pnpm'
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+
+            - name: Setup bun
+              if: matrix.manager == 'bun'
+              uses: oven-sh/setup-bun@v2
+
+            - run: npm ci
+            - run: npm run build
+
+            - name: Pack
+              run: echo "TARBALL=$(npm pack --silent)" >> "$GITHUB_ENV"
+
+            # Ставим собранный тарбол в пустой проект тем же способом,
+            # которым его поставит пользователь, и проверяем, что импорт живой.
+            - name: Install tarball into a clean project
+              run: |
+                  mkdir -p /tmp/consumer && cd /tmp/consumer
+                  npm init -y > /dev/null
+                  case "${{ matrix.manager }}" in
+                    npm)  npm install vue "$GITHUB_WORKSPACE/$TARBALL" ;;
+                    pnpm) pnpm add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
+                    yarn) corepack enable && yarn set version stable && yarn add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
+                    bun)  bun add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
+                  esac
+
+            - name: Smoke test the published entry points
+              run: |
+                  cd /tmp/consumer
+                  node --input-type=module -e "
+                    import plugin, { Registry, resolveOptions } from 'vue-why-render'
+                    if (typeof plugin.install !== 'function') throw new Error('нет install()')
+                    if (resolveOptions({ enabled: true }).enabled !== true) throw new Error('опции сломаны')
+                    new Registry().register({ uid: 1, name: 'X', parentUid: null })
+                    console.log('ESM ok')
+                  "
+                  node -e "
+                    const lib = require('vue-why-render')
+                    if (typeof lib.scan !== 'function') throw new Error('нет scan()')
+                    console.log('CJS ok')
+                  "
