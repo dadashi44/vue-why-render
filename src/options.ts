@@ -8,10 +8,21 @@ export type DetectedEnv = 'dev' | 'prod' | 'unknown'
  * режим, и у потребителя вместо его дева всегда оказывался бы прод.
  * NODE_ENV же подставляет сборщик приложения — и Vite, и webpack делают это
  * в том числе для кода из node_modules.
+ *
+ * 'unknown' остаётся для случая, когда пакет подключили исходниками мимо
+ * пребандлинга: тогда подстановки нет и режим надо задать опцией enabled.
  */
 export function detectEnv(): DetectedEnv {
-    if (typeof process !== 'undefined' && process.env && typeof process.env.NODE_ENV === 'string') {
-        return process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
+    try {
+        // Обращение написано в лоб специально: сборщик подставляет сюда строку
+        // на этапе сборки ПРИЛОЖЕНИЯ. Обернуть это в typeof process нельзя —
+        // подстановка попадёт внутрь выражения, а сама проверка останется,
+        // и в браузере, где process не существует, всё отвалится на ней.
+        const mode = process.env.NODE_ENV
+        if (typeof mode === 'string') return mode === 'production' ? 'prod' : 'dev'
+    }
+    catch {
+        // process нет и замены не случилось — режим определить нечем.
     }
     return 'unknown'
 }

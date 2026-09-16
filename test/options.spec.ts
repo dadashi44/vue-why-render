@@ -118,6 +118,20 @@ describe('detectEnv', () => {
         expect(resolveOptions().enabled).toBe(false)
     })
 
+    it('не падает в браузере, где process не существует вовсе', () => {
+        // Именно этот случай ломал автоопределение: обёртка typeof process
+        // не подставляется сборщиком и рубила проверку до обращения к NODE_ENV.
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process')!
+        Reflect.deleteProperty(globalThis, 'process')
+        try {
+            expect(detectEnv()).toBe('unknown')
+            expect(isDev()).toBe(false)
+        }
+        finally {
+            Object.defineProperty(globalThis, 'process', descriptor)
+        }
+    })
+
     it('явный enabled сильнее автоопределения', () => {
         process.env.NODE_ENV = 'production'
         expect(resolveOptions({ enabled: true }).enabled).toBe(true)
