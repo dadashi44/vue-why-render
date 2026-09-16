@@ -78,7 +78,15 @@ jobs:
               run: |
                   case "${{ matrix.manager }}" in
                     pnpm) pnpm install --no-frozen-lockfile ;;
-                    yarn) corepack enable && yarn set version stable && yarn install --no-immutable ;;
+                    yarn)
+                      corepack enable
+                      yarn set version stable
+                      # По умолчанию yarn 4 включает PnP, в котором не резолвятся
+                      # ни vitest, ни голый node. Пользователи в подавляющем
+                      # большинстве сидят на node-modules — его и проверяем.
+                      yarn config set nodeLinker node-modules
+                      yarn install --no-immutable
+                      ;;
                     bun)  bun install ;;
                   esac
 
@@ -129,7 +137,12 @@ jobs:
                   case "${{ matrix.manager }}" in
                     npm)  npm install vue "$GITHUB_WORKSPACE/$TARBALL" ;;
                     pnpm) pnpm add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
-                    yarn) corepack enable && yarn set version stable && yarn add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
+                    yarn)
+                      corepack enable
+                      yarn set version stable
+                      yarn config set nodeLinker node-modules
+                      yarn add vue "$GITHUB_WORKSPACE/$TARBALL"
+                      ;;
                     bun)  bun add vue "$GITHUB_WORKSPACE/$TARBALL" ;;
                   esac
 
