@@ -7,7 +7,14 @@ export interface Bounds {
     height: number
 }
 
-/** Человекочитаемое имя компонента. */
+/**
+ * Человекочитаемое имя компонента.
+ *
+ * Отдельно разбирается частый случай «папка на компонент»: файл называется
+ * index.vue, и компилятор Vue подставляет в __name именно «index».
+ * В панели это превращается в десяток одинаковых строк, поэтому для таких
+ * файлов берём имя каталога — navbar/index.vue становится navbar.
+ */
 export function getComponentName(instance: ComponentInternalInstance | null): string {
     if (!instance) return 'Anonymous'
 
@@ -17,17 +24,35 @@ export function getComponentName(instance: ComponentInternalInstance | null): st
         __name?: string
         __file?: string
     }
-    const name = type.displayName || type.name || type.__name
-    if (name) return name
 
-    const file = type.__file
-    if (file) {
-        const base = file.split(/[\\/]/).pop() || ''
-        const withoutExt = base.replace(/\.\w+$/, '')
-        if (withoutExt) return withoutExt
-    }
+    const declared = type.displayName || type.name || type.__name
+    if (declared && !isUninformativeName(declared)) return declared
+
+    const fromFile = nameFromFile(type.__file)
+    if (fromFile) return fromFile
+    if (declared) return declared
+
     // Корневой компонент обычно безымянный — в отчёте «App» понятнее, чем «Anonymous».
     return instance.parent ? 'Anonymous' : 'App'
+}
+
+const UNINFORMATIVE = new Set(['index', 'Index'])
+
+function isUninformativeName(name: string): boolean {
+    return UNINFORMATIVE.has(name)
+}
+
+function nameFromFile(file?: string): string | null {
+    if (!file) return null
+
+    const parts = file.split(/[\\/]/).filter(Boolean)
+    const base = (parts.pop() || '').replace(/\.\w+$/, '')
+
+    if (base && !isUninformativeName(base)) return base
+
+    const directory = parts.pop()
+    if (directory) return directory
+    return base || null
 }
 
 /** Путь к SFC. Проставляется @vitejs/plugin-vue только в деве. */

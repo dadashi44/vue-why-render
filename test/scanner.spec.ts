@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { App } from 'vue'
-import { createApp, defineComponent, h, nextTick, ref } from 'vue'
+import { computed, createApp, defineComponent, h, nextTick, ref } from 'vue'
 import { getScanHandle, scan } from '../src/index'
 import type { ScanHandle } from '../src/index'
 import type { VueWhyRenderOptions } from '../src/types'
@@ -223,5 +223,49 @@ describe('scan', () => {
 
         expect(active!.getEvents()).toHaveLength(0)
         expect(active!.getStats().every(record => record.renderCount === 0)).toBe(true)
+    })
+})
+
+describe('устойчивость к чужому коду', () => {
+    it('не роняет приложение, если внутри сбора причин что-то пошло не так', async () => {
+        // Компонент с computed, который падает при раннем обращении:
+        // ровно этот случай ломал гидрацию на настоящем проекте.
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const errors: unknown[] = []
+
+        const Poisoned = defineComponent({
+            name: 'Poisoned',
+            setup() {
+                const count = ref(0)
+                // eslint-disable-next-line vue/return-in-computed-property
+                const poison = computed((): string => {
+                    throw new Error('этот computed нельзя вычислять')
+                })
+                // poison раньше count: поиск имени рефа идёт по порядку ключей,
+                // и наивный обход споткнулся бы именно здесь.
+                return { poison, count, bump: () => count.value++ }
+            },
+            render() {
+                return h('div', String(this.count))
+            },
+        })
+
+        const host = document.createElement('div')
+        document.body.appendChild(host)
+        const localApp = createApp(Poisoned)
+        localApp.config.errorHandler = error => errors.push(error)
+        const localHandle = scan(localApp, { panel: false, overlay: false })
+        const vm = localApp.mount(host) as unknown as { bump: () => void }
+
+        vm.bump()
+        await nextTick()
+
+        expect(errors).toEqual([])
+        expect(localHandle!.getEvents()).toHaveLength(1)
+
+        localHandle!.stop()
+        localApp.unmount()
+        host.remove()
+        warn.mockRestore()
     })
 })

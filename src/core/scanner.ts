@@ -10,6 +10,25 @@ import { Registry } from './registry'
 const FLASH_WINDOW = 1000
 
 /**
+ * Инструмент отладки не имеет права ронять приложение, которое отлаживает.
+ * Любая наша ошибка внутри хука компонента всплыла бы как ошибка рендера
+ * чужого компонента, поэтому глушим её и один раз сообщаем в консоль.
+ */
+let warnedAboutCrash = false
+
+function safe(label: string, fn: () => void): void {
+    try {
+        fn()
+    }
+    catch (error) {
+        if (!warnedAboutCrash) {
+            warnedAboutCrash = true
+            console.warn(`[vue-why-render] сбой в ${label}, сканирование продолжается:`, error)
+        }
+    }
+}
+
+/**
  * Инструментирует приложение глобальным миксином и сводит вместе
  * реестр, оверлей и счётчик FPS.
  */
@@ -51,19 +70,19 @@ export class Scanner {
 
         return {
             mounted(this: { $: TrackedInstance }) {
-                scanner.onMounted(this.$)
+                safe('mounted', () => scanner.onMounted(this.$))
             },
             beforeUpdate(this: { $: TrackedInstance }) {
-                scanner.onBeforeUpdate(this.$)
+                safe('beforeUpdate', () => scanner.onBeforeUpdate(this.$))
             },
             updated(this: { $: TrackedInstance }) {
-                scanner.onUpdated(this.$)
+                safe('updated', () => scanner.onUpdated(this.$))
             },
             unmounted(this: { $: TrackedInstance }) {
-                scanner.onUnmounted(this.$)
+                safe('unmounted', () => scanner.onUnmounted(this.$))
             },
             renderTriggered(this: { $: TrackedInstance }, event: DebuggerEvent) {
-                scanner.onRenderTriggered(this.$, event)
+                safe('renderTriggered', () => scanner.onRenderTriggered(this.$, event))
             },
         }
     }

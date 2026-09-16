@@ -197,3 +197,42 @@ describe('snapshotProps', () => {
         expect(snapshotProps(undefined)).toEqual({})
     })
 })
+
+describe('describeTrigger и чужие геттеры', () => {
+    it('не вычисляет геттеры в setupState при поиске имени рефа', () => {
+        // На реальном проекте перечисление setupState вычисляло computed'ы
+        // приложения прямо во время renderTriggered и роняло гидрацию.
+        const counter = ref(0)
+        let getterCalls = 0
+        // Ядовитый геттер стоит ПЕРЕД рефом: иначе цикл нашёл бы имя раньше
+        // и до опасного свойства просто не дошёл — тест ничего бы не проверял.
+        const setupState = {
+            get brokenComputed() {
+                getterCalls++
+                throw new Error('этот computed нельзя трогать так рано')
+            },
+            counter,
+        }
+        const instance = { props: {}, setupState, data: null } as unknown as ComponentInternalInstance
+
+        const reason = describeTrigger(
+            makeEvent({ target: toRaw(counter), key: 'value', oldValue: 0, newValue: 1 }),
+            instance,
+        )
+
+        expect(getterCalls).toBe(0)
+        expect(reason.key).toBe('counter')
+    })
+
+    it('не падает, если весь setupState состоит из ядовитых геттеров', () => {
+        const orphan = ref(0)
+        const setupState = {
+            get boom(): never {
+                throw new Error('нельзя')
+            },
+        }
+        const instance = { props: {}, setupState, data: null } as unknown as ComponentInternalInstance
+
+        expect(() => describeTrigger(makeEvent({ target: toRaw(orphan), key: 'value' }), instance)).not.toThrow()
+    })
+})

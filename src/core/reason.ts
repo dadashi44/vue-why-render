@@ -60,12 +60,26 @@ function normalizeKey(key: unknown): string {
     return String(key)
 }
 
-/** Ищем, под каким именем реф лежит в setupState — иначе в отчёте будет бесполезное «value». */
+/**
+ * Ищем, под каким именем реф лежит в setupState — иначе в отчёте будет бесполезное «value».
+ *
+ * Читаем свойства строго через дескрипторы и пропускаем геттеры: обычное
+ * перечисление вычисляло бы computed'ы чужого приложения прямо внутри
+ * renderTriggered. На реальном проекте это роняло гидрацию — computed,
+ * рассчитанный на более поздний момент, падал при раннем обращении.
+ */
 function findRefName(container: unknown, target: object): string | null {
     if (!container || typeof container !== 'object') return null
+
     const raw = toRaw(container as object)
-    for (const key of Object.keys(raw)) {
-        const value = (raw as Record<string, unknown>)[key]
+    const descriptors = Object.getOwnPropertyDescriptors(raw)
+
+    for (const key of Object.keys(descriptors)) {
+        const descriptor = descriptors[key]
+        // Геттер трогать нельзя: вычисление имеет побочные эффекты.
+        if (!descriptor || typeof descriptor.get === 'function') continue
+
+        const value = descriptor.value
         if (value === target) return key
         if (isRef(value) && toRaw(value as object) === target) return key
     }

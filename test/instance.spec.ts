@@ -118,3 +118,37 @@ describe('getComponentBounds', () => {
         expect(getComponentBounds(instance)).toEqual({ top: 0, left: 0, width: 0, height: 0 })
     })
 })
+
+describe('getComponentName и папки с index.vue', () => {
+    it('берёт имя каталога, когда файл называется index.vue', () => {
+        // Компилятор Vue кладёт в __name «index», и в панели такие компоненты
+        // выглядят как десяток одинаковых строк.
+        expect(getComponentName(fakeInstance({
+            __name: 'index',
+            __file: '/app/components/navbar/index.vue',
+        }))).toBe('navbar')
+    })
+
+    it('работает и когда имени нет вовсе', () => {
+        expect(getComponentName(fakeInstance({
+            __file: '/app/components/ui-button/index.vue',
+        }))).toBe('ui-button')
+    })
+
+    it('осмысленное имя важнее пути', () => {
+        expect(getComponentName(fakeInstance({
+            name: 'UserCard',
+            __file: '/app/components/navbar/index.vue',
+        }))).toBe('UserCard')
+    })
+
+    it('обычные файлы по-прежнему берут имя файла', () => {
+        expect(getComponentName(fakeInstance({
+            __file: '/app/components/navbar/UserCard.vue',
+        }))).toBe('UserCard')
+    })
+
+    it('не падает, если index.vue лежит в корне', () => {
+        expect(getComponentName(fakeInstance({ __name: 'index', __file: 'index.vue' }))).toBe('index')
+    })
+})
