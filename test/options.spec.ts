@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { defaultOptions, detectEnv, isDev, resolveOptions, shouldTrack } from '../src/options'
+import { describe, expect, it, vi } from 'vitest'
+import { defaultOptions, resolveOptions, shouldTrack } from '../src/options'
 
 describe('resolveOptions', () => {
     it('подставляет дефолты', () => {
@@ -91,50 +91,14 @@ describe('shouldTrack', () => {
     })
 })
 
-describe('detectEnv', () => {
-    const original = process.env.NODE_ENV
-
-    afterEach(() => {
-        process.env.NODE_ENV = original
-        vi.unstubAllGlobals()
-    })
-
-    it('видит прод', () => {
-        process.env.NODE_ENV = 'production'
-        expect(detectEnv()).toBe('prod')
-        expect(isDev()).toBe(false)
-        expect(resolveOptions().enabled).toBe(false)
-    })
-
-    it('всё, что не прод, считает девом', () => {
-        process.env.NODE_ENV = 'development'
-        expect(detectEnv()).toBe('dev')
+describe('enabled по умолчанию', () => {
+    it('включён, когда опция не передана', () => {
+        // Пакет намеренно не угадывает режим сборки: см. комментарий в options.ts.
         expect(resolveOptions().enabled).toBe(true)
     })
 
-    it('при неизвестном режиме остаётся включённым', () => {
-        // В браузерном бандле process недоступен, и это норма: гасить сканер
-        // в проде должен вызывающий код своей проверкой.
-        delete process.env.NODE_ENV
-        expect(detectEnv()).toBe('unknown')
-        expect(resolveOptions().enabled).toBe(true)
-    })
-
-    it('не падает в браузере, где process не существует вовсе', () => {
-        // Штатный случай для браузерного бандла.
-        const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process')!
-        Reflect.deleteProperty(globalThis, 'process')
-        try {
-            expect(detectEnv()).toBe('unknown')
-            expect(isDev()).toBe(true)
-        }
-        finally {
-            Object.defineProperty(globalThis, 'process', descriptor)
-        }
-    })
-
-    it('явный enabled сильнее автоопределения', () => {
-        process.env.NODE_ENV = 'production'
+    it('явное значение всегда сильнее', () => {
+        expect(resolveOptions({ enabled: false }).enabled).toBe(false)
         expect(resolveOptions({ enabled: true }).enabled).toBe(true)
     })
 })

@@ -1,30 +1,17 @@
 import type { NameFilter, ResolvedOptions, VueWhyRenderOptions } from './types'
 
-export type DetectedEnv = 'dev' | 'prod' | 'unknown'
-
 /**
- * Режим сборки определяем только через globalThis и намеренно НЕ пишем
- * process.env.NODE_ENV в открытую.
+ * Режим сборки пакет не определяет вовсе, и это осознанно.
  *
- * Голая ссылка на process заставляет @rollup/plugin-commonjs считать наш
- * ESM-файл смешанным CommonJS, после чего его переписывание ломает код —
- * прод-сборка Nuxt падала с синтаксической ошибкой внутри нашего бандла.
+ * Любое упоминание `process` в бандле — даже через `globalThis.process` —
+ * заставляет @rollup/plugin-commonjs принять наш ESM-файл за смешанный
+ * CommonJS и переписать его в синтаксически битый код: прод-сборка Nuxt
+ * падала с `Unexpected token &&` внутри нашего же файла.
  *
- * Цена решения: в браузерном бандле process обычно недоступен, поэтому там
- * честный ответ «unknown». Поэтому сканер по умолчанию ВКЛЮЧЁН везде, кроме
- * явно опознанного прода, а гасить его в проде — задача вызывающего кода
- * (в Nuxt это `if (!import.meta.dev) return`, см. README).
+ * Поэтому сканер включён по умолчанию, а гасить его в проде должен
+ * вызывающий код статическим флагом сборщика (`import.meta.dev` в Nuxt,
+ * `import.meta.env.DEV` в Vite) — тогда вырезается и импорт пакета. См. README.
  */
-export function detectEnv(): DetectedEnv {
-    const runtime = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
-    const mode = runtime?.env?.NODE_ENV
-    if (typeof mode === 'string') return mode === 'production' ? 'prod' : 'dev'
-    return 'unknown'
-}
-
-export function isDev(): boolean {
-    return detectEnv() !== 'prod'
-}
 
 export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     overlay: true,
@@ -49,7 +36,7 @@ export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptio
         ...stripUndefined(options),
     } as ResolvedOptions
 
-    resolved.enabled = options.enabled ?? isDev()
+    resolved.enabled = options.enabled ?? true
     // Отрицательные и нечисловые значения ломают арифметику дальше по коду.
     resolved.maxEvents = Math.max(1, Math.floor(resolved.maxEvents))
     resolved.flushInterval = Math.max(0, resolved.flushInterval)
