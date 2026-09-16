@@ -43,6 +43,20 @@ export function shortFile(file?: string): string {
     return parts.slice(-2).join('/')
 }
 
+/**
+ * Строки «почему» для одной записи.
+ * Изменение пропа прилетает дважды: из renderTriggered и из дифа пропсов.
+ * Оставляем версию из дифа — она дополнительно знает про новую ссылку.
+ */
+export function whyLines(record: ComponentRecord): string[] {
+    const changedProps = new Set(record.lastPropChanges.map(change => change.key))
+    const fromReasons = record.lastReasons
+        .filter(reason => !(reason.source === 'props' && changedProps.has(reason.key)))
+        .map(formatReason)
+
+    return [...fromReasons, ...record.lastPropChanges.map(formatPropChange)]
+}
+
 export function matchesQuery(record: ComponentRecord, query: string): boolean {
     const trimmed = query.trim().toLowerCase()
     if (!trimmed) return true

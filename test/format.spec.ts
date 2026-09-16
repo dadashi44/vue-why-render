@@ -7,6 +7,7 @@ import {
     formatReason,
     matchesQuery,
     shortFile,
+    whyLines,
 } from '../src/panel/format'
 import type { ComponentRecord } from '../src/types'
 
@@ -111,5 +112,41 @@ describe('buildEditorUrl', () => {
     it('подставляет файл в шаблон и экранирует путь', () => {
         expect(buildEditorUrl('/__open-in-editor?file={file}', '/app/src/A B.vue'))
             .toBe('/__open-in-editor?file=%2Fapp%2Fsrc%2FA%20B.vue')
+    })
+})
+
+describe('whyLines', () => {
+    it('не показывает изменение пропа дважды', () => {
+        // renderTriggered и диф пропсов видят одно и то же изменение,
+        // в панели это выглядело как два одинаковых предупреждения подряд.
+        const lines = whyLines(record({
+            lastReasons: [{ type: 'set', key: 'badge', source: 'props' }],
+            lastPropChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true }],
+        }))
+
+        expect(lines).toHaveLength(1)
+        expect(lines[0]).toContain('новая ссылка')
+    })
+
+    it('оставляет причины, не связанные с пропами', () => {
+        const lines = whyLines(record({
+            lastReasons: [{ type: 'set', key: 'count', source: 'setup' }],
+            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false }],
+        }))
+
+        expect(lines).toEqual(['состояние count', 'проп title: "a" → "b"'])
+    })
+
+    it('не трогает причину по пропу, которого нет в дифе', () => {
+        const lines = whyLines(record({
+            lastReasons: [{ type: 'set', key: 'other', source: 'props' }],
+            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false }],
+        }))
+
+        expect(lines).toHaveLength(2)
+    })
+
+    it('молчит, когда причин нет', () => {
+        expect(whyLines(record())).toEqual([])
     })
 })

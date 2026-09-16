@@ -12,6 +12,7 @@ import {
     formatReason,
     matchesQuery,
     shortFile,
+    whyLines,
 } from './format'
 
 const props = defineProps<{ scanner: Scanner }>()
@@ -101,12 +102,6 @@ function openInEditor(record: ComponentRecord): void {
     fetch(url).catch(() => {})
 }
 
-function whyLines(record: ComponentRecord): string[] {
-    return [
-        ...record.lastReasons.map(formatReason),
-        ...record.lastPropChanges.map(formatPropChange),
-    ]
-}
 </script>
 
 <template>
