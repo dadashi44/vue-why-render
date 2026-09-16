@@ -3,32 +3,27 @@ import type { NameFilter, ResolvedOptions, VueWhyRenderOptions } from './types'
 export type DetectedEnv = 'dev' | 'prod' | 'unknown'
 
 /**
- * Определяем окружение только по process.env.NODE_ENV.
- * import.meta.env специально не трогаем: сборщик пакета вшил бы туда СВОЙ
- * режим, и у потребителя вместо его дева всегда оказывался бы прод.
- * NODE_ENV же подставляет сборщик приложения — и Vite, и webpack делают это
- * в том числе для кода из node_modules.
+ * Режим сборки определяем только через globalThis и намеренно НЕ пишем
+ * process.env.NODE_ENV в открытую.
  *
- * 'unknown' остаётся для случая, когда пакет подключили исходниками мимо
- * пребандлинга: тогда подстановки нет и режим надо задать опцией enabled.
+ * Голая ссылка на process заставляет @rollup/plugin-commonjs считать наш
+ * ESM-файл смешанным CommonJS, после чего его переписывание ломает код —
+ * прод-сборка Nuxt падала с синтаксической ошибкой внутри нашего бандла.
+ *
+ * Цена решения: в браузерном бандле process обычно недоступен, поэтому там
+ * честный ответ «unknown». Поэтому сканер по умолчанию ВКЛЮЧЁН везде, кроме
+ * явно опознанного прода, а гасить его в проде — задача вызывающего кода
+ * (в Nuxt это `if (!import.meta.dev) return`, см. README).
  */
 export function detectEnv(): DetectedEnv {
-    try {
-        // Обращение написано в лоб специально: сборщик подставляет сюда строку
-        // на этапе сборки ПРИЛОЖЕНИЯ. Обернуть это в typeof process нельзя —
-        // подстановка попадёт внутрь выражения, а сама проверка останется,
-        // и в браузере, где process не существует, всё отвалится на ней.
-        const mode = process.env.NODE_ENV
-        if (typeof mode === 'string') return mode === 'production' ? 'prod' : 'dev'
-    }
-    catch {
-        // process нет и замены не случилось — режим определить нечем.
-    }
+    const runtime = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+    const mode = runtime?.env?.NODE_ENV
+    if (typeof mode === 'string') return mode === 'production' ? 'prod' : 'dev'
     return 'unknown'
 }
 
 export function isDev(): boolean {
-    return detectEnv() === 'dev'
+    return detectEnv() !== 'prod'
 }
 
 export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {

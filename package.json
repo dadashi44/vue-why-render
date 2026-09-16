@@ -1,6 +1,6 @@
 {
     "name": "vue-why-render",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "type": "module",
     "description": "See which Vue components re-render — and why. Highlights re-renders and names the exact reactive dependency that triggered them.",
     "keywords": [

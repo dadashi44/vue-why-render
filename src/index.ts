@@ -1,6 +1,6 @@
 import type { App, Plugin } from 'vue'
 import type { ComponentRecord, RenderEvent, VueWhyRenderOptions } from './types'
-import { detectEnv, resolveOptions } from './options'
+import { resolveOptions } from './options'
 import { Scanner } from './core/scanner'
 import { mountPanel } from './panel/mount'
 
@@ -33,31 +33,13 @@ export interface ScanHandle {
 }
 
 let activeHandle: ScanHandle | null = null
-let warnedAboutEnv = false
-
-/**
- * Если сборщик не подставил NODE_ENV, сканер выключается сам — молча он бы
- * выглядел как сломанный, поэтому один раз объясняем, что делать.
- */
-function warnIfEnvUnknown(options: VueWhyRenderOptions): void {
-    if (warnedAboutEnv || options.enabled !== undefined || detectEnv() !== 'unknown') return
-    warnedAboutEnv = true
-    console.warn(
-        '[vue-why-render] не удалось определить режим сборки (process.env.NODE_ENV недоступен), '
-        + 'сканер выключен. Передай enabled явно: app.use(VueWhyRender, { enabled: true }).',
-    )
-}
-
 /**
  * Навесить сканер на приложение вручную.
  * Возвращает null, если сканер выключен опцией enabled.
  */
 export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | null {
     const resolved = resolveOptions(options)
-    if (!resolved.enabled) {
-        warnIfEnvUnknown(options)
-        return null
-    }
+    if (!resolved.enabled) return null
 
     const scanner = new Scanner(resolved)
     app.mixin(scanner.createMixin())

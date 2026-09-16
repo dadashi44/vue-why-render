@@ -112,20 +112,21 @@ describe('detectEnv', () => {
         expect(resolveOptions().enabled).toBe(true)
     })
 
-    it('честно признаётся, что не знает, когда NODE_ENV не подставлен', () => {
+    it('при неизвестном режиме остаётся включённым', () => {
+        // В браузерном бандле process недоступен, и это норма: гасить сканер
+        // в проде должен вызывающий код своей проверкой.
         delete process.env.NODE_ENV
         expect(detectEnv()).toBe('unknown')
-        expect(resolveOptions().enabled).toBe(false)
+        expect(resolveOptions().enabled).toBe(true)
     })
 
     it('не падает в браузере, где process не существует вовсе', () => {
-        // Именно этот случай ломал автоопределение: обёртка typeof process
-        // не подставляется сборщиком и рубила проверку до обращения к NODE_ENV.
+        // Штатный случай для браузерного бандла.
         const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process')!
         Reflect.deleteProperty(globalThis, 'process')
         try {
             expect(detectEnv()).toBe('unknown')
-            expect(isDev()).toBe(false)
+            expect(isDev()).toBe(true)
         }
         finally {
             Object.defineProperty(globalThis, 'process', descriptor)
