@@ -42,6 +42,8 @@
     },
     "scripts": {
         "dev": "vite --config playground/vite.config.ts",
+        "dev:site": "vite --config site/vite.config.ts",
+        "build:site": "vite build --config site/vite.config.ts",
         "build": "vite build && node scripts/ascii-bundle.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
         "test": "vitest run",
         "test:watch": "vitest",

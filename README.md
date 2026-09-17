@@ -2,6 +2,8 @@
 
 Видно, какие компоненты Vue перерисовываются — и **почему именно**.
 
+**[Живое демо →](https://dadashi44.github.io/vue-why-render/)**
+
 Аналоги для Vue умеют мигать рамкой вокруг обновившегося компонента. Этого хватает,
 чтобы заметить проблему, но не чтобы её починить: остаётся вопрос «а что вообще
 изменилось?». `vue-why-render` отвечает на него — называет конкретную реактивную
@@ -166,6 +168,8 @@ if (import.meta.env.DEV) {
 ```sh
 npm install
 npm run dev        # песочница с демо-компонентами
+npm run dev:site   # лендинг с той же песочницей внутри
+npm run build:site # сборка сайта в dist-site
 npm test           # vitest
 npm run test:coverage
 npm run typecheck  # vue-tsc

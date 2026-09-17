@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint'
 import vueParser from 'vue-eslint-parser'
 
 export default tseslint.config(
-    { ignores: ['dist', 'coverage', 'node_modules'] },
+    { ignores: ['dist', 'dist-site', 'coverage', 'node_modules'] },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     ...vue.configs['flat/recommended'],
