@@ -41,20 +41,7 @@ bun add -d vue-why-render
 Тарбол с релиза ставится по прямой ссылке и авторизации не требует:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.0/vue-why-render-0.1.0.tgz
-```
-
-Тот же пакет лежит в GitHub Packages под именем `@dadashi44/vue-why-render`. Там
-установка требует авторизации даже для публичных пакетов — нужен GitHub-токен с правом
-`read:packages` и строчка в `.npmrc`:
-
-```
-@dadashi44:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=ТОКЕН
-```
-
-```sh
-npm i -D @dadashi44/vue-why-render
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.4/vue-why-render-0.1.4.tgz
 ```
 
 ## Подключение
