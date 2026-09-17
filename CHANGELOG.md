@@ -3,6 +3,12 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [SemVer](https://semver.org/lang/ru/).
 
+## [0.1.4] — 2026-09-17
+
+### Исправлено
+
+- `esbuild` и `@eslint/js` объявлены в `devDependencies`. Постобработка бандла импортирует `esbuild`, а `eslint.config.js` — `@eslint/js`, но оба приезжали транзитивно через `vite` и `eslint`. npm, yarn с `nodeLinker: node-modules` и bun поднимают их в корень `node_modules`, поэтому сборка проходила; pnpm даёт доступ только к прямым зависимостям, и `pnpm run build` падал с `ERR_MODULE_NOT_FOUND`. На публикуемый бандл не влияет — правка только для сборки и линта.
+
 ## [0.1.3] — 2026-09-16
 
 ### Исправлено
