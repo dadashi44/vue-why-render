@@ -5,7 +5,7 @@ See which Vue components re-render — and **why exactly**.
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
 [![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/README.zh-CN.md)
+**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
 
 ![vue-why-render: a component re-renders and the panel names the prop behind it](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
