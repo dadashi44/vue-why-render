@@ -1,36 +1,36 @@
 # vue-why-render
 
-Видно, какие компоненты Vue перерисовываются — и **почему именно**.
+See which Vue components re-render — and **why exactly**.
 
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
 [![license](https://img.shields.io/npm/l/vue-why-render)](./LICENSE)
 
-**[Живое демо →](https://dadashi44.github.io/vue-why-render/)**
+**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](./README.ru.md) · [中文](./README.zh-CN.md)
 
-Аналоги для Vue умеют мигать рамкой вокруг обновившегося компонента. Этого хватает,
-чтобы заметить проблему, но не чтобы её починить: остаётся вопрос «а что вообще
-изменилось?». `vue-why-render` отвечает на него — называет конкретную реактивную
-зависимость, которая дёрнула рендер.
+Other tools flash a border around a component that just updated. That is enough to
+notice a problem, but not to fix it — you are still left asking *what actually changed?*
+`vue-why-render` answers that: it names the exact reactive dependency that triggered
+the render.
 
 ```
 ProductCard ×7 · 2.4ms · badge
-└─ проп badge: { text } → { text } — новая ссылка, значение то же
+└─ prop badge: { text } → { text } — new reference, same value
 ```
 
-В React такое приходится угадывать диффом пропсов. Vue отдаёт причину сам, через
-хук `renderTriggered` — пакет построен вокруг него.
+In React you have to guess this by diffing props. Vue hands you the reason itself,
+through the `renderTriggered` hook — this package is built around it.
 
-## Возможности
+## Features
 
-- **Причина перерисовки**: имя пропа, рефа, ключа стора или индекса массива, плюс старое и новое значение.
-- **Отдельная пометка «новая ссылка, значение то же»** — самый частый источник лишних рендеров.
-- **Оверлей**: рамка вокруг перерисованного компонента, цвет — от зелёного к красному по частоте.
-- **Панель**: топ по перерисовкам, топ по времени, дерево компонентов с суммой по поддереву, лента событий.
-- **Прыжок в IDE**: клик по строке открывает SFC в редакторе через дев-сервер.
-- **Пауза, сброс, фильтр** по имени и пути к файлу.
-- **API**: `getStats()`, `getEvents()`, колбэк `onRender` — можно строить свои отчёты.
+- **The reason, not just the fact**: the name of the prop, ref, store key or array index, plus the old and new value.
+- **A dedicated "new reference, same value" verdict** — by far the most common source of wasted renders.
+- **Overlay**: a border around the re-rendered component, coloured from green to red by frequency.
+- **Panel**: top by render count, top by time, a component tree with per-subtree totals, and an event feed.
+- **Jump to your editor**: clicking a row opens the SFC in your IDE through the dev server.
+- **Pause, reset and filter** by component name or file path.
+- **API**: `getStats()`, `getEvents()` and an `onRender` callback, so you can build your own reports.
 
-## Установка
+## Install
 
 ```sh
 npm install -D vue-why-render
@@ -39,18 +39,19 @@ yarn add -D vue-why-render
 bun add -d vue-why-render
 ```
 
-Нужен Vue 3.3+. Рантайм-зависимостей у пакета нет.
+Requires Vue 3.3+. The package has no runtime dependencies.
 
-### Из GitHub, без npm
+### From GitHub, without npm
 
-Если ставить из реестра нельзя, тарбол с [страницы релизов](https://github.com/dadashi44/vue-why-render/releases)
-ставится по прямой ссылке и авторизации не требует:
+If installing from the registry is not an option, the tarball attached to every
+[release](https://github.com/dadashi44/vue-why-render/releases) installs from a direct
+link and needs no authentication:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.4/vue-why-render-0.1.4.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.5/vue-why-render-0.1.5.tgz
 ```
 
-## Подключение
+## Usage
 
 ### Vue
 
@@ -70,7 +71,7 @@ app.mount('#app')
 
 ### Nuxt
 
-Плагин только для клиента — файл с суффиксом `.client.ts` не попадёт в SSR:
+The plugin is client-only — a file with the `.client.ts` suffix never reaches SSR:
 
 ```ts
 // plugins/why-render.client.ts
@@ -83,7 +84,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 })
 ```
 
-### Вручную, без плагина
+### Manually, without the plugin
 
 ```ts
 import { scan } from 'vue-why-render'
@@ -95,59 +96,60 @@ handle?.getStats()
 handle?.stop()
 ```
 
-## Опции
+## Options
 
-| Опция | По умолчанию | Что делает |
+| Option | Default | What it does |
 | --- | --- | --- |
-| `enabled` | автоопределение по `NODE_ENV` | Включает сканер. |
-| `overlay` | `true` | Рамки вокруг перерисованных компонентов. |
-| `panel` | `true` | Плавающая панель со статистикой. |
-| `showLabels` | `true` | Подпись с именем компонента на рамке. |
-| `includeMounts` | `false` | Показывать не только обновления, но и первые монтирования. |
-| `trackReasons` | `true` | Собирать причины через `renderTriggered`. |
-| `trackProps` | `true` | Диффать пропы между обновлениями. |
-| `include` | `[]` | Следить только за этими компонентами: строка, регулярка или функция. |
-| `exclude` | `[]` | Не трогать эти компоненты. Сильнее `include`. |
-| `minDuration` | `0` | Игнорировать обновления быстрее указанного времени в мс. |
-| `hotThreshold` | `5` | Сколько рендеров в секунду считать «красными». |
-| `maxEvents` | `500` | Размер кольцевого буфера событий. |
-| `flushInterval` | `250` | Как часто панель забирает новый снимок, мс. |
-| `displayDuration` | `600` | Через сколько гаснет рамка, мс. |
-| `openInEditorUrl` | `/__open-in-editor?file={file}` | Шаблон ссылки на открытие файла в IDE. |
-| `onRender` | — | Колбэк на каждое событие рендера. |
+| `enabled` | `true` | Turns the scanner on. The package never guesses the build mode — see [Cost](#cost). |
+| `overlay` | `true` | Borders around re-rendered components. |
+| `panel` | `true` | Floating statistics panel. |
+| `showLabels` | `true` | Component name label on the border. |
+| `includeMounts` | `false` | Report first mounts as well as updates. |
+| `trackReasons` | `true` | Collect reasons through `renderTriggered`. |
+| `trackProps` | `true` | Diff props between updates. |
+| `include` | `[]` | Watch only these components: a string, a regexp or a function. |
+| `exclude` | `[]` | Leave these components alone. Beats `include`. |
+| `minDuration` | `0` | Ignore updates faster than this, in ms. |
+| `hotThreshold` | `5` | How many renders per second count as "hot". |
+| `maxEvents` | `500` | Size of the ring buffer of events. |
+| `flushInterval` | `250` | How often the panel pulls a fresh snapshot, in ms. |
+| `displayDuration` | `600` | How long a border stays visible, in ms. |
+| `openInEditorUrl` | `/__open-in-editor?file={file}` | Template for the open-in-editor link. |
+| `onRender` | — | Callback fired on every render event. |
 
-## Как определяется причина
+## How the reason is determined
 
-Глобальный миксин вешает на каждый компонент `renderTriggered`. Vue передаёт в него
-`{ target, type, key, oldValue, newValue }` — то есть объект, ключ и значения до и после.
-Дальше пакет переводит это на человеческий язык:
+A global mixin attaches `renderTriggered` to every component. Vue passes it
+`{ target, type, key, oldValue, newValue }` — the object, the key, and the values before
+and after. From there the package translates it into plain language:
 
-- `target === instance.props` → **проп**;
-- у цели есть `$id` → **стор** (`cart.items`);
-- цель — реф, а ключ `value` → ищем имя переменной в `setupState` и показываем **состояние count**, а не бесполезное `value`;
-- массив → `[3]`, `Map`/`Set` → коллекция.
+- `target === instance.props` → a **prop**;
+- the target has an `$id` → a **store** (`cart.items`);
+- the target is a ref and the key is `value` → look up the variable name in `setupState`
+  and report **state count** instead of a useless `value`;
+- an array → `[3]`; a `Map` or `Set` → a collection.
 
-Плюс независимо от этого снимается диф пропсов между соседними обновлениями — он ловит
-случай, когда родитель каждый раз передаёт новый литерал.
+Independently of all that, props are diffed between consecutive updates. That is what
+catches the case where a parent hands down a freshly built literal every time.
 
-## Стоимость
+## Cost
 
-Инструмент дев-онли по трём причинам, и это не перестраховка:
+This is a dev-only tool for three reasons, and none of them is an abundance of caution:
 
-1. `renderTriggered` работает только в дев-сборке Vue — в проде хук не вызывается вообще.
-2. Колбэк дёргается на каждый триггер реактивности. Если профилируешь именно тайминги, ставь `trackReasons: false`.
-3. Глобальный миксин добавляет хуки каждому компоненту приложения.
+1. `renderTriggered` only fires in a development build of Vue — in production the hook is never called at all.
+2. The callback runs on every reactivity trigger. If you are profiling timings specifically, set `trackReasons: false`.
+3. The global mixin adds hooks to every component in the application.
 
-`renderTracked` (срабатывает на каждое **чтение** реактивного значения) сознательно не
-используется: это тысячи вызовов в секунду, профилировать с ним нечего.
+`renderTracked` — which fires on every **read** of a reactive value — is deliberately not
+used: that is thousands of calls per second, and nothing left to profile.
 
-**Гасить сканер в проде — задача вызывающего кода.** Пакет не пытается угадать режим
-сборки: в браузерном бандле `process` недоступен, а голая ссылка на `process.env.NODE_ENV`
-ломает прод-сборку приложения — `@rollup/plugin-commonjs` принимает такой ESM-файл за
-смешанный CommonJS и переписывает его в битый код. Поэтому по умолчанию сканер включён
-везде, кроме явно опознанного прода (когда `NODE_ENV` всё же виден, например на SSR).
+**Switching the scanner off in production is the caller's job.** The package makes no
+attempt to guess the build mode: `process` is not available in a browser bundle, and a
+bare reference to `process.env.NODE_ENV` breaks the consuming application's production
+build — `@rollup/plugin-commonjs` mistakes such an ESM file for mixed CommonJS and
+rewrites it into syntactically broken code. So the scanner is simply on by default.
 
-Правильный способ — статический флаг сборщика, который вырезает и вызов, и сам импорт:
+The right way is a static bundler flag, which strips both the call and the import itself:
 
 ```ts
 // Nuxt
@@ -161,19 +163,19 @@ if (import.meta.env.DEV) {
 }
 ```
 
-## Чего пакет не делает
+## What this package does not do
 
-- Не заменяет флеймграфы Vue DevTools и трейсы браузера: он показывает, что и почему перерисовалось, а не куда ушло время внутри рендера.
-- Не работает в проде.
-- Не поддерживает Vue 2.
+- It does not replace Vue DevTools flame graphs or browser traces: it shows *what* re-rendered and *why*, not where the time went inside a render.
+- It does not work in production.
+- It does not support Vue 2.
 
-## Разработка
+## Development
 
 ```sh
 npm install
-npm run dev        # песочница с демо-компонентами
-npm run dev:site   # лендинг с той же песочницей внутри
-npm run build:site # сборка сайта в dist-site
+npm run dev        # playground with demo components
+npm run dev:site   # landing page with the same playground inside
+npm run build:site # build the site into dist-site
 npm test           # vitest
 npm run test:coverage
 npm run typecheck  # vue-tsc
@@ -181,17 +183,18 @@ npm run lint
 npm run build
 ```
 
-Тесты монтируют настоящие приложения Vue в jsdom и проверяют весь путь: от изменения
-рефа до записи в реестр с правильной причиной. Оверлей проверяется на подменённом
-2d-контексте, панель — через `@vue/test-utils`.
+Tests mount real Vue applications in jsdom and cover the whole path: from a ref changing
+to the registry recording it with the correct reason. The overlay is verified against a
+stubbed 2d context, the panel through `@vue/test-utils`.
 
-CI гоняет линт, типы и тесты на Node 20/22/24, отдельно проверяет установку и сборку
-через pnpm, yarn и bun, а затем ставит собранный тарбол в чистый проект каждым из
-четырёх менеджеров и дёргает и ESM-, и CJS-точку входа.
+CI runs lint, types and tests on Node 20/22/24, separately verifies installation and
+building under pnpm, yarn and bun, and then installs the packed tarball into a clean
+project with each of the four managers, exercising both the ESM and the CJS entry point.
 
-Релиз уезжает в npm по тегу `v*` через доверенную публикацию: токенов в секретах нет,
-npm обменивает OIDC-токен Actions на одноразовые права и сам проставляет провенанс.
+Releases go to npm on a `v*` tag through trusted publishing: there are no tokens in
+repository secrets — npm exchanges the Actions OIDC token for one-time credentials and
+attaches provenance itself.
 
-## Лицензия
+## License
 
 MIT
