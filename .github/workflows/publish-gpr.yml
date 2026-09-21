@@ -1,0 +1,56 @@
+name: Publish to GitHub Packages
+
+on:
+    push:
+        tags: ['v*']
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    packages: write
+
+jobs:
+    publish:
+        name: publish to GitHub Packages
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 22
+                  cache: npm
+                  registry-url: https://npm.pkg.github.com
+                  scope: '@dadashi44'
+
+            - run: npm ci
+            - run: npm run lint
+            - run: npm run typecheck
+            - run: npm test
+            - run: npm run build
+
+            # GitHub Packages принимает только имена вида @владелец/пакет.
+            # В npm пакет уедет без области, поэтому имя правим на лету
+            # и коммитить эту правку не надо.
+            - name: Scope the package name for this registry
+              run: npm pkg set name="@dadashi44/vue-why-render"
+
+            # Зеркало не должно ронять релиз из-за того, что версия уже
+            # лежит в реестре, — но и глотать любую ошибку нельзя: именно так
+            # раньше четыре релиза молча не доезжали до npm. Терпим ровно
+            # один случай, всё остальное — падение.
+            - name: Publish
+              run: |
+                  if npm publish > /tmp/gpr.log 2>&1; then
+                    cat /tmp/gpr.log
+                    echo "опубликовано в GitHub Packages"
+                  else
+                    cat /tmp/gpr.log
+                    if grep -qiE "cannot publish over|409 Conflict|already exists" /tmp/gpr.log; then
+                      echo "эта версия уже в реестре — пропускаем"
+                    else
+                      exit 1
+                    fi
+                  fi
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
