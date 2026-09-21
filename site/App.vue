@@ -133,12 +133,14 @@ function raisePrice(id: number): void {
         <section>
             <h2>Установка</h2>
 
-            <pre>npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.4/vue-why-render-0.1.4.tgz</pre>
+            <pre>npm i -D vue-why-render</pre>
 
             <p class="lead" style="margin-top: 14px">
-                Тарбол с релиза ставится по прямой ссылке и авторизации не требует.
-                Пакет готовится к публикации в npm — тогда хватит обычного
-                <code>npm i -D vue-why-render</code>.
+                Нужен Vue 3.3+. Рантайм-зависимостей у пакета нет, в зависимостях
+                он один. Есть и <a href="https://www.npmjs.com/package/vue-why-render">страница
+                в npm</a>, и тарбол на
+                <a href="https://github.com/dadashi44/vue-why-render/releases">странице релизов</a>,
+                если ставить из реестра почему-то нельзя.
             </p>
 
             <h2 style="margin-top: 36px">Подключение</h2>

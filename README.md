@@ -2,6 +2,9 @@
 
 Видно, какие компоненты Vue перерисовываются — и **почему именно**.
 
+[![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
+[![license](https://img.shields.io/npm/l/vue-why-render)](./LICENSE)
+
 **[Живое демо →](https://dadashi44.github.io/vue-why-render/)**
 
 Аналоги для Vue умеют мигать рамкой вокруг обновившегося компонента. Этого хватает,
@@ -40,7 +43,8 @@ bun add -d vue-why-render
 
 ### Из GitHub, без npm
 
-Тарбол с релиза ставится по прямой ссылке и авторизации не требует:
+Если ставить из реестра нельзя, тарбол с [страницы релизов](https://github.com/dadashi44/vue-why-render/releases)
+ставится по прямой ссылке и авторизации не требует:
 
 ```sh
 npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.4/vue-why-render-0.1.4.tgz
