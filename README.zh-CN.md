@@ -7,6 +7,8 @@
 
 **[在线演示 →](https://dadashi44.github.io/vue-why-render/)** · [English](./README.md) · [Русский](./README.ru.md)
 
+![vue-why-render：组件重新渲染，面板指出背后的 prop](./docs/demo.gif)
+
 同类工具会在刚更新的组件周围闪一圈边框。这足以让你发现问题，却不足以让你修好它 ——
 你依然要问：*到底是什么变了？* `vue-why-render` 回答的正是这个问题：它会指出触发这次
 渲染的那个具体的响应式依赖。

@@ -7,6 +7,8 @@ See which Vue components re-render — and **why exactly**.
 
 **[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](./README.ru.md) · [中文](./README.zh-CN.md)
 
+![vue-why-render: a component re-renders and the panel names the prop behind it](./docs/demo.gif)
+
 Other tools flash a border around a component that just updated. That is enough to
 notice a problem, but not to fix it — you are still left asking *what actually changed?*
 `vue-why-render` answers that: it names the exact reactive dependency that triggered
