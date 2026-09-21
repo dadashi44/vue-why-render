@@ -22,16 +22,16 @@ jobs:
         name: build site
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v7
               with:
                   node-version: 22
                   cache: npm
 
             - run: npm ci
 
-            - uses: actions/configure-pages@v5
+            - uses: actions/configure-pages@v6
               id: pages
 
             # base берём из настроек Pages: на github.io это /vue-why-render/,
@@ -41,7 +41,7 @@ jobs:
               env:
                   SITE_BASE: ${{ steps.pages.outputs.base_path }}/
 
-            - uses: actions/upload-pages-artifact@v3
+            - uses: actions/upload-pages-artifact@v5
               with:
                   path: dist-site
 
@@ -53,5 +53,5 @@ jobs:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
-            - uses: actions/deploy-pages@v4
+            - uses: actions/deploy-pages@v5
               id: deployment
