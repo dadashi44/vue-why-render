@@ -3,11 +3,11 @@
 看清哪些 Vue 组件在重新渲染 —— 以及**究竟为什么**。
 
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
-[![license](https://img.shields.io/npm/l/vue-why-render)](./LICENSE)
+[![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[在线演示 →](https://dadashi44.github.io/vue-why-render/)** · [English](./README.md) · [Русский](./README.ru.md)
+**[在线演示 →](https://dadashi44.github.io/vue-why-render/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/README.ru.md)
 
-![vue-why-render：组件重新渲染，面板指出背后的 prop](./docs/demo.gif)
+![vue-why-render：组件重新渲染，面板指出背后的 prop](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
 同类工具会在刚更新的组件周围闪一圈边框。这足以让你发现问题，却不足以让你修好它 ——
 你依然要问：*到底是什么变了？* `vue-why-render` 回答的正是这个问题：它会指出触发这次

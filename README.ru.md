@@ -3,11 +3,11 @@
 Видно, какие компоненты Vue перерисовываются — и **почему именно**.
 
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
-[![license](https://img.shields.io/npm/l/vue-why-render)](./LICENSE)
+[![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[Живое демо →](https://dadashi44.github.io/vue-why-render/)** · [English](./README.md) · [中文](./README.zh-CN.md)
+**[Живое демо →](https://dadashi44.github.io/vue-why-render/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/README.zh-CN.md)
 
-![vue-why-render: компонент перерисовался, панель называет проп-виновник](./docs/demo.gif)
+![vue-why-render: компонент перерисовался, панель называет проп-виновник](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
 Аналоги для Vue умеют мигать рамкой вокруг обновившегося компонента. Этого хватает,
 чтобы заметить проблему, но не чтобы её починить: остаётся вопрос «а что вообще

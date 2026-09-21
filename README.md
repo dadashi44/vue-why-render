@@ -3,11 +3,11 @@
 See which Vue components re-render — and **why exactly**.
 
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
-[![license](https://img.shields.io/npm/l/vue-why-render)](./LICENSE)
+[![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](./README.ru.md) · [中文](./README.zh-CN.md)
+**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/README.zh-CN.md)
 
-![vue-why-render: a component re-renders and the panel names the prop behind it](./docs/demo.gif)
+![vue-why-render: a component re-renders and the panel names the prop behind it](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
 Other tools flash a border around a component that just updated. That is enough to
 notice a problem, but not to fix it — you are still left asking *what actually changed?*
