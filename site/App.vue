@@ -138,7 +138,7 @@ function raisePrice(id: number): void {
             <p class="lead" style="margin-top: 14px">
                 Нужен Vue 3.3+. Рантайм-зависимостей у пакета нет, в зависимостях
                 он один. Есть и <a href="https://www.npmjs.com/package/vue-why-render">страница
-                в npm</a>, и тарбол на
+                    в npm</a>, и тарбол на
                 <a href="https://github.com/dadashi44/vue-why-render/releases">странице релизов</a>,
                 если ставить из реестра почему-то нельзя.
             </p>
