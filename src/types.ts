@@ -1,4 +1,5 @@
 import type { ComponentInternalInstance } from 'vue'
+import type { Locale } from './i18n'
 
 /** Что именно заставило компонент перерисоваться. */
 export interface RenderReason {
@@ -97,6 +98,8 @@ export interface VueWhyRenderOptions {
     displayDuration?: number
     /** Шаблон ссылки на открытие файла в IDE. */
     openInEditorUrl?: string
+    /** Язык интерфейса панели и подписей причин. По умолчанию `en`. */
+    locale?: Locale
     /** Колбэк на каждое событие рендера. */
     onRender?: (event: RenderEvent) => void
 }

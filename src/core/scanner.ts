@@ -23,7 +23,7 @@ function safe(label: string, fn: () => void): void {
     catch (error) {
         if (!warnedAboutCrash) {
             warnedAboutCrash = true
-            console.warn(`[vue-why-render] сбой в ${label}, сканирование продолжается:`, error)
+            console.warn(`[vue-why-render] ${label} failed, scanning continues:`, error)
         }
     }
 }

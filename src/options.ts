@@ -28,6 +28,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     flushInterval: 250,
     displayDuration: 600,
     openInEditorUrl: '/__open-in-editor?file={file}',
+    locale: 'en',
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {

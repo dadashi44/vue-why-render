@@ -5,12 +5,13 @@ import { Scanner } from '../src/core/scanner'
 import { resolveOptions } from '../src/options'
 import type { RenderEvent } from '../src/types'
 
-function makeScanner(): Scanner {
+function makeScanner(locale?: 'en' | 'ru' | 'zh-CN'): Scanner {
     return new Scanner(resolveOptions({
         enabled: true,
         overlay: false,
         panel: false,
         flushInterval: 0,
+        ...(locale ? { locale } : {}),
     }))
 }
 
@@ -52,7 +53,7 @@ describe('Panel', () => {
     it('показывает заглушку, пока рендеров нет', async () => {
         scanner = makeScanner()
         const wrapper = await mountPanel(scanner)
-        expect(wrapper.text()).toContain('Пока ни одной перерисовки')
+        expect(wrapper.text()).toContain('No re-renders yet')
     })
 
     it('показывает топ по перерисовкам и обновляется на новые события', async () => {
@@ -76,7 +77,7 @@ describe('Panel', () => {
         })
         const wrapper = await mountPanel(scanner)
 
-        expect(wrapper.text()).toContain('состояние count: 0 → 1')
+        expect(wrapper.text()).toContain('state count: 0 → 1')
     })
 
     it('предупреждает про проп, у которого сменилась только ссылка', async () => {
@@ -86,7 +87,7 @@ describe('Panel', () => {
         })
         const wrapper = await mountPanel(scanner)
 
-        expect(wrapper.text()).toContain('новая ссылка')
+        expect(wrapper.text()).toContain('new reference')
     })
 
     it('фильтрует список по запросу', async () => {
@@ -110,7 +111,7 @@ describe('Panel', () => {
         const tabs = wrapper.findAll('.vwr__tab')
         await tabs[3].trigger('click')
 
-        expect(wrapper.text()).toContain('стор items')
+        expect(wrapper.text()).toContain('store items')
         expect(tabs[3].classes()).toContain('vwr__tab--active')
     })
 
@@ -199,5 +200,35 @@ describe('mountPanel', () => {
 
         unmount()
         expect(document.querySelector('[data-vue-why-render="panel"]')).toBeNull()
+    })
+})
+
+describe('Panel · локаль', () => {
+    it('по умолчанию говорит по-английски', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+
+        expect(wrapper.text()).toContain('Top')
+        expect(wrapper.text()).toContain('No re-renders yet')
+    })
+
+    it('переключается на язык из опции', async () => {
+        scanner = makeScanner('ru')
+        seed(scanner, 1, 1, {
+            propChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true }],
+        })
+        const wrapper = await mountPanel(scanner)
+
+        expect(wrapper.text()).toContain('Топ')
+        expect(wrapper.text()).toContain('новая ссылка, значение то же')
+        expect(wrapper.text()).not.toContain('new reference')
+    })
+
+    it('понимает китайский', async () => {
+        scanner = makeScanner('zh-CN')
+        const wrapper = await mountPanel(scanner)
+
+        expect(wrapper.text()).toContain('排行')
+        expect(wrapper.text()).toContain('暂无重新渲染')
     })
 })

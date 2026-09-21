@@ -1,18 +1,9 @@
+import type { Messages } from '../i18n'
 import type { ComponentRecord, PropChange, RenderReason } from '../types'
 
-const SOURCE_LABEL: Record<RenderReason['source'], string> = {
-    props: 'проп',
-    setup: 'состояние',
-    data: 'data',
-    store: 'стор',
-    array: 'массив',
-    collection: 'коллекция',
-    unknown: 'реактивность',
-}
-
 /** Строка вида «проп title: "a" → "b"». */
-export function formatReason(reason: RenderReason): string {
-    const label = `${SOURCE_LABEL[reason.source]} ${reason.key}`
+export function formatReason(reason: RenderReason, t: Messages): string {
+    const label = `${t.source[reason.source]} ${reason.key}`
     if (reason.oldValue !== undefined && reason.newValue !== undefined) {
         return `${label}: ${reason.oldValue} → ${reason.newValue}`
     }
@@ -20,9 +11,9 @@ export function formatReason(reason: RenderReason): string {
     return label
 }
 
-export function formatPropChange(change: PropChange): string {
-    const suffix = change.referenceOnly ? ' — новая ссылка, значение то же' : ''
-    return `проп ${change.key}: ${change.oldValue} → ${change.newValue}${suffix}`
+export function formatPropChange(change: PropChange, t: Messages): string {
+    const suffix = change.referenceOnly ? t.referenceOnly : ''
+    return `${t.source.props} ${change.key}: ${change.oldValue} → ${change.newValue}${suffix}`
 }
 
 export function formatDuration(ms: number): string {
@@ -48,13 +39,13 @@ export function shortFile(file?: string): string {
  * Изменение пропа прилетает дважды: из renderTriggered и из дифа пропсов.
  * Оставляем версию из дифа — она дополнительно знает про новую ссылку.
  */
-export function whyLines(record: ComponentRecord): string[] {
+export function whyLines(record: ComponentRecord, t: Messages): string[] {
     const changedProps = new Set(record.lastPropChanges.map(change => change.key))
     const fromReasons = record.lastReasons
         .filter(reason => !(reason.source === 'props' && changedProps.has(reason.key)))
-        .map(formatReason)
+        .map(reason => formatReason(reason, t))
 
-    return [...fromReasons, ...record.lastPropChanges.map(formatPropChange)]
+    return [...fromReasons, ...record.lastPropChanges.map(change => formatPropChange(change, t))]
 }
 
 export function matchesQuery(record: ComponentRecord, query: string): boolean {

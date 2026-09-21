@@ -15,6 +15,8 @@ export type {
     ResolvedOptions,
     VueWhyRenderOptions,
 } from './types'
+export type { Locale, Messages } from './i18n'
+export { messages } from './i18n'
 export type { RegistrySnapshot, TreeNode } from './core/registry'
 export { Registry } from './core/registry'
 export { Scanner } from './core/scanner'

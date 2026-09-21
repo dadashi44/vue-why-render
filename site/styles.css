@@ -105,8 +105,34 @@ p {
     font-size: 18px;
 }
 
+.langs {
+    display: flex;
+    gap: 6px;
+    padding-top: 20px;
+}
+
+.langs__item {
+    padding: 4px 10px;
+    color: var(--fg-dim);
+    font-size: 13px;
+    font-family: inherit;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.langs__item:hover {
+    color: var(--fg);
+}
+
+.langs__item--active {
+    color: var(--fg);
+    border-color: var(--line);
+}
+
 .hero {
-    padding: 72px 0 56px;
+    padding: 44px 0 56px;
 }
 
 .hero__tag {

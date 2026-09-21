@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import type { Scanner } from '../core/scanner'
+import { getMessages } from '../i18n'
 import type { TreeNode } from '../core/registry'
 import type { ComponentRecord } from '../types'
 import { throttle } from '../utils/throttle'
@@ -18,6 +19,10 @@ import {
 const props = defineProps<{ scanner: Scanner }>()
 
 type Tab = 'top' | 'slow' | 'tree' | 'events'
+
+// Локаль задаётся один раз при подключении и не меняется на лету,
+// поэтому словарь берём сразу, без реактивной обёртки.
+const t = getMessages(props.scanner.options.locale)
 
 const collapsed = ref(false)
 const tab = ref<Tab>('top')
@@ -110,7 +115,7 @@ function openInEditor(record: ComponentRecord): void {
             <span class="vwr__title">why-render</span>
             <span class="vwr__badge">{{ summary.renders }}</span>
             <span class="vwr__spacer" />
-            <span class="vwr__stat">{{ summary.perSecond }}/s · {{ summary.components }} комп.</span>
+            <span class="vwr__stat">{{ summary.perSecond }}/s · {{ summary.components }} {{ t.components }}</span>
             <span class="vwr__stat">{{ collapsed ? '▲' : '▼' }}</span>
         </div>
 
@@ -121,44 +126,44 @@ function openInEditor(record: ComponentRecord): void {
                     :class="{ 'vwr__tab--active': tab === 'top' }"
                     @click="selectTab('top')"
                 >
-                    Топ
+                    {{ t.tabTop }}
                 </button>
                 <button
                     class="vwr__tab"
                     :class="{ 'vwr__tab--active': tab === 'slow' }"
                     @click="selectTab('slow')"
                 >
-                    Медленные
+                    {{ t.tabSlow }}
                 </button>
                 <button
                     class="vwr__tab"
                     :class="{ 'vwr__tab--active': tab === 'tree' }"
                     @click="selectTab('tree')"
                 >
-                    Дерево
+                    {{ t.tabTree }}
                 </button>
                 <button
                     class="vwr__tab"
                     :class="{ 'vwr__tab--active': tab === 'events' }"
                     @click="selectTab('events')"
                 >
-                    События
+                    {{ t.tabEvents }}
                 </button>
             </div>
 
             <div class="vwr__toolbar">
-                <input v-model="query" class="vwr__search" type="search" placeholder="фильтр по имени или файлу">
+                <input v-model="query" class="vwr__search" type="search" :placeholder="t.searchPlaceholder">
                 <button class="vwr__btn" :class="{ 'vwr__btn--on': paused }" @click="togglePause()">
-                    {{ paused ? 'пауза' : 'запись' }}
+                    {{ paused ? t.paused : t.recording }}
                 </button>
                 <button class="vwr__btn" @click="reset()">
-                    сброс
+                    {{ t.reset }}
                 </button>
             </div>
 
             <ul v-if="tab === 'top' || tab === 'slow'" class="vwr__list">
                 <li v-if="(tab === 'top' ? topRecords : slowRecords).length === 0" class="vwr__empty">
-                    Пока ни одной перерисовки
+                    {{ t.emptyRenders }}
                 </li>
                 <li v-for="record in tab === 'top' ? topRecords : slowRecords" :key="record.uid">
                     <button class="vwr__row" :title="record.file" @click="openInEditor(record)">
@@ -170,7 +175,7 @@ function openInEditor(record: ComponentRecord): void {
                         <span class="vwr__time">{{ formatDuration(averageDuration(record)) }}</span>
                     </button>
                     <span
-                        v-for="(line, index) in whyLines(record)"
+                        v-for="(line, index) in whyLines(record, t)"
                         :key="index"
                         class="vwr__why"
                     >{{ line }}</span>
@@ -179,7 +184,7 @@ function openInEditor(record: ComponentRecord): void {
 
             <ul v-else-if="tab === 'tree'" class="vwr__list">
                 <li v-if="flatTree.length === 0" class="vwr__empty">
-                    Дерево пустое
+                    {{ t.emptyTree }}
                 </li>
                 <li v-for="node in flatTree" :key="node.uid">
                     <button class="vwr__row" :title="node.file" @click="openInEditor(node)">
@@ -195,7 +200,7 @@ function openInEditor(record: ComponentRecord): void {
 
             <ul v-else class="vwr__list">
                 <li v-if="events.length === 0" class="vwr__empty">
-                    Событий нет
+                    {{ t.emptyEvents }}
                 </li>
                 <li v-for="(event, index) in events" :key="`${event.uid}-${event.timestamp}-${index}`" class="vwr__event">
                     <div class="vwr__event-head">
@@ -204,13 +209,13 @@ function openInEditor(record: ComponentRecord): void {
                         <span class="vwr__time">{{ formatDuration(event.duration) }}</span>
                     </div>
                     <span v-for="(reason, reasonIndex) in event.reasons" :key="reasonIndex" class="vwr__why">
-                        {{ formatReason(reason) }}
+                        {{ formatReason(reason, t) }}
                     </span>
                     <span
                         v-for="(change, changeIndex) in event.propChanges"
                         :key="`p${changeIndex}`"
                         class="vwr__why vwr__why--prop"
-                    >{{ formatPropChange(change) }}</span>
+                    >{{ formatPropChange(change, t) }}</span>
                 </li>
             </ul>
         </div>

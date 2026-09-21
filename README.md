@@ -117,6 +117,7 @@ handle?.stop()
 | `flushInterval` | `250` | How often the panel pulls a fresh snapshot, in ms. |
 | `displayDuration` | `600` | How long a border stays visible, in ms. |
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | Template for the open-in-editor link. |
+| `locale` | `'en'` | Panel language: `en`, `ru` or `zh-CN`. |
 | `onRender` | — | Callback fired on every render event. |
 
 ## How the reason is determined
