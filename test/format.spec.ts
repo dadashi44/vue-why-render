@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
     averageDuration,
-    buildEditorUrl,
     formatDuration,
     formatPropChange,
     formatReason,
@@ -9,6 +8,7 @@ import {
     shortFile,
     whyLines,
 } from '../src/panel/format'
+import { buildEditorUrl } from '../src/panel/open-in-editor'
 import { getMessages } from '../src/i18n'
 import type { ComponentRecord } from '../src/types'
 

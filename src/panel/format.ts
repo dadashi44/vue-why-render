@@ -54,8 +54,3 @@ export function matchesQuery(record: ComponentRecord, query: string): boolean {
     return record.name.toLowerCase().includes(trimmed)
         || (record.file ?? '').toLowerCase().includes(trimmed)
 }
-
-/** Ссылка на открытие файла в IDE через дев-сервер. */
-export function buildEditorUrl(template: string, file: string): string {
-    return template.replace('{file}', encodeURIComponent(file))
-}

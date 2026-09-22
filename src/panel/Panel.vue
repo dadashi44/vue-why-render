@@ -7,7 +7,6 @@ import type { ComponentRecord } from '../types'
 import { throttle } from '../utils/throttle'
 import {
     averageDuration,
-    buildEditorUrl,
     formatDuration,
     formatPropChange,
     formatReason,
@@ -15,6 +14,7 @@ import {
     shortFile,
     whyLines,
 } from './format'
+import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
 
 const props = defineProps<{ scanner: Scanner }>()
 
@@ -100,11 +100,19 @@ function reset(): void {
     refresh.flush()
 }
 
+// Подсказку показываем один раз за сессию: по строкам кликают часто,
+// а совет от повторения не улучшается.
+let warnedAboutEditor = false
+
 function openInEditor(record: ComponentRecord): void {
     if (!record.file) return
-    const url = buildEditorUrl(props.scanner.options.openInEditorUrl, record.file)
-    // Дев-сервер отдаёт 204 и открывает IDE — ответ нам не нужен.
-    fetch(url).catch(() => {})
+
+    void requestOpenInEditor(record.file, props.scanner.options.openInEditorUrl)
+        .then((opened) => {
+            if (opened || warnedAboutEditor) return
+            warnedAboutEditor = true
+            console.warn(EDITOR_HELP)
+        })
 }
 
 </script>
