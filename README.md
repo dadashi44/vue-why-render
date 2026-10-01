@@ -54,7 +54,7 @@ If installing from the registry is not an option, the tarball attached to every
 link and needs no authentication:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.3.0/vue-why-render-0.3.0.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.4.0/vue-why-render-0.4.0.tgz
 ```
 
 ## Usage
