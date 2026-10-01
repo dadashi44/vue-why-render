@@ -15,6 +15,7 @@ import {
     whyLines,
 } from './format'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
+import { createReport, downloadReport } from '../core/report'
 
 const props = defineProps<{ scanner: Scanner }>()
 
@@ -94,6 +95,13 @@ function togglePause(): void {
     props.scanner.registry.setPaused(paused.value)
 }
 
+function saveReport(): void {
+    downloadReport(createReport({
+        registry: props.scanner.registry,
+        options: props.scanner.options,
+    }))
+}
+
 function reset(): void {
     props.scanner.registry.reset()
     tree.value = props.scanner.registry.tree()
@@ -166,6 +174,9 @@ function openInEditor(record: ComponentRecord): void {
                 </button>
                 <button class="vwr__btn" @click="reset()">
                     {{ t.reset }}
+                </button>
+                <button class="vwr__btn" @click="saveReport()">
+                    {{ t.saveReport }}
                 </button>
             </div>
 

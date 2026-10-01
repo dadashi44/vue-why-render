@@ -29,7 +29,8 @@ ProductCard ×7 · 2.4ms · badge
 - **面板**：按渲染次数排行、按耗时排行、带子树合计的组件树，以及事件流。
 - **跳转到编辑器**：点击一行即可通过开发服务器在 IDE 中打开对应的 SFC。
 - **暂停、重置与过滤**：按组件名或文件路径。
-- **API**：`getStats()`、`getEvents()` 以及 `onRender` 回调，可用于自建报表。
+- **报告**：面板上一键把整个会话导出为 JSON，再用 `diffReports(before, after)` 证明修复确实奏效。
+- **API**：`getStats()`、`getEvents()`、`getReport()` 以及 `onRender` 回调，可用于自建工具。
 
 ## 安装
 
@@ -136,6 +137,51 @@ handle?.stop()
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | 在编辑器中打开文件的链接模板。 |
 | `locale` | `'en'` | 面板语言：`en`、`ru` 或 `zh-CN`。 |
 | `onRender` | — | 每次渲染事件触发的回调。 |
+
+## 报告
+
+点击面板上的 **报告** 按钮即可把整个会话保存为 JSON，也可以通过 API：
+
+```ts
+const report = handle.getReport()   // 一个普通的可序列化对象
+handle.saveReport()                 // 同样的内容，直接下载为文件
+```
+
+文件中除数字外还记录了本包与 Vue 的版本、URL、会话时长和扫描器选项。这些并非装饰：
+没有它们，别人的报告就无法解读 —— 分不清某个组件是真的没有重新渲染，还是被过滤掉了。
+
+### 比较两份报告
+
+其他工具展示的是状态。本工具回答的是优化之后真正会问的那个问题：*有没有变好？*
+
+```ts
+import { diffReports, formatDiff, parseReport } from 'vue-why-render'
+
+const diff = diffReports(parseReport(before), parseReport(after))
+console.log(formatDiff(diff).join('\n'))
+```
+
+```
+total ×19 → ×11  -42%
+
+ProductCard  ×9 → ×1    -89%   reason gone: props:badge
+```
+
+组件按 `file::name` 匹配，而不是 `uid` —— uid 只在一次会话内有效，跨报告没有意义。
+因此同一组件的多个实例会作为一个聚合来比较。
+
+`diff.components` 把回归排在最前：在「优化」之后反而变多的渲染次数才是你要找的东西，
+而不是变少的那个。
+
+**这个 diff 不会靠沉默骗人。** 当两份报告不可比时，它会写进 `diff.warnings`，
+并且 `formatDiff` 会把这些行放在最前面：
+
+- 两次会话时长不同 —— 请比较 `beforePerSecond` / `afterPerSecond`，而不是原始计数；
+- `include` / `exclude` 不同 —— 两次运行观察的组件集合不一样；
+- `includeMounts` 或 `minDuration` 不同 —— 两次运行统计的事件不一样；
+- 两份报告由不同版本的本包生成。
+
+一个因为改了过滤器而得出、却被默默展示的「−80%」，比没有 diff 更糟。
 
 ## 原因是如何判定的
 

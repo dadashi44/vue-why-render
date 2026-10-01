@@ -2,6 +2,8 @@ import type { App, Plugin } from 'vue'
 import type { ComponentRecord, RenderEvent, VueWhyRenderOptions } from './types'
 import { resolveOptions } from './options'
 import { Scanner } from './core/scanner'
+import { createReport, downloadReport } from './core/report'
+import type { Report } from './core/report'
 import { mountPanel } from './panel/mount'
 
 export type {
@@ -18,6 +20,20 @@ export type {
 export type { Locale, Messages } from './i18n'
 export { messages } from './i18n'
 export type { RegistrySnapshot, TreeNode } from './core/registry'
+export type { Report, ReportComponent, ReportMeta, ReportOptions } from './core/report'
+export {
+    componentKey,
+    createReport,
+    downloadReport,
+    parseReport,
+    reasonKey,
+    REPORT_FORMAT,
+    ReportParseError,
+    serializeReport,
+} from './core/report'
+export type { ComponentDiff, DiffStatus, ReportDiff } from './core/diff'
+export { diffReports, formatDiff } from './core/diff'
+export { VERSION } from './version'
 export { Registry } from './core/registry'
 export { Scanner } from './core/scanner'
 export { describeTrigger, diffProps, formatValue } from './core/reason'
@@ -32,6 +48,10 @@ export interface ScanHandle {
     reset: () => void
     getStats: () => ComponentRecord[]
     getEvents: () => RenderEvent[]
+    /** Снимок всей сессии одним сериализуемым объектом. */
+    getReport: () => Report
+    /** Снять отчёт и сохранить файлом. */
+    saveReport: (filename?: string) => void
 }
 
 let activeHandle: ScanHandle | null = null
@@ -70,6 +90,12 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
         getEvents() {
             return scanner.registry.getEvents()
         },
+        getReport() {
+            return createReport({ registry: scanner.registry, options: resolved })
+        },
+        saveReport(filename) {
+            downloadReport(handle.getReport(), filename)
+        },
     }
 
     activeHandle = handle
@@ -98,6 +124,15 @@ export function getEvents(): RenderEvent[] {
 
 export function reset(): void {
     activeHandle?.reset()
+}
+
+/** Отчёт по текущей сессии — удобно дёргать прямо из консоли. */
+export function getReport(): Report | null {
+    return activeHandle?.getReport() ?? null
+}
+
+export function saveReport(filename?: string): void {
+    activeHandle?.saveReport(filename)
 }
 
 export default VueWhyRender
