@@ -14,7 +14,9 @@
         "scan",
         "debug",
         "nuxt",
-        "nuxt-module"
+        "nuxt-module",
+        "testing",
+        "vitest"
     ],
     "license": "MIT",
     "author": "dadashi44",
@@ -35,6 +37,11 @@
             "types": "./dist/nuxt.d.ts",
             "import": "./dist/nuxt.mjs"
         },
+        "./test": {
+            "types": "./dist/test.d.ts",
+            "import": "./dist/test.js",
+            "require": "./dist/test.cjs"
+        },
         "./package.json": "./package.json"
     },
     "main": "./dist/index.cjs",
@@ -50,7 +57,7 @@
         "dev": "vite --config playground/vite.config.ts",
         "dev:site": "vite --config site/vite.config.ts",
         "build:site": "vite build --config site/vite.config.ts",
-        "build": "vite build && node scripts/ascii-bundle.mjs && node scripts/build-nuxt.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
+        "build": "vite build && node scripts/ascii-bundle.mjs && node scripts/build-nuxt.mjs && node scripts/build-test.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",

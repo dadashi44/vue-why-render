@@ -30,6 +30,7 @@ ProductCard ×7 · 2.4ms · badge
 - **Панель**: топ по перерисовкам, топ по времени, дерево компонентов с суммой по поддереву, лента событий.
 - **Прыжок в IDE**: клик по строке открывает SFC в редакторе через дев-сервер.
 - **Пауза, сброс, фильтр** по имени и пути к файлу.
+- **Проверки в тестах**: `expectRenders(ProductCard).toBe(0, …)` — лишний рендер, починенный однажды, перестаёт возвращаться.
 - **Подсказки**: рядом с причиной — что с ней делать: вынести объект, поднять обработчик в метод, присмотреться к `v-memo`.
 - **Отчёты**: вся сессия выгружается в JSON кнопкой из панели, а `diffReports(before, after)` показывает, сработала ли правка.
 - **API**: `getStats()`, `getEvents()`, `getReport()`, колбэк `onRender` — можно строить свою обвязку.
@@ -140,6 +141,51 @@ handle?.stop()
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | Шаблон ссылки на открытие файла в IDE. |
 | `locale` | `'en'` | Язык панели: `en`, `ru` или `zh-CN`. |
 | `onRender` | — | Колбэк на каждое событие рендера. |
+
+## Проверки в тестах
+
+Сканер умеет считать рендеры — значит, его можно повернуть в сторону регрессий:
+лишний рендер, починенный однажды, перестаёт возвращаться.
+
+```ts
+import { mount } from '@vue/test-utils'
+import { expectRenders, renderTracking, stopRenderTracking } from 'vue-why-render/test'
+
+afterEach(() => stopRenderTracking())
+
+it('карточка не перерисовывается при фильтрации', async () => {
+    const wrapper = mount(App, { global: { plugins: [renderTracking()] } })
+
+    await expectRenders(ProductCard).toBe(0, async () => {
+        await wrapper.find('input').setValue('мышь')
+    })
+})
+```
+
+Когда проверка падает, она сообщает не число, а причину:
+
+```
+[vue-why-render] expected ProductCard to re-render 0 time(s), but it re-rendered 1 time(s)
+reasons:
+  - prop badge: { text } -> { text } (new reference, same value)
+```
+
+| Хелпер | Что делает |
+| --- | --- |
+| `renderTracking(options?)` | Vue-плагин для `global.plugins`. Именно плагин: `mount()` создаёт приложение сам и наружу его не отдаёт. |
+| `expectRenders(target).toBe(n, action)` | Ровно `n` перерисовок за время действия. |
+| `expectRenders(target).toBeAtMost(n, action)` | Не больше `n` — там, где точное число хрупко. |
+| `recordRenders(action)` | Сырые `RenderEvent[]` за окно: стройте свои проверки. |
+| `stopRenderTracking()` | Зовите в `afterEach`, иначе трекер переживёт тест. |
+
+`target` — сам компонент, его имя или регулярка.
+
+Два решения приняты за вас и неожиданностью быть не могут: панель и оверлей
+выключены, поэтому они не трогают разметку, по которой тест ищет элементы;
+монтирования не считаются, потому что первый рендер лишним не бывает.
+
+После действия хелпер ждёт `nextTick`: обновления во Vue асинхронные, и без
+этого любая проверка видела бы ноль рендеров и проходила бы по неверной причине.
 
 ## Подсказки
 
