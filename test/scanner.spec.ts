@@ -112,7 +112,7 @@ describe('scan', () => {
         const childEvent = active!.getEvents().find(event => event.name === 'Child')
         expect(childEvent).toBeDefined()
         expect(childEvent!.propChanges).toEqual([
-            { key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false },
+            { key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false, newFunction: false },
         ])
     })
 

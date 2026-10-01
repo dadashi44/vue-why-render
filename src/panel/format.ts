@@ -1,4 +1,5 @@
 import type { Messages } from '../i18n'
+import type { Hint } from '../core/hints'
 import type { ComponentRecord, PropChange, RenderReason } from '../types'
 
 /** Строка вида «проп title: "a" → "b"». */
@@ -12,8 +13,19 @@ export function formatReason(reason: RenderReason, t: Messages): string {
 }
 
 export function formatPropChange(change: PropChange, t: Messages): string {
-    const suffix = change.referenceOnly ? t.referenceOnly : ''
+    // Две стрелки не равны никогда, поэтому referenceOnly для функций всегда
+    // false — без отдельной пометки в панели видны две одинаковые строки
+    // и ни слова о том, почему это считается изменением.
+    const suffix = change.referenceOnly
+        ? t.referenceOnly
+        : change.newFunction ? t.newFunction : ''
     return `${t.source.props} ${change.key}: ${change.oldValue} → ${change.newValue}${suffix}`
+}
+
+/** Подсказка строкой: текст из словаря плюс пропы, из-за которых она появилась. */
+export function formatHint(hint: Hint, t: Messages): string {
+    const text = t.hints[hint.code]
+    return hint.keys.length ? `${hint.keys.join(', ')}: ${text}` : text
 }
 
 export function formatDuration(ms: number): string {

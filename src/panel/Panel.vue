@@ -8,12 +8,14 @@ import { throttle } from '../utils/throttle'
 import {
     averageDuration,
     formatDuration,
+    formatHint,
     formatPropChange,
     formatReason,
     matchesQuery,
     shortFile,
     whyLines,
 } from './format'
+import { hintsForRecord } from '../core/hints'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
 import { createReport, downloadReport } from '../core/report'
 
@@ -93,6 +95,11 @@ function selectTab(next: Tab): void {
 function togglePause(): void {
     paused.value = !paused.value
     props.scanner.registry.setPaused(paused.value)
+}
+
+/** Подсказки по строке списка. Пустой массив — значит сказать нечего. */
+function hintLines(record: ComponentRecord): string[] {
+    return hintsForRecord(record, props.scanner.options).map(hint => formatHint(hint, t))
 }
 
 function saveReport(): void {
@@ -198,6 +205,11 @@ function openInEditor(record: ComponentRecord): void {
                         :key="index"
                         class="vwr__why"
                     >{{ line }}</span>
+                    <span
+                        v-for="(line, index) in hintLines(record)"
+                        :key="`h${index}`"
+                        class="vwr__why vwr__why--hint"
+                    >💡 {{ line }}</span>
                 </li>
             </ul>
 

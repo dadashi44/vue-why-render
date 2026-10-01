@@ -22,6 +22,7 @@ const record = (partial: Partial<ComponentRecord> = {}): ComponentRecord => ({
     parentUid: null,
     mountedAt: 0,
     renderCount: 4,
+    updateCount: 4,
     flashCount: 0,
     totalDuration: 10,
     maxDuration: 5,
@@ -50,12 +51,12 @@ describe('formatReason', () => {
 
 describe('formatPropChange', () => {
     it('показывает переход', () => {
-        expect(formatPropChange({ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false }, en))
+        expect(formatPropChange({ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false, newFunction: false }, en))
             .toBe('prop title: "a" → "b"')
     })
 
     it('предупреждает про новую ссылку на то же значение', () => {
-        const text = formatPropChange({ key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true }, en)
+        const text = formatPropChange({ key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true, newFunction: false }, en)
         expect(text).toContain('new reference')
     })
 })
@@ -125,7 +126,7 @@ describe('whyLines', () => {
         // в панели это выглядело как два одинаковых предупреждения подряд.
         const lines = whyLines(record({
             lastReasons: [{ type: 'set', key: 'badge', source: 'props' }],
-            lastPropChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true }],
+            lastPropChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true, newFunction: false }],
         }), en)
 
         expect(lines).toHaveLength(1)
@@ -135,7 +136,7 @@ describe('whyLines', () => {
     it('оставляет причины, не связанные с пропами', () => {
         const lines = whyLines(record({
             lastReasons: [{ type: 'set', key: 'count', source: 'setup' }],
-            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false }],
+            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false, newFunction: false }],
         }), en)
 
         expect(lines).toEqual(['state count', 'prop title: "a" → "b"'])
@@ -144,7 +145,7 @@ describe('whyLines', () => {
     it('не трогает причину по пропу, которого нет в дифе', () => {
         const lines = whyLines(record({
             lastReasons: [{ type: 'set', key: 'other', source: 'props' }],
-            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false }],
+            lastPropChanges: [{ key: 'title', oldValue: '"a"', newValue: '"b"', referenceOnly: false, newFunction: false }],
         }), en)
 
         expect(lines).toHaveLength(2)
@@ -164,7 +165,7 @@ describe('локализация', () => {
     })
 
     it('переводит пометку про новую ссылку', () => {
-        const change = { key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true }
+        const change = { key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true, newFunction: false }
         expect(formatPropChange(change, en)).toContain('new reference')
         expect(formatPropChange(change, ru)).toContain('новая ссылка')
         expect(formatPropChange(change, getMessages('zh-CN'))).toContain('新引用')

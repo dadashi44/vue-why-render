@@ -2,6 +2,8 @@ import { version as vueVersion } from 'vue'
 import type { NameFilter, PropChange, RenderEvent, RenderReason, ResolvedOptions } from '../types'
 import { VERSION } from '../version'
 import type { Registry } from './registry'
+import type { Hint } from './hints'
+import { hintsFor } from './hints'
 
 /**
  * Версия формата отчёта. Поднимается при несовместимом изменении — дифф и
@@ -63,11 +65,15 @@ export interface ReportComponent {
     /** Сколько инстансов попало в агрегат. */
     instances: number
     renderCount: number
+    /** Из них обновлений, а не монтирований. */
+    updateCount: number
     totalDuration: number
     maxDuration: number
     /** Причины последнего рендера — по одной на инстанс, без повторов. */
     reasons: RenderReason[]
     propChanges: PropChange[]
+    /** Выводы из данных — версии, а не диагнозы. См. core/hints.ts. */
+    hints: Hint[]
 }
 
 export interface Report {
@@ -120,6 +126,7 @@ export function createReport(init: CreateReportInit): Report {
         if (existing) {
             existing.instances++
             existing.renderCount += record.renderCount
+            existing.updateCount += record.updateCount
             existing.totalDuration += record.totalDuration
             existing.maxDuration = Math.max(existing.maxDuration, record.maxDuration)
             for (const reason of record.lastReasons) {
@@ -140,11 +147,19 @@ export function createReport(init: CreateReportInit): Report {
             file: record.file,
             instances: 1,
             renderCount: record.renderCount,
+            updateCount: record.updateCount,
             totalDuration: record.totalDuration,
             maxDuration: record.maxDuration,
             reasons: [...record.lastReasons],
             propChanges: [...record.lastPropChanges],
+            hints: [],
         })
+    }
+
+    // Подсказки считаются по агрегату, а не по инстансу: совет «вынеси объект
+    // в константу» относится к месту в коде, а оно у инстансов общее.
+    for (const component of byKey.values()) {
+        component.hints = hintsFor(component, init.options)
     }
 
     const components = [...byKey.values()].sort((a, b) =>

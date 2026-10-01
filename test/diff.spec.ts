@@ -21,10 +21,12 @@ function component(name: string, renderCount: number, reasons: string[] = []): R
         file: `src/${name}.vue`,
         instances: 1,
         renderCount,
+        updateCount: renderCount,
         totalDuration: renderCount,
         maxDuration: 1,
         reasons: reasons.map(item => ({ type: 'set', key: item.split(':')[1]!, source: item.split(':')[0] as never })),
         propChanges: [],
+        hints: [],
     }
 }
 

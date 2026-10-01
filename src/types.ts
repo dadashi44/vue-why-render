@@ -24,6 +24,12 @@ export interface PropChange {
     newValue: string
     /** Значение изменилось только по ссылке, но равно по содержимому — частая причина лишних рендеров. */
     referenceOnly: boolean
+    /**
+     * Обе стороны — функции. Две стрелки никогда не равны, поэтому
+     * referenceOnly тут всегда false, и без отдельной пометки в панели
+     * видны две одинаковые строки без объяснения, почему это изменение.
+     */
+    newFunction: boolean
 }
 
 export type RenderPhase = 'mount' | 'update'
@@ -51,6 +57,12 @@ export interface ComponentRecord {
     parentUid: number | null
     mountedAt: number
     renderCount: number
+    /**
+     * Сколько из них были обновлениями, а не монтированием.
+     * При includeMounts первый рендер — это монтирование, и выводы вида
+     * «перерисовал родитель» по нему делать нельзя: компонент просто появился.
+     */
+    updateCount: number
     /** Счётчик за текущее окно подсветки — обнуляется по таймеру. */
     flashCount: number
     totalDuration: number

@@ -67,6 +67,7 @@ export class Registry {
             ...record,
             mountedAt: this.now(),
             renderCount: 0,
+            updateCount: 0,
             flashCount: 0,
             totalDuration: 0,
             maxDuration: 0,
@@ -90,6 +91,7 @@ export class Registry {
         const record = this.records.get(event.uid)
         if (record) {
             record.renderCount++
+            if (event.phase === 'update') record.updateCount++
             record.flashCount++
             record.totalDuration += event.duration
             record.maxDuration = Math.max(record.maxDuration, event.duration)
@@ -172,6 +174,7 @@ export class Registry {
     reset(): void {
         for (const record of this.records.values()) {
             record.renderCount = 0
+            record.updateCount = 0
             record.flashCount = 0
             record.totalDuration = 0
             record.maxDuration = 0

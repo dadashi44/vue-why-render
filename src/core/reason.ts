@@ -192,6 +192,7 @@ export function diffProps(
             oldValue: formatValue(oldValue),
             newValue: formatValue(newValue),
             referenceOnly: isShallowEqual(oldValue, newValue),
+            newFunction: typeof oldValue === 'function' && typeof newValue === 'function',
         })
     }
     return changes

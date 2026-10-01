@@ -83,7 +83,7 @@ describe('Panel', () => {
     it('предупреждает про проп, у которого сменилась только ссылка', async () => {
         scanner = makeScanner()
         seed(scanner, 1, 1, {
-            propChanges: [{ key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true }],
+            propChanges: [{ key: 'user', oldValue: '{ id }', newValue: '{ id }', referenceOnly: true, newFunction: false }],
         })
         const wrapper = await mountPanel(scanner)
 
@@ -215,7 +215,7 @@ describe('Panel · локаль', () => {
     it('переключается на язык из опции', async () => {
         scanner = makeScanner('ru')
         seed(scanner, 1, 1, {
-            propChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true }],
+            propChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true, newFunction: false }],
         })
         const wrapper = await mountPanel(scanner)
 

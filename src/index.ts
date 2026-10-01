@@ -31,6 +31,8 @@ export {
     ReportParseError,
     serializeReport,
 } from './core/report'
+export type { Hint, HintCode, HintInput } from './core/hints'
+export { hintsFor, hintsForRecord } from './core/hints'
 export type { ComponentDiff, DiffStatus, ReportDiff } from './core/diff'
 export { diffReports, formatDiff } from './core/diff'
 export { VERSION } from './version'
