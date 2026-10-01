@@ -13,5 +13,4 @@ app.use(VueWhyRender, {
     includeMounts: true,
     exclude: [/^RouterLink/],
 })
-
 app.mount('#app')
