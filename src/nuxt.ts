@@ -81,7 +81,10 @@ export default defineNuxtModule<NuxtWhyRenderOptions>({
     meta: {
         name: 'vue-why-render',
         configKey: 'whyRender',
-        compatibility: { nuxt: '>=3.0.0' },
+        // Не 3.0.0: пакет требует Vue ^3.3.0, а Nuxt тянет Vue прямой
+        // зависимостью — до 3.5.0 там приколочен ^3.2.x. 3.5.0 — первый
+        // релиз, чей пин удовлетворяет нашему peer.
+        compatibility: { nuxt: '>=3.5.0' },
     },
     defaults: {},
     setup(options, nuxt) {
