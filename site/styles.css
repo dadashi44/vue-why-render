@@ -323,3 +323,13 @@ p {
         padding-bottom: 160px;
     }
 }
+
+/* Подпись над сниппетом подключения: Vite / Nuxt. */
+.usage__label {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #8b93a4;
+}

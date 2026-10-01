@@ -143,6 +143,22 @@ function raisePrice(id: number): void {
         </section>
 
         <section>
+            <h2>{{ t.reportsHeading }}</h2>
+
+            <p class="lead">
+                {{ t.reportsLead }}
+            </p>
+
+            <pre>total ×19 → ×11  -42%
+
+ProductCard  ×9 → ×1    <b>-89%</b>   reason gone: props:badge</pre>
+
+            <p class="lead" style="margin-top: 14px">
+                {{ t.reportsNote }}
+            </p>
+        </section>
+
+        <section>
             <h2>{{ t.featuresHeading }}</h2>
 
             <div class="features">
@@ -169,6 +185,10 @@ function raisePrice(id: number): void {
                 {{ t.usageHeading }}
             </h2>
 
+            <h3 class="usage__label">
+                {{ t.viteLabel }}
+            </h3>
+
             <pre>import { createApp } from 'vue'
 import VueWhyRender from 'vue-why-render'
 import App from './App.vue'
@@ -181,6 +201,19 @@ app.mount('#app')</pre>
 
             <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
             <p class="lead" style="margin-top: 14px" v-html="t.usageNote" />
+
+            <h3 class="usage__label" style="margin-top: 30px">
+                {{ t.nuxtLabel }}
+            </h3>
+
+            <pre>// nuxt.config.ts
+export default defineNuxtConfig({
+    modules: ['vue-why-render/nuxt'],
+    whyRender: { locale: '{{ locale }}' },
+})</pre>
+
+            <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
+            <p class="lead" style="margin-top: 14px" v-html="t.nuxtNote" />
         </section>
 
         <footer class="site-foot">

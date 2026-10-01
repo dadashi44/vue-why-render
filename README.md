@@ -160,6 +160,19 @@ DevTools is open, and costs nothing when it is not.
 app.use(VueWhyRender, { devtools: false })   // if you only want the own panel
 ```
 
+**If the inspector does not show up**, the usual reason is not this package.
+Vue DevTools has a **High Performance Mode**, and while it is on, no third-party
+inspector is created at all — not this one, not Pinia's, not the router's. The gate
+lives in `@vue/devtools-kit`:
+
+```js
+if (devtoolsState.highPerfModeEnabled && !options?.inspectingComponent) return
+```
+
+Turn it off in the Vue tab settings and reload the page. The second condition is
+simply that the Vue tab has to be open: plugins are instantiated when the DevTools
+client connects, and until then the registration sits in a queue.
+
 The own panel is not replaced by this and is not going anywhere. The extension is not
 installed everywhere — a locked-down environment, someone else's browser during a demo,
 a webview. The panel works where DevTools is absent; DevTools is more convenient where

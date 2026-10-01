@@ -154,6 +154,17 @@ handle?.stop()
 app.use(VueWhyRender, { devtools: false })   // 只想要自带面板时
 ```
 
+**如果检查器没有出现**，原因通常不在本包。Vue DevTools 有一个 **High Performance Mode**，
+只要它处于开启状态，任何第三方检查器都不会被创建 —— 本包的不会，Pinia 的不会，路由的也不会。
+这道关卡位于 `@vue/devtools-kit` 中：
+
+```js
+if (devtoolsState.highPerfModeEnabled && !options?.inspectingComponent) return
+```
+
+在 Vue 标签页的设置里关掉它，然后刷新页面。第二个条件是 Vue 标签页必须处于打开状态：
+插件是在 DevTools 客户端连接时才被实例化的，在那之前注册只是待在队列里。
+
 这并不会取代自带面板，面板也不会被移除。扩展并非到处都能装：内网环境、演示时别人的浏览器、
 WebView。面板在没有 DevTools 的地方工作，而 DevTools 在它存在的地方更顺手。
 
