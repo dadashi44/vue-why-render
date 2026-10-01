@@ -52,7 +52,7 @@ bun add -d vue-why-render
 ставится по прямой ссылке и авторизации не требует:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.2.0/vue-why-render-0.2.0.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.3.0/vue-why-render-0.3.0.tgz
 ```
 
 ## Подключение

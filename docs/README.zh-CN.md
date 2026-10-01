@@ -51,7 +51,7 @@ bun add -d vue-why-render
 都附带 tarball，可通过直链安装，无需任何鉴权：
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.2.0/vue-why-render-0.2.0.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.3.0/vue-why-render-0.3.0.tgz
 ```
 
 ## 使用
