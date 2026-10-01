@@ -49,7 +49,7 @@ bun add -d vue-why-render
 ставится по прямой ссылке и авторизации не требует:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.8/vue-why-render-0.1.8.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.2.0/vue-why-render-0.2.0.tgz
 ```
 
 ## Подключение
@@ -72,18 +72,38 @@ app.mount('#app')
 
 ### Nuxt
 
-Плагин только для клиента — файл с суффиксом `.client.ts` не попадёт в SSR:
+Подключите модуль. Он сам регистрирует клиентский плагин в деве, а в прод-сборке
+не оставляет ничего — даже импорта:
 
 ```ts
-// plugins/why-render.client.ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+    modules: ['vue-why-render/nuxt'],
+    whyRender: {
+        exclude: [/^RouterLink/, /^Transition/],
+        includeMounts: true,
+    },
+})
+```
+
+Под ключом `whyRender` работают все опции из таблицы ниже, кроме `onRender`:
+колбэк нельзя перенести из `nuxt.config` в сгенерированный плагин. Если он нужен —
+подключайтесь вручную (ниже). Функции в `include` и `exclude` отбрасываются по той же
+причине, и модуль говорит об этом в терминале; регулярки и строки доезжают целиком.
+
+#### Вручную, без модуля
+
+```ts
+// plugins/why-render.client.ts — суффикс .client не пускает файл в SSR
 import VueWhyRender from 'vue-why-render'
 
 export default defineNuxtPlugin((nuxtApp) => {
-    nuxtApp.vueApp.use(VueWhyRender, {
-        openInEditorUrl: '/__nuxt_devtools__/open-in-editor?file={file}',
-    })
+    nuxtApp.vueApp.use(VueWhyRender)
 })
 ```
+
+Учтите, что этот вариант уедет в прод-сборку, если не вырезать его самому —
+см. [Стоимость](#стоимость). Модуль существует ровно для того, чтобы об этом нельзя было забыть.
 
 ### Вручную, без плагина
 
@@ -152,16 +172,15 @@ handle?.stop()
 Правильный способ — статический флаг сборщика, который вырезает и вызов, и сам импорт:
 
 ```ts
-// Nuxt
-if (!import.meta.dev) return
-const { default: VueWhyRender } = await import('vue-why-render')
-
 // Vite
 if (import.meta.env.DEV) {
     const { default: VueWhyRender } = await import('vue-why-render')
     app.use(VueWhyRender)
 }
 ```
+
+**На Nuxt используйте модуль** — `modules: ['vue-why-render/nuxt']`. Он делает это за вас:
+в прод-сборке плагин не регистрируется вовсе, вырезать нечего. Ради этого он и написан.
 
 ## Открытие файлов в редакторе
 

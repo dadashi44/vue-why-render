@@ -48,7 +48,7 @@ bun add -d vue-why-render
 都附带 tarball，可通过直链安装，无需任何鉴权：
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.8/vue-why-render-0.1.8.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.2.0/vue-why-render-0.2.0.tgz
 ```
 
 ## 使用
@@ -71,18 +71,37 @@ app.mount('#app')
 
 ### Nuxt
 
-插件仅在客户端运行 —— 带 `.client.ts` 后缀的文件不会进入 SSR：
+直接引入模块。它会在开发模式下注册一个仅客户端插件，而在生产构建中不留下任何痕迹 ——
+连 import 都没有：
 
 ```ts
-// plugins/why-render.client.ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+    modules: ['vue-why-render/nuxt'],
+    whyRender: {
+        exclude: [/^RouterLink/, /^Transition/],
+        includeMounts: true,
+    },
+})
+```
+
+下表中的所有选项都可以写在 `whyRender` 键下，只有 `onRender` 除外：回调函数无法从
+`nuxt.config` 搬进生成的插件。如果需要回调，请按下面的方式手动注册。出于同样的原因，
+`include` 和 `exclude` 中的函数会被丢弃并在终端给出提示；正则和字符串则完整保留。
+
+#### 手动注册，不使用模块
+
+```ts
+// plugins/why-render.client.ts —— .client 后缀使其不进入 SSR
 import VueWhyRender from 'vue-why-render'
 
 export default defineNuxtPlugin((nuxtApp) => {
-    nuxtApp.vueApp.use(VueWhyRender, {
-        openInEditorUrl: '/__nuxt_devtools__/open-in-editor?file={file}',
-    })
+    nuxtApp.vueApp.use(VueWhyRender)
 })
 ```
+
+请注意：除非自己手动剔除，这种写法会进入生产构建 —— 见[开销](#开销)。
+模块的存在正是为了让人无法忘记这件事。
 
 ### 手动调用，不使用插件
 
@@ -152,16 +171,15 @@ handle?.stop()
 正确的做法是使用打包器的静态标志，它会同时消除调用与 import 本身：
 
 ```ts
-// Nuxt
-if (!import.meta.dev) return
-const { default: VueWhyRender } = await import('vue-why-render')
-
 // Vite
 if (import.meta.env.DEV) {
     const { default: VueWhyRender } = await import('vue-why-render')
     app.use(VueWhyRender)
 }
 ```
+
+**在 Nuxt 中请使用模块** —— `modules: ['vue-why-render/nuxt']`。它替你完成了这件事：
+生产构建中根本不会注册插件，也就没有什么需要剔除的。模块存在的意义正在于此。
 
 ## 在编辑器中打开文件
 

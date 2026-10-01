@@ -50,7 +50,7 @@ If installing from the registry is not an option, the tarball attached to every
 link and needs no authentication:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.1.8/vue-why-render-0.1.8.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.2.0/vue-why-render-0.2.0.tgz
 ```
 
 ## Usage
@@ -73,18 +73,39 @@ app.mount('#app')
 
 ### Nuxt
 
-The plugin is client-only — a file with the `.client.ts` suffix never reaches SSR:
+Add the module. It registers a client-only plugin in development and leaves
+nothing behind in a production build — not even the import:
 
 ```ts
-// plugins/why-render.client.ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+    modules: ['vue-why-render/nuxt'],
+    whyRender: {
+        exclude: [/^RouterLink/, /^Transition/],
+        includeMounts: true,
+    },
+})
+```
+
+Every option from the table below works under the `whyRender` key, except
+`onRender` — a callback cannot be carried from `nuxt.config` into the generated
+plugin. If you need one, register the plugin by hand (below). Functions passed to
+`include` or `exclude` are dropped for the same reason and reported in the terminal;
+regular expressions and strings survive.
+
+#### By hand, without the module
+
+```ts
+// plugins/why-render.client.ts — the .client suffix keeps it out of SSR
 import VueWhyRender from 'vue-why-render'
 
 export default defineNuxtPlugin((nuxtApp) => {
-    nuxtApp.vueApp.use(VueWhyRender, {
-        openInEditorUrl: '/__nuxt_devtools__/open-in-editor?file={file}',
-    })
+    nuxtApp.vueApp.use(VueWhyRender)
 })
 ```
+
+Note that this variant ships in the production bundle unless you strip it yourself —
+see [Cost](#cost). The module exists precisely to make that impossible to forget.
 
 ### Manually, without the plugin
 
@@ -155,16 +176,16 @@ rewrites it into syntactically broken code. So the scanner is simply on by defau
 The right way is a static bundler flag, which strips both the call and the import itself:
 
 ```ts
-// Nuxt
-if (!import.meta.dev) return
-const { default: VueWhyRender } = await import('vue-why-render')
-
 // Vite
 if (import.meta.env.DEV) {
     const { default: VueWhyRender } = await import('vue-why-render')
     app.use(VueWhyRender)
 }
 ```
+
+**On Nuxt, use the module** — `modules: ['vue-why-render/nuxt']`. It does this for you:
+in a production build it registers no plugin at all, so there is nothing left to strip.
+That is the whole reason it exists.
 
 ## Opening files in your editor
 
