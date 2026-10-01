@@ -30,6 +30,7 @@ through the `renderTriggered` hook — this package is built around it.
 - **Panel**: top by render count, top by time, a component tree with per-subtree totals, and an event feed.
 - **Jump to your editor**: clicking a row opens the SFC in your IDE through the dev server.
 - **Pause, reset and filter** by component name or file path.
+- **Vue DevTools**: an inspector and a timeline layer in the extension, without adding a dependency.
 - **Render assertions in tests**: `expectRenders(ProductCard).toBe(0, …)` — a wasted render you fixed once stops coming back.
 - **Hints**: next to the reason, what to do about it — hoist the object, move the handler into a method, consider `v-memo`.
 - **Reports**: save the whole session as JSON from the panel, and `diffReports(before, after)` to prove a fix actually worked.
@@ -129,6 +130,7 @@ handle?.stop()
 | `enabled` | `true` | Turns the scanner on. The package never guesses the build mode — see [Cost](#cost). |
 | `overlay` | `true` | Borders around re-rendered components. |
 | `panel` | `true` | Floating statistics panel. |
+| `devtools` | `true` | Register an inspector and a timeline layer in Vue DevTools. |
 | `showLabels` | `true` | Component name label on the border. |
 | `includeMounts` | `false` | Report first mounts as well as updates. |
 | `trackReasons` | `true` | Collect reasons through `renderTriggered`. |
@@ -143,6 +145,30 @@ handle?.stop()
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | Template for the open-in-editor link. |
 | `locale` | `'en'` | Panel language: `en`, `ru` or `zh-CN`. |
 | `onRender` | — | Callback fired on every render event. |
+
+## Vue DevTools
+
+If the extension is installed, the package registers itself there as well: a
+**Why render** inspector next to the component tree, and a **Why render** layer on
+the timeline with one event per render.
+
+The inspector lists components by render count; selecting one shows the reason for
+its last render, the prop diff and the hints. Nothing to configure — it appears when
+DevTools is open, and costs nothing when it is not.
+
+```ts
+app.use(VueWhyRender, { devtools: false })   // if you only want the own panel
+```
+
+The own panel is not replaced by this and is not going anywhere. The extension is not
+installed everywhere — a locked-down environment, someone else's browser during a demo,
+a webview. The panel works where DevTools is absent; DevTools is more convenient where
+it is present.
+
+**No new dependency.** The usual way in is `@vue/devtools-api`, which in version 8
+pulls `@vue/devtools-kit` behind it. The whole integration point is one event on
+`window.__VUE_DEVTOOLS_GLOBAL_HOOK__`, so it is inlined — about twenty lines, and the
+package still has zero runtime dependencies.
 
 ## Render assertions in tests
 

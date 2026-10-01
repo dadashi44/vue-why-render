@@ -16,6 +16,7 @@ import type { NameFilter, ResolvedOptions, VueWhyRenderOptions } from './types'
 export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     overlay: true,
     panel: true,
+    devtools: true,
     showLabels: true,
     includeMounts: false,
     trackReasons: true,

@@ -5,6 +5,7 @@ import { Scanner } from './core/scanner'
 import { createReport, downloadReport } from './core/report'
 import type { Report } from './core/report'
 import { mountPanel } from './panel/mount'
+import { setupDevtools } from './devtools/plugin'
 
 export type {
     ComponentRecord,
@@ -69,11 +70,13 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
     app.mixin(scanner.createMixin())
 
     const unmountPanel = resolved.panel ? mountPanel(scanner) : null
+    const stopDevtools = resolved.devtools ? setupDevtools(app, scanner) : null
 
     const handle: ScanHandle = {
         scanner,
         stop() {
             unmountPanel?.()
+            stopDevtools?.()
             scanner.dispose()
             if (activeHandle === handle) activeHandle = null
         },

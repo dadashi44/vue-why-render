@@ -29,6 +29,7 @@ ProductCard ×7 · 2.4ms · badge
 - **面板**：按渲染次数排行、按耗时排行、带子树合计的组件树，以及事件流。
 - **跳转到编辑器**：点击一行即可通过开发服务器在 IDE 中打开对应的 SFC。
 - **暂停、重置与过滤**：按组件名或文件路径。
+- **Vue DevTools**：在扩展中提供检查器与时间线图层，且不引入新依赖。
 - **测试断言**：`expectRenders(ProductCard).toBe(0, …)` —— 修好一次的多余渲染不会再回来。
 - **提示**：在原因旁边给出该怎么办 —— 提取对象、把处理函数提为方法、考虑 `v-memo`。
 - **报告**：面板上一键把整个会话导出为 JSON，再用 `diffReports(before, after)` 证明修复确实奏效。
@@ -125,6 +126,7 @@ handle?.stop()
 | `enabled` | `true` | 启用扫描器。本包不会去猜测构建模式 —— 参见[开销](#开销)。 |
 | `overlay` | `true` | 在重新渲染的组件周围绘制边框。 |
 | `panel` | `true` | 浮动统计面板。 |
+| `devtools` | `true` | 在 Vue DevTools 中注册检查器与时间线图层。 |
 | `showLabels` | `true` | 在边框上显示组件名标签。 |
 | `includeMounts` | `false` | 除更新外，也记录首次挂载。 |
 | `trackReasons` | `true` | 通过 `renderTriggered` 收集原因。 |
@@ -139,6 +141,25 @@ handle?.stop()
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | 在编辑器中打开文件的链接模板。 |
 | `locale` | `'en'` | 面板语言：`en`、`ru` 或 `zh-CN`。 |
 | `onRender` | — | 每次渲染事件触发的回调。 |
+
+## Vue DevTools
+
+如果安装了扩展，本包也会在其中注册：组件树旁边会出现 **Why render** 检查器，
+时间线上会出现 **Why render** 图层，每次渲染对应一个事件。
+
+检查器按渲染次数列出组件；选中某个组件即可看到它最后一次渲染的原因、prop 的差异和提示。
+无需任何配置 —— DevTools 打开时它就在，不打开时它什么也不花费。
+
+```ts
+app.use(VueWhyRender, { devtools: false })   // 只想要自带面板时
+```
+
+这并不会取代自带面板，面板也不会被移除。扩展并非到处都能装：内网环境、演示时别人的浏览器、
+WebView。面板在没有 DevTools 的地方工作，而 DevTools 在它存在的地方更顺手。
+
+**没有引入新依赖。** 常规做法是使用 `@vue/devtools-api`，但它在第 8 版会带上
+`@vue/devtools-kit`。整个接入点其实只是 `window.__VUE_DEVTOOLS_GLOBAL_HOOK__` 上的一个事件，
+因此这段桥接是自己写的 —— 大约二十行，本包依旧保持零运行时依赖。
 
 ## 在测试中断言渲染次数
 

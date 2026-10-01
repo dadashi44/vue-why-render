@@ -29,6 +29,7 @@ export class Registry {
     private records = new Map<number, ComponentRecord>()
     private events: RenderEvent[] = []
     private listeners = new Set<() => void>()
+    private eventListeners = new Set<(event: RenderEvent) => void>()
     private maxEvents: number
     private now: () => number
     private paused = false
@@ -103,6 +104,7 @@ export class Registry {
 
         this.totalRenders++
         this.events.push(event)
+        for (const listener of this.eventListeners) listener(event)
         // Кольцевой буфер: на долгой сессии иначе съедаем память.
         if (this.events.length > this.maxEvents) {
             this.events.splice(0, this.events.length - this.maxEvents)
@@ -194,6 +196,21 @@ export class Registry {
         this.events = []
         this.totalRenders = 0
         this.listeners.clear()
+        this.eventListeners.clear()
+    }
+
+    /**
+     * Подписка на каждое событие рендера.
+     *
+     * Отдельно от subscribe: тому достаточно знать «что-то изменилось», а
+     * таймлайну DevTools нужно само событие, и собирать его из снимка значило бы
+     * гадать, какое из них новое.
+     */
+    onEvent(listener: (event: RenderEvent) => void): () => void {
+        this.eventListeners.add(listener)
+        return () => {
+            this.eventListeners.delete(listener)
+        }
     }
 
     subscribe(listener: () => void): () => void {
