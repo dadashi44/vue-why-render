@@ -196,3 +196,17 @@ describe('formatDiff', () => {
         expect(formatDiff(diff)).toContain('nothing changed')
     })
 })
+
+describe('diffReports и sampleRate', () => {
+    it('предупреждает, когда доли выборки разные', () => {
+        const before = report([component('Card', 10)], { options: { ...baseOptions, sampleRate: 1 } })
+        const after = report([component('Card', 1)], { options: { ...baseOptions, sampleRate: 0.1 } })
+        expect(diffReports(before, after).warnings.join('\n')).toContain('sampleRate differs (1 → 0.1)')
+    })
+
+    it('отчёт без sampleRate (до 0.5.0) считает записанным целиком', () => {
+        const before = report([component('Card', 10)])
+        const after = report([component('Card', 10)], { options: { ...baseOptions, sampleRate: 1 } })
+        expect(diffReports(before, after).warnings).toEqual([])
+    })
+})

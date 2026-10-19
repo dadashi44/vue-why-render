@@ -43,6 +43,8 @@ const TEST_OPTIONS: VueWhyRenderOptions = {
     trackReasons: true,
     trackProps: true,
     minDuration: 0,
+    // Проверка «ровно 0 рендеров» с выборкой превратилась бы в лотерею.
+    sampleRate: 1,
 }
 
 /**

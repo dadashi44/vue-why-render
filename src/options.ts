@@ -30,6 +30,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     displayDuration: 600,
     openInEditorUrl: '/__open-in-editor?file={file}',
     locale: 'en',
+    sampleRate: 1,
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {
@@ -45,6 +46,10 @@ export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptio
     resolved.displayDuration = Math.max(0, resolved.displayDuration)
     resolved.hotThreshold = Math.max(1, resolved.hotThreshold)
     resolved.minDuration = Math.max(0, resolved.minDuration)
+    // NaN прошёл бы через min/max насквозь и выключил бы запись целиком.
+    resolved.sampleRate = Number.isFinite(resolved.sampleRate)
+        ? Math.min(1, Math.max(0, resolved.sampleRate))
+        : 1
     return resolved
 }
 

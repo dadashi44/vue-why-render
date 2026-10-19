@@ -22,6 +22,8 @@ export interface Messages {
     paused: string
     reset: string
     saveReport: string
+    /** Пометка в шапке, что счётчики выборочные: «выборка 10%». */
+    sampled: string
     components: string
     emptyRenders: string
     emptyTree: string
@@ -62,6 +64,7 @@ export const messages: Record<Locale, Messages> = {
         paused: 'paused',
         reset: 'reset',
         saveReport: 'report',
+        sampled: 'sample',
         components: 'comp.',
         emptyRenders: 'No re-renders yet',
         emptyTree: 'Tree is empty',
@@ -94,6 +97,7 @@ export const messages: Record<Locale, Messages> = {
         paused: 'пауза',
         reset: 'сброс',
         saveReport: 'отчёт',
+        sampled: 'выборка',
         components: 'комп.',
         emptyRenders: 'Пока ни одной перерисовки',
         emptyTree: 'Дерево пустое',
@@ -126,6 +130,7 @@ export const messages: Record<Locale, Messages> = {
         paused: '已暂停',
         reset: '重置',
         saveReport: '报告',
+        sampled: '采样',
         components: '个组件',
         emptyRenders: '暂无重新渲染',
         emptyTree: '组件树为空',

@@ -269,3 +269,69 @@ describe('устойчивость к чужому коду', () => {
         warn.mockRestore()
     })
 })
+
+describe('sampleRate', () => {
+    const Child = defineComponent({
+        name: 'Child',
+        props: { title: { type: String, default: '' } },
+        render() {
+            return h('span', this.title)
+        },
+    })
+    const Parent = defineComponent({
+        name: 'Parent',
+        setup() {
+            const title = ref('a')
+            return { title, rename: (next: string) => (title.value = next) }
+        },
+        render() {
+            return h(Child, { title: this.title })
+        },
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it('при 1 пишет всё и не дёргает Math.random', async () => {
+        const random = vi.spyOn(Math, 'random')
+        const { handle: active, vm } = start(Counter)
+        ;(vm as unknown as { bump: () => void }).bump()
+        await nextTick()
+        expect(active!.getEvents()).toHaveLength(1)
+        expect(random).not.toHaveBeenCalled()
+    })
+
+    it('при 0 не пишет ничего', async () => {
+        const { handle: active, vm } = start(Counter, { sampleRate: 0 })
+        ;(vm as unknown as { bump: () => void }).bump()
+        await nextTick()
+        expect(active!.getEvents()).toHaveLength(0)
+    })
+
+    it('пропущенный рендер не портит дифф пропов следующего записанного', async () => {
+        // Первый рендер ребёнка мимо выборки, второй — в неё.
+        const random = vi.spyOn(Math, 'random')
+        const { handle: active, vm } = start(Parent, { sampleRate: 0.5, include: ['Child'] })
+        const rename = (vm as unknown as { rename: (next: string) => void }).rename
+
+        random.mockReturnValueOnce(0.9)
+        rename('b')
+        await nextTick()
+        expect(active!.getEvents()).toHaveLength(0)
+
+        random.mockReturnValueOnce(0.1)
+        rename('c')
+        await nextTick()
+
+        // Сравнение с "b", а не с "a": снимок обновился и на пропущенном рендере.
+        expect(active!.getEvents()[0].propChanges).toEqual([
+            { key: 'title', oldValue: '"b"', newValue: '"c"', referenceOnly: false, newFunction: false },
+        ])
+    })
+
+    it('попадает в отчёт', () => {
+        const { handle: active } = start(Counter, { sampleRate: 0.25 })
+        expect(active!.getReport().meta.options.sampleRate).toBe(0.25)
+    })
+})

@@ -51,6 +51,11 @@ onBeforeUnmount(() => {
     unsubscribe?.()
 })
 
+const sampleLabel = computed(() => {
+    const rate = props.scanner.options.sampleRate
+    return rate < 1 ? `${t.sampled} ${Math.round(rate * 100)}%` : ''
+})
+
 // Реестр намеренно нереактивный, поэтому реактивную зависимость даёт snapshot:
 // без обращения к нему список пересчитается только при смене фильтра.
 const topRecords = computed<ComponentRecord[]>(() => {
@@ -138,6 +143,7 @@ function openInEditor(record: ComponentRecord): void {
             <span class="vwr__title">why-render</span>
             <span class="vwr__badge">{{ summary.renders }}</span>
             <span class="vwr__spacer" />
+            <span v-if="sampleLabel" class="vwr__stat">{{ sampleLabel }}</span>
             <span class="vwr__stat">{{ summary.perSecond }}/s · {{ summary.components }} {{ t.components }}</span>
             <span class="vwr__stat">{{ collapsed ? '▲' : '▼' }}</span>
         </div>

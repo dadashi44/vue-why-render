@@ -145,6 +145,7 @@ handle?.stop()
 | `displayDuration` | `600` | How long a border stays visible, in ms. |
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | Template for the open-in-editor link. |
 | `locale` | `'en'` | Panel language: `en`, `ru` or `zh-CN`. |
+| `sampleRate` | `1` | Share of renders to record, `0`–`1`. On apps with thousands of components `0.1` keeps every tenth and skips the rest of the work. Counts become sampled — the panel header and the report say so. |
 | `onRender` | — | Callback fired on every render event. |
 
 ## Vue DevTools

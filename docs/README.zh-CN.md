@@ -141,6 +141,7 @@ handle?.stop()
 | `displayDuration` | `600` | 边框保持可见的时长，毫秒。 |
 | `openInEditorUrl` | `/__open-in-editor?file={file}` | 在编辑器中打开文件的链接模板。 |
 | `locale` | `'en'` | 面板语言：`en`、`ru` 或 `zh-CN`。 |
+| `sampleRate` | `1` | 记录的渲染比例，`0`–`1`。组件数以千计时，`0.1` 只记录十分之一，其余的工作全部跳过。此时计数是采样值 —— 面板标题和报告都会注明。 |
 | `onRender` | — | 每次渲染事件触发的回调。 |
 
 ## Vue DevTools

@@ -3,15 +3,16 @@ import { mount } from '@vue/test-utils'
 import Panel from '../src/panel/Panel.vue'
 import { Scanner } from '../src/core/scanner'
 import { resolveOptions } from '../src/options'
-import type { RenderEvent } from '../src/types'
+import type { RenderEvent, VueWhyRenderOptions } from '../src/types'
 
-function makeScanner(locale?: 'en' | 'ru' | 'zh-CN'): Scanner {
+function makeScanner(locale?: 'en' | 'ru' | 'zh-CN', extra: VueWhyRenderOptions = {}): Scanner {
     return new Scanner(resolveOptions({
         enabled: true,
         overlay: false,
         panel: false,
         flushInterval: 0,
         ...(locale ? { locale } : {}),
+        ...extra,
     }))
 }
 
@@ -230,5 +231,13 @@ describe('Panel · локаль', () => {
 
         expect(wrapper.text()).toContain('排行')
         expect(wrapper.text()).toContain('暂无重新渲染')
+    })
+})
+
+describe('Panel: выборка', () => {
+    it('говорит в шапке, что счётчики выборочные', async () => {
+        scanner = makeScanner(undefined, { sampleRate: 0.1 })
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.find('.vwr__head').text()).toContain('sample 10%')
     })
 })

@@ -69,6 +69,11 @@ function optionWarnings(before: ReportOptions, after: ReportOptions): string[] {
     if (!sameFilters(before.include, after.include) || !sameFilters(before.exclude, after.exclude)) {
         out.push('include/exclude differ: the reports watch different sets of components')
     }
+    const beforeRate = before.sampleRate ?? 1
+    const afterRate = after.sampleRate ?? 1
+    if (beforeRate !== afterRate) {
+        out.push(`sampleRate differs (${beforeRate} → ${afterRate}): the reports record a different share of renders, raw counts are not comparable`)
+    }
     if (before.trackReasons !== after.trackReasons) {
         out.push(`trackReasons differs (${before.trackReasons} → ${after.trackReasons}): reasons are missing from one side`)
     }

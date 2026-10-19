@@ -38,6 +38,13 @@ describe('resolveOptions', () => {
         expect(options.minDuration).toBe(0)
     })
 
+    it('зажимает sampleRate в 0..1, а NaN считает за «писать всё»', () => {
+        expect(resolveOptions({ sampleRate: 5 }).sampleRate).toBe(1)
+        expect(resolveOptions({ sampleRate: -1 }).sampleRate).toBe(0)
+        expect(resolveOptions({ sampleRate: Number.NaN }).sampleRate).toBe(1)
+        expect(resolveOptions({ sampleRate: 0.1 }).sampleRate).toBe(0.1)
+    })
+
     it('включается по флагу enabled явно', () => {
         expect(resolveOptions({ enabled: false }).enabled).toBe(false)
         expect(resolveOptions({ enabled: true }).enabled).toBe(true)

@@ -41,6 +41,8 @@ export interface ReportOptions {
     maxEvents: number
     include: string[]
     exclude: string[]
+    /** Доля записанных событий. Нет в отчётах до 0.5.0 — там писалось всё, то есть 1. */
+    sampleRate?: number
 }
 
 export interface ReportMeta {
@@ -97,6 +99,7 @@ function reportOptions(options: ResolvedOptions): ReportOptions {
         maxEvents: options.maxEvents,
         include: options.include.map(describeFilter),
         exclude: options.exclude.map(describeFilter),
+        sampleRate: options.sampleRate,
     }
 }
 

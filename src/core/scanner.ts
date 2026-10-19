@@ -156,13 +156,28 @@ export class Scanner {
         const duration = state.renderStart > 0 ? performance.now() - state.renderStart : 0
         state.renderStart = 0
         if (duration < this.options.minDuration) {
-            state.reasons = []
-            if (this.options.trackProps) {
-                state.propsSnapshot = snapshotProps(instance.props as Record<string, unknown>)
-            }
+            this.skip(instance, state)
             return
         }
         this.emit(instance, state, 'update', duration)
+    }
+
+    /**
+     * Рендер случился, но в статистику не идёт. Снимок пропсов обновляем всё
+     * равно: иначе следующий записанный рендер сравнится со снимком
+     * многоходовой давности и покажет изменения, которых в нём не было.
+     */
+    private skip(instance: TrackedInstance, state: NonNullable<TrackedInstance['__vwr']>): void {
+        state.reasons = []
+        if (this.options.trackProps) {
+            state.propsSnapshot = snapshotProps(instance.props as Record<string, unknown>)
+        }
+    }
+
+    /** Попадает ли этот рендер в выборку. При sampleRate = 1 случайность не трогаем вовсе. */
+    private sampled(): boolean {
+        const rate = this.options.sampleRate
+        return rate >= 1 || Math.random() < rate
     }
 
     private onRenderTriggered(instance: TrackedInstance, event: DebuggerEvent): void {
@@ -190,6 +205,12 @@ export class Scanner {
         phase: RenderPhase,
         duration: number,
     ): void {
+        // Экономия выборки ровно в этом: ни диффа, ни события, ни рамки.
+        if (!this.sampled()) {
+            this.skip(instance, state)
+            return
+        }
+
         const reasons = dedupeReasons(state.reasons)
         const currentProps = this.options.trackProps
             ? snapshotProps(instance.props as Record<string, unknown>)
