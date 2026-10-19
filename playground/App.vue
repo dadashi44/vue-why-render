@@ -3,8 +3,11 @@ import { computed, ref } from 'vue'
 import LiveClock from './components/LiveClock.vue'
 import ProductCard from './components/ProductCard.vue'
 import StaticNote from './components/StaticNote.vue'
+import CartSummary from './components/CartSummary.vue'
+import { useCart } from './stores/cart'
 
 const query = ref('')
+const cart = useCart()
 const tick = ref(0)
 const products = ref([
     { id: 1, title: 'Клавиатура', price: 5400 },
@@ -55,6 +58,12 @@ function raisePrice(id: number): void {
                 @raise="raisePrice(product.id)"
             />
         </ul>
+
+        <!-- Стор Pinia: в панели причина у CartSummary — стор, поле и экшен. -->
+        <button @click="cart.add('Мышь', 2100)">
+            в корзину
+        </button>
+        <CartSummary />
 
         <StaticNote />
     </main>

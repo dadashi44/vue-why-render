@@ -1,8 +1,10 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import VueWhyRender from 'vue-why-render'
 import App from './App.vue'
 
 const app = createApp(App)
+app.use(createPinia())
 
 app.use(VueWhyRender, {
     // Песочница подключает исходники по алиасу, мимо пребандлинга зависимостей,
