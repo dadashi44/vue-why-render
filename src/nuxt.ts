@@ -1,4 +1,5 @@
 import { addPluginTemplate, defineNuxtModule } from '@nuxt/kit'
+import type { NuxtModule } from '@nuxt/schema'
 import type { VueWhyRenderOptions } from './types'
 
 /**
@@ -77,7 +78,12 @@ export function buildPluginSource(code: string): string {
     ].join('\n')
 }
 
-export default defineNuxtModule<NuxtWhyRenderOptions>({
+/**
+ * Тип прописан руками, а не выведен: под pnpm `@nuxt/schema` лежит у `@nuxt/kit`
+ * внутри `.pnpm/...`, и без аннотации vue-tsc не может назвать его в `.d.ts`
+ * (TS2742) — сборка падает.
+ */
+const whyRenderModule: NuxtModule<NuxtWhyRenderOptions, NuxtWhyRenderOptions, false> = defineNuxtModule<NuxtWhyRenderOptions>({
     meta: {
         name: 'vue-why-render',
         configKey: 'whyRender',
@@ -113,3 +119,5 @@ export default defineNuxtModule<NuxtWhyRenderOptions>({
         })
     },
 })
+
+export default whyRenderModule
