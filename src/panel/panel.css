@@ -28,6 +28,7 @@
     --vwr-why: #f0b86e;
     --vwr-prop: #7aa2f7;
     --vwr-hint: #6ee7a8;
+    --vwr-over: #ff6b6b;
     --vwr-shadow: 0 12px 32px rgb(0 0 0 / 45%);
 }
 
@@ -48,6 +49,7 @@
     --vwr-why: #a35400;
     --vwr-prop: #2453c4;
     --vwr-hint: #137a48;
+    --vwr-over: #c62828;
     --vwr-shadow: 0 12px 32px rgb(15 20 30 / 18%);
 }
 
@@ -69,6 +71,7 @@
         --vwr-why: #a35400;
         --vwr-prop: #2453c4;
         --vwr-hint: #137a48;
+        --vwr-over: #c62828;
         --vwr-shadow: 0 12px 32px rgb(15 20 30 / 18%);
     }
 }
@@ -276,6 +279,12 @@
     min-width: 42px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+
+/* Бюджет превышен. Цвет «горячей» рамки оверлея — тот же смысл. */
+.vwr__count--over {
+    color: var(--vwr-over);
+    font-weight: 600;
 }
 
 .vwr__time {

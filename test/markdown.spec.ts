@@ -62,6 +62,17 @@ describe('formatReportMarkdown', () => {
         expect(md).toContain('| `Row` `src/Row.vue` · 2 instances | 2 |')
     })
 
+    it('ставит нарушения бюджетов первыми', () => {
+        const report = build([event({ uid: 1, name: 'Card', file: '/app/src/Card.vue' })])
+        report.violations = [{
+            kind: 'renders', key: '/app/src/Card.vue::Card', name: 'Card', file: '/app/src/Card.vue',
+            limit: 5, actual: 12, per: 1000, count: 3, firstAt: 0, lastAt: 0, reason: 'state n',
+        }]
+        const md = formatReportMarkdown(report)
+        expect(md.indexOf('#### Budget violations')).toBeLessThan(md.indexOf('#### Most re-rendered'))
+        expect(md).toContain('| `Card` `src/Card.vue` | ≤ 5 renders / 1000ms | 12 | 3 | `state n` |')
+    })
+
     it('не выносит URL страницы в публичный текст', () => {
         const md = formatReportMarkdown(build([event({ uid: 1, name: 'A' })]))
         expect(md).not.toContain('internal.example')

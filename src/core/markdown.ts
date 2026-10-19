@@ -144,6 +144,23 @@ export function formatReportMarkdown(report: Report, options: MarkdownOptions = 
         lines.push('', `> Sampled: only ${Math.round(rate * 100)}% of renders were recorded, counts are not absolute.`)
     }
 
+    // Нарушения — первыми: если бюджет задан и превышен, это и есть суть issue.
+    const violations = report.violations ?? []
+    if (violations.length) {
+        lines.push('', '#### Budget violations', '')
+        lines.push(...table(
+            ['Component', 'Budget', 'Worst', 'Times', 'Reason'],
+            ['---', '---', '---:', '---:', '---'],
+            violations.slice(0, limit).map(item => [
+                component({ name: item.name, file: item.file, instances: 1 }),
+                item.kind === 'renders' ? `≤ ${item.limit} renders / ${item.per}ms` : `≤ ${item.limit}ms per update`,
+                item.kind === 'renders' ? String(item.actual) : formatDuration(item.actual),
+                String(item.count),
+                item.reason ? code(item.reason) : '—',
+            ]),
+        ))
+    }
+
     const top = report.components.filter(item => item.renderCount > 0).slice(0, limit)
     if (!top.length) {
         lines.push('', 'No renders recorded.')

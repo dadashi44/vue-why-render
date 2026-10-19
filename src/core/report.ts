@@ -1,5 +1,5 @@
 import { version as vueVersion } from 'vue'
-import type { NameFilter, PropChange, RenderEvent, RenderReason, ResolvedOptions } from '../types'
+import type { BudgetViolation, NameFilter, PropChange, RenderEvent, RenderReason, ResolvedOptions } from '../types'
 import { VERSION } from '../version'
 import type { Registry } from './registry'
 import type { Hint } from './hints'
@@ -87,6 +87,8 @@ export interface Report {
     }
     components: ReportComponent[]
     events: RenderEvent[]
+    /** Нарушения бюджетов. Нет в отчётах до 0.5.0 — бюджетов тогда не было. */
+    violations?: BudgetViolation[]
 }
 
 function reportOptions(options: ResolvedOptions): ReportOptions {
@@ -190,6 +192,7 @@ export function createReport(init: CreateReportInit): Report {
         },
         components,
         events: snapshot.events,
+        violations: init.registry.getViolations(),
     }
 }
 

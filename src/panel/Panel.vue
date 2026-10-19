@@ -18,7 +18,7 @@ import {
 } from './format'
 import { hintsForRecord } from '../core/hints'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
-import { createReport, downloadReport } from '../core/report'
+import { componentKey, createReport, downloadReport } from '../core/report'
 import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
 import { clampPosition, loadPosition, savePosition } from './position'
@@ -127,6 +127,11 @@ function selectTab(next: Tab): void {
 
 function togglePause(): void {
     props.scanner.registry.setPaused(!props.scanner.registry.isPaused())
+}
+
+/** Превышен ли бюджет у компонента — счётчик тогда красный. */
+function overBudget(record: ComponentRecord): boolean {
+    return props.scanner.registry.hasViolation(componentKey(record))
 }
 
 /** Подсказки по строке списка. Пустой массив — значит сказать нечего. */
@@ -359,7 +364,10 @@ function openInEditor(record: ComponentRecord): void {
                                 {{ record.name }}
                                 <span class="vwr__dim">{{ shortFile(record.file) }}</span>
                             </span>
-                            <span class="vwr__count">×{{ record.renderCount }}</span>
+                            <span
+                                class="vwr__count"
+                                :class="{ 'vwr__count--over': overBudget(record) }"
+                            >×{{ record.renderCount }}</span>
                             <span class="vwr__time">{{ formatDuration(averageDuration(record)) }}</span>
                         </button>
                         <button

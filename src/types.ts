@@ -77,6 +77,47 @@ export type PanelTheme = 'auto' | 'dark' | 'light'
 
 export type NameFilter = string | RegExp | ((name: string, file?: string) => boolean)
 
+/**
+ * Бюджет рендеров. Поля независимы: можно ограничить только частоту,
+ * только длительность или обе сразу.
+ */
+export interface RenderBudget {
+    /** К каким компонентам относится. Пусто — ко всем отслеживаемым. */
+    include?: NameFilter[]
+    /** Больше стольких рендеров одного инстанса за окно `per` — нарушение. */
+    maxRenders?: number
+    /** Окно для `maxRenders`, мс. По умолчанию 1000. */
+    per?: number
+    /** Обновление дольше стольких мс — нарушение. */
+    maxDuration?: number
+}
+
+export type BudgetKind = 'renders' | 'duration'
+
+/**
+ * Нарушение бюджета. Одно на компонент и вид: горячий компонент нарушает
+ * бюджет сотни раз в секунду, и список из сотни одинаковых строк ничего
+ * не добавил бы к первой. Поэтому копится счётчик и худшее значение.
+ */
+export interface BudgetViolation {
+    kind: BudgetKind
+    /** Стабильный ключ `file::name`, как в отчёте. */
+    key: string
+    name: string
+    file?: string
+    limit: number
+    /** Худшее увиденное значение: рендеров за окно или мс. */
+    actual: number
+    /** Окно в мс — только для `renders`. */
+    per?: number
+    /** Сколько раз бюджет был превышен. */
+    count: number
+    firstAt: number
+    lastAt: number
+    /** Причина рендера, на котором бюджет превышен впервые. */
+    reason?: string
+}
+
 export interface VueWhyRenderOptions {
     /** Включить сканер. По умолчанию — только в деве. */
     enabled?: boolean
@@ -129,12 +170,19 @@ export interface VueWhyRenderOptions {
     pauseHotkey?: string | false
     /** Тема панели. `auto` следует `prefers-color-scheme`. */
     theme?: PanelTheme
+    /** Бюджеты рендеров: превышение пишется в консоль, в отчёт и в колбэк. */
+    budgets?: RenderBudget | RenderBudget[]
+    /** Колбэк на первое превышение бюджета каждым компонентом. */
+    onBudgetExceeded?: (violation: BudgetViolation) => void
     /** Колбэк на каждое событие рендера. */
     onRender?: (event: RenderEvent) => void
 }
 
-export type ResolvedOptions = Required<Omit<VueWhyRenderOptions, 'onRender'>> & {
+export type ResolvedOptions = Required<Omit<VueWhyRenderOptions, 'onRender' | 'onBudgetExceeded' | 'budgets'>> & {
+    /** Всегда массив: одиночный бюджет из опций заворачивается при разборе. */
+    budgets: RenderBudget[]
     onRender?: (event: RenderEvent) => void
+    onBudgetExceeded?: (violation: BudgetViolation) => void
 }
 
 /** Внутренние поля, которые мы вешаем на инстанс компонента. */

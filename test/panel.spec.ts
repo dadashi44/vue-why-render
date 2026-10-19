@@ -288,6 +288,20 @@ describe('Panel: мелочи 0.5.0', () => {
         vi.unstubAllGlobals()
     })
 
+    it('красит счётчик компонента, превысившего бюджет', async () => {
+        scanner = makeScanner()
+        seed(scanner, 1, 2)
+        seed(scanner, 2, 1)
+        scanner.registry.addViolation({
+            kind: 'renders', key: '/app/src/C1.vue::C1', name: 'C1', file: '/app/src/C1.vue',
+            limit: 1, actual: 2, per: 1000, count: 1, firstAt: 0, lastAt: 0,
+        })
+        const wrapper = await mountPanel(scanner)
+        const counts = wrapper.findAll('.vwr__count')
+        expect(counts[0].classes()).toContain('vwr__count--over')
+        expect(counts[1].classes()).not.toContain('vwr__count--over')
+    })
+
     it('без причины кнопки копирования нет', async () => {
         scanner = makeScanner()
         seed(scanner, 1)

@@ -80,6 +80,17 @@ describe('printReport', () => {
         expect(spies.groupEnd).toHaveBeenCalledTimes(spies.group.mock.calls.length + spies.groupCollapsed.mock.calls.length)
     })
 
+    it('печатает нарушения бюджетов предупреждениями', () => {
+        const spies = spyConsole()
+        const report = build([event({ uid: 1, name: 'Card' })])
+        report.violations = [{
+            kind: 'duration', key: 'Card', name: 'Card', limit: 16, actual: 24.5, count: 2, firstAt: 0, lastAt: 0,
+        }]
+        printReport(report)
+        expect(spies.group).toHaveBeenCalledWith('budget violations (1)')
+        expect(spies.warn).toHaveBeenCalledWith('Card: 24.5ms per update (limit 16ms), ×2')
+    })
+
     it('пустую сессию печатает строкой, а не пустой таблицей', () => {
         const spies = spyConsole()
         printReport(build([]))

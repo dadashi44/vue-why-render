@@ -1,5 +1,5 @@
 import type { App, Plugin } from 'vue'
-import type { ComponentRecord, RenderEvent, VueWhyRenderOptions } from './types'
+import type { BudgetViolation, ComponentRecord, RenderEvent, VueWhyRenderOptions } from './types'
 import { resolveOptions } from './options'
 import { Scanner } from './core/scanner'
 import { createReport, downloadReport } from './core/report'
@@ -9,13 +9,17 @@ import type { PrintOptions } from './core/console'
 import { mountPanel } from './panel/mount'
 import { setupDevtools } from './devtools/plugin'
 import { bindHotkey } from './utils/hotkey'
+import { VERSION } from './version'
 
 export type {
+    BudgetKind,
+    BudgetViolation,
     ComponentRecord,
     NameFilter,
     PanelTheme,
     PropChange,
     ReasonSource,
+    RenderBudget,
     RenderEvent,
     RenderPhase,
     RenderReason,
@@ -65,6 +69,51 @@ export interface ScanHandle {
     saveReport: (filename?: string) => void
     /** Снять отчёт и напечатать таблицей в консоль. */
     printReport: (options?: PrintOptions) => void
+    /** Нарушения бюджетов за сессию. */
+    getViolations: () => BudgetViolation[]
+}
+
+/**
+ * То, что сканер кладёт в `window.__VUE_WHY_RENDER__`. Нужно там, где модули
+ * страницы недоступны: тест в Playwright видит только window, а консоль
+ * браузера не может импортировать пакет.
+ */
+export interface WindowHandle {
+    version: string
+    getReport: () => Report
+    getViolations: () => BudgetViolation[]
+    printReport: (options?: PrintOptions) => void
+    pause: () => void
+    resume: () => void
+    reset: () => void
+}
+
+declare global {
+    interface Window {
+        __VUE_WHY_RENDER__?: WindowHandle
+    }
+}
+
+/**
+ * Повесить handle на window. Сканер и так живёт только в деве — пакет
+ * в прод не попадает, — так что глобал не утекает туда, где не нужен.
+ */
+function exposeOnWindow(handle: ScanHandle): () => void {
+    if (typeof window === 'undefined') return () => {}
+    const exposed: WindowHandle = {
+        version: VERSION,
+        getReport: () => handle.getReport(),
+        getViolations: () => handle.getViolations(),
+        printReport: options => handle.printReport(options),
+        pause: () => handle.pause(),
+        resume: () => handle.resume(),
+        reset: () => handle.reset(),
+    }
+    window.__VUE_WHY_RENDER__ = exposed
+    return () => {
+        // Второй сканер мог успеть повесить свой — чужой не трогаем.
+        if (window.__VUE_WHY_RENDER__ === exposed) delete window.__VUE_WHY_RENDER__
+    }
 }
 
 let activeHandle: ScanHandle | null = null
@@ -92,6 +141,7 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
             unmountPanel?.()
             stopDevtools?.()
             unbindHotkey?.()
+            unexpose()
             scanner.dispose()
             if (activeHandle === handle) activeHandle = null
         },
@@ -119,7 +169,12 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
         printReport(printOptions) {
             printReportTo(handle.getReport(), printOptions)
         },
+        getViolations() {
+            return scanner.registry.getViolations()
+        },
     }
+
+    const unexpose = exposeOnWindow(handle)
 
     activeHandle = handle
     return handle

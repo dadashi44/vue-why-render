@@ -67,6 +67,18 @@ export function printReport(report: Report, options: PrintOptions = {}): void {
     if (rows.length) console.table(rows)
     else console.log('No renders recorded.')
 
+    const violations = report.violations ?? []
+    if (violations.length) {
+        console.group(`budget violations (${violations.length})`)
+        for (const item of violations) {
+            const what = item.kind === 'renders'
+                ? `${item.actual} renders in ${item.per}ms (limit ${item.limit})`
+                : `${formatDuration(item.actual)} per update (limit ${item.limit}ms)`
+            console.warn(`${item.name}: ${what}, ×${item.count}${item.reason ? ` — ${item.reason}` : ''}`)
+        }
+        console.groupEnd()
+    }
+
     const hinted = report.components.filter(item => item.hints.length)
     if (hinted.length) {
         console.groupCollapsed(`hints (${hinted.length})`)

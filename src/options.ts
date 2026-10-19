@@ -33,6 +33,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     sampleRate: 1,
     pauseHotkey: 'Alt+Shift+P',
     theme: 'auto',
+    budgets: [],
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {
@@ -52,6 +53,9 @@ export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptio
     resolved.sampleRate = Number.isFinite(resolved.sampleRate)
         ? Math.min(1, Math.max(0, resolved.sampleRate))
         : 1
+    resolved.budgets = options.budgets
+        ? (Array.isArray(options.budgets) ? options.budgets : [options.budgets])
+        : []
     return resolved
 }
 
@@ -63,7 +67,7 @@ function stripUndefined<T extends object>(source: T): Partial<T> {
     return result
 }
 
-function matches(filter: NameFilter, name: string, file?: string): boolean {
+export function matches(filter: NameFilter, name: string, file?: string): boolean {
     if (typeof filter === 'function') return filter(name, file)
     if (filter instanceof RegExp) {
         // Регулярка с флагом g тащит lastIndex между вызовами и врёт через раз.

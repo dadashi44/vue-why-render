@@ -1,4 +1,4 @@
-import type { ComponentRecord, RenderEvent } from '../types'
+import type { BudgetViolation, ComponentRecord, RenderEvent } from '../types'
 
 export interface TreeNode extends ComponentRecord {
     children: TreeNode[]
@@ -28,6 +28,7 @@ export interface RegistryInit {
 export class Registry {
     private records = new Map<number, ComponentRecord>()
     private events: RenderEvent[] = []
+    private violations = new Map<string, BudgetViolation>()
     private listeners = new Set<() => void>()
     private eventListeners = new Set<(event: RenderEvent) => void>()
     private maxEvents: number
@@ -186,6 +187,7 @@ export class Registry {
             record.lastPropChanges = []
         }
         this.events = []
+        this.violations.clear()
         this.totalRenders = 0
         this.startedAt = this.now()
         this.notify()
@@ -194,9 +196,42 @@ export class Registry {
     clear(): void {
         this.records.clear()
         this.events = []
+        this.violations.clear()
         this.totalRenders = 0
         this.listeners.clear()
         this.eventListeners.clear()
+    }
+
+    /**
+     * Записать нарушение бюджета. Повторное — по тому же компоненту и виду —
+     * не добавляет строку, а копит счётчик и худшее значение.
+     * Возвращает true, если нарушение новое: о нём и стоит сказать вслух.
+     */
+    addViolation(violation: BudgetViolation): boolean {
+        const id = `${violation.kind}:${violation.key}`
+        const existing = this.violations.get(id)
+        if (existing) {
+            existing.count++
+            existing.actual = Math.max(existing.actual, violation.actual)
+            existing.lastAt = violation.lastAt
+            this.notify()
+            return false
+        }
+        this.violations.set(id, { ...violation })
+        this.notify()
+        return true
+    }
+
+    getViolations(): BudgetViolation[] {
+        return [...this.violations.values()].map(item => ({ ...item }))
+    }
+
+    /** Есть ли нарушение у компонента с таким ключом — для подсветки в панели. */
+    hasViolation(key: string): boolean {
+        for (const item of this.violations.values()) {
+            if (item.key === key) return true
+        }
+        return false
     }
 
     /**

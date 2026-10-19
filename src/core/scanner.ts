@@ -6,6 +6,7 @@ import { FpsMeter } from './fps'
 import { getComponentBounds, getComponentFile, getComponentName } from './instance'
 import { describeTrigger, dedupeReasons, diffProps, snapshotProps } from './reason'
 import { Registry } from './registry'
+import { watchBudgets } from './budgets'
 
 const FLASH_WINDOW = 1000
 
@@ -38,10 +39,12 @@ export class Scanner {
     private overlay: Overlay | null = null
     private fps = new FpsMeter()
     private active = true
+    private unwatchBudgets: () => void
 
     constructor(options: ResolvedOptions) {
         this.options = options
         this.registry = new Registry({ maxEvents: options.maxEvents })
+        this.unwatchBudgets = watchBudgets(this.registry, options)
 
         if (options.overlay && typeof document !== 'undefined') {
             this.overlay = new Overlay({
@@ -269,6 +272,7 @@ export class Scanner {
 
     dispose(): void {
         this.active = false
+        this.unwatchBudgets()
         this.fps.stop()
         this.overlay?.dispose()
         this.overlay = null
