@@ -269,6 +269,25 @@ describe('Panel: мелочи 0.5.0', () => {
         vi.unstubAllGlobals()
     })
 
+    it('копирует отчёт Markdown-ом для issue', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+        scanner = makeScanner('ru')
+        seed(scanner, 1, 3)
+        const wrapper = await mountPanel(scanner)
+
+        const button = wrapper.findAll('.vwr__btn').find(item => item.text() === 'md')!
+        await button.trigger('click')
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        const text = writeText.mock.calls[0][0] as string
+        expect(text).toContain('### vue-why-render report')
+        // Даже при русской панели: смесь языков в issue читается хуже обоих.
+        expect(text).toContain('#### Most re-rendered')
+        expect(button.text()).toBe('✓')
+        vi.unstubAllGlobals()
+    })
+
     it('без причины кнопки копирования нет', async () => {
         scanner = makeScanner()
         seed(scanner, 1)

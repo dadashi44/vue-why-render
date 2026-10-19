@@ -274,6 +274,21 @@ the scanner options alongside the numbers. Those are not decoration: without the
 a report from someone else is unreadable, because there is no way to tell whether
 a component never re-rendered or was simply filtered out.
 
+### Pasting into an issue
+
+Press **md** in the panel to copy the session as Markdown — top renders, the slowest
+components, the most frequent reasons and the hints, as tables that render right in
+the thread. Nothing to download or attach:
+
+```ts
+import { formatReportMarkdown } from 'vue-why-render'
+
+const markdown = formatReportMarkdown(handle.getReport(), { limit: 10 })
+```
+
+The page URL is deliberately left out: an issue is public, and a URL can carry an
+internal host or a token in the query. The JSON report still has it.
+
 ### Comparing two reports
 
 Every other tool shows you a state. This one answers the question you actually

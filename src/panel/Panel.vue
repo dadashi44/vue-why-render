@@ -19,6 +19,7 @@ import {
 import { hintsForRecord } from '../core/hints'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
 import { createReport, downloadReport } from '../core/report'
+import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
 import { clampPosition, loadPosition, savePosition } from './position'
 import type { PanelPosition } from './position'
@@ -63,6 +64,7 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', keepInView)
     sizeObserver?.disconnect()
     if (copiedTimer) clearTimeout(copiedTimer)
+    if (markdownTimer) clearTimeout(markdownTimer)
 })
 
 // Пауза живёт в реестре: её переключают и горячая клавиша, и handle.pause().
@@ -137,6 +139,25 @@ function saveReport(): void {
         registry: props.scanner.registry,
         options: props.scanner.options,
     }))
+}
+
+const markdownCopied = ref(false)
+let markdownTimer: ReturnType<typeof setTimeout> | null = null
+
+function copyMarkdown(): void {
+    const report = createReport({ registry: props.scanner.registry, options: props.scanner.options })
+    // Блок всегда английский, даже при русской панели: заголовки таблиц
+    // и так английские, а смесь языков в одном issue читается хуже обоих.
+    void copyToClipboard(formatReportMarkdown(report))
+        .then((copied) => {
+            if (!copied) return
+            markdownCopied.value = true
+            if (markdownTimer) clearTimeout(markdownTimer)
+            markdownTimer = setTimeout(() => {
+                markdownCopied.value = false
+                markdownTimer = null
+            }, 1200)
+        })
 }
 
 function reset(): void {
@@ -321,6 +342,9 @@ function openInEditor(record: ComponentRecord): void {
                 </button>
                 <button class="vwr__btn" @click="saveReport()">
                     {{ t.saveReport }}
+                </button>
+                <button class="vwr__btn" :title="t.copyMarkdownTitle" @click="copyMarkdown()">
+                    {{ markdownCopied ? '✓' : t.copyMarkdown }}
                 </button>
             </div>
 

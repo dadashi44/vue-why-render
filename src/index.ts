@@ -37,6 +37,8 @@ export {
 export type { Hint, HintCode, HintInput } from './core/hints'
 export { hintsFor, hintsForRecord } from './core/hints'
 export type { ComponentDiff, DiffStatus, ReportDiff } from './core/diff'
+export type { MarkdownOptions } from './core/markdown'
+export { formatReportMarkdown } from './core/markdown'
 export { diffReports, formatDiff } from './core/diff'
 export { VERSION } from './version'
 export { Registry } from './core/registry'

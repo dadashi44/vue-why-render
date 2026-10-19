@@ -22,6 +22,9 @@ export interface Messages {
     paused: string
     reset: string
     saveReport: string
+    /** Кнопка «скопировать отчёт Markdown-ом для issue». */
+    copyMarkdown: string
+    copyMarkdownTitle: string
     /** Подпись кнопки паузы во всплывающей подсказке: «пауза (Alt+Shift+P)». */
     pauseTitle: string
     /** Кнопка «скопировать причину» и подтверждение после копирования. */
@@ -69,6 +72,8 @@ export const messages: Record<Locale, Messages> = {
         paused: 'paused',
         reset: 'reset',
         saveReport: 'report',
+        copyMarkdown: 'md',
+        copyMarkdownTitle: 'copy the report as Markdown for an issue',
         pauseTitle: 'pause / resume',
         copyReason: 'copy the reason',
         copied: 'copied',
@@ -105,6 +110,8 @@ export const messages: Record<Locale, Messages> = {
         paused: 'пауза',
         reset: 'сброс',
         saveReport: 'отчёт',
+        copyMarkdown: 'md',
+        copyMarkdownTitle: 'скопировать отчёт в Markdown для issue',
         pauseTitle: 'пауза / продолжить',
         copyReason: 'скопировать причину',
         copied: 'скопировано',
@@ -141,6 +148,8 @@ export const messages: Record<Locale, Messages> = {
         paused: '已暂停',
         reset: '重置',
         saveReport: '报告',
+        copyMarkdown: 'md',
+        copyMarkdownTitle: '复制为 Markdown，用于 issue',
         pauseTitle: '暂停 / 继续',
         copyReason: '复制原因',
         copied: '已复制',

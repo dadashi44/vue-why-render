@@ -258,6 +258,20 @@ handle.saveReport()                 // 同样的内容，直接下载为文件
 文件中除数字外还记录了本包与 Vue 的版本、URL、会话时长和扫描器选项。这些并非装饰：
 没有它们，别人的报告就无法解读 —— 分不清某个组件是真的没有重新渲染，还是被过滤掉了。
 
+### 粘贴到 issue
+
+点击面板上的 **md** 按钮，即可把会话复制为 Markdown：渲染次数排行、最慢的组件、
+最常见的原因以及提示，以表格形式直接显示在讨论串里，无需下载或附加文件：
+
+```ts
+import { formatReportMarkdown } from 'vue-why-render'
+
+const markdown = formatReportMarkdown(handle.getReport(), { limit: 10 })
+```
+
+页面 URL 被刻意排除在外：issue 是公开的，而 URL 里可能带有内部主机名或 query 中的 token。
+JSON 报告里仍然保留它。
+
 ### 比较两份报告
 
 其他工具展示的是状态。本工具回答的是优化之后真正会问的那个问题：*有没有变好？*
