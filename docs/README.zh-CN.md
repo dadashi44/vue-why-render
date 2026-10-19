@@ -258,6 +258,20 @@ handle.saveReport()                 // 同样的内容，直接下载为文件
 文件中除数字外还记录了本包与 Vue 的版本、URL、会话时长和扫描器选项。这些并非装饰：
 没有它们，别人的报告就无法解读 —— 分不清某个组件是真的没有重新渲染，还是被过滤掉了。
 
+### 打印到控制台
+
+面板关闭或碍事时，可以把会话以表格形式打印出来：
+
+```ts
+import { printReport } from 'vue-why-render'
+
+printReport()                       // 当前会话
+printReport(parseReport(json))      // 任意已保存的报告
+handle.printReport({ limit: 10 })
+```
+
+`reportRows(report)` 以普通对象返回同样的行，方便在别处使用。
+
 ### 粘贴到 issue
 
 点击面板上的 **md** 按钮，即可把会话复制为 Markdown：渲染次数排行、最慢的组件、

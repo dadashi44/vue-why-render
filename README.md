@@ -274,6 +274,20 @@ the scanner options alongside the numbers. Those are not decoration: without the
 a report from someone else is unreadable, because there is no way to tell whether
 a component never re-rendered or was simply filtered out.
 
+### Printing to the console
+
+When the panel is off or in the way, print the session as a table:
+
+```ts
+import { printReport } from 'vue-why-render'
+
+printReport()                       // the running session
+printReport(parseReport(json))      // any saved report
+handle.printReport({ limit: 10 })
+```
+
+`reportRows(report)` returns the same rows as plain objects, if you want them elsewhere.
+
 ### Pasting into an issue
 
 Press **md** in the panel to copy the session as Markdown — top renders, the slowest

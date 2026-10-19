@@ -4,6 +4,8 @@ import { resolveOptions } from './options'
 import { Scanner } from './core/scanner'
 import { createReport, downloadReport } from './core/report'
 import type { Report } from './core/report'
+import { printReport as printReportTo } from './core/console'
+import type { PrintOptions } from './core/console'
 import { mountPanel } from './panel/mount'
 import { setupDevtools } from './devtools/plugin'
 import { bindHotkey } from './utils/hotkey'
@@ -39,6 +41,8 @@ export { hintsFor, hintsForRecord } from './core/hints'
 export type { ComponentDiff, DiffStatus, ReportDiff } from './core/diff'
 export type { MarkdownOptions } from './core/markdown'
 export { formatReportMarkdown } from './core/markdown'
+export type { PrintOptions, PrintRow } from './core/console'
+export { reportRows } from './core/console'
 export { diffReports, formatDiff } from './core/diff'
 export { VERSION } from './version'
 export { Registry } from './core/registry'
@@ -59,6 +63,8 @@ export interface ScanHandle {
     getReport: () => Report
     /** Снять отчёт и сохранить файлом. */
     saveReport: (filename?: string) => void
+    /** Снять отчёт и напечатать таблицей в консоль. */
+    printReport: (options?: PrintOptions) => void
 }
 
 let activeHandle: ScanHandle | null = null
@@ -110,6 +116,9 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
         saveReport(filename) {
             downloadReport(handle.getReport(), filename)
         },
+        printReport(printOptions) {
+            printReportTo(handle.getReport(), printOptions)
+        },
     }
 
     activeHandle = handle
@@ -147,6 +156,19 @@ export function getReport(): Report | null {
 
 export function saveReport(filename?: string): void {
     activeHandle?.saveReport(filename)
+}
+
+/**
+ * Отчёт по текущей сессии таблицей в консоль. Без аргумента печатает живую
+ * сессию, с аргументом — любой отчёт, например разобранный `parseReport()`.
+ */
+export function printReport(report?: Report | null, options?: PrintOptions): void {
+    const target = report ?? activeHandle?.getReport()
+    if (!target) {
+        console.warn('[vue-why-render] printReport: the scanner is not running and no report was given')
+        return
+    }
+    printReportTo(target, options)
 }
 
 export default VueWhyRender
