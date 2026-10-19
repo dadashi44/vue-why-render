@@ -231,6 +231,27 @@ p {
     margin-bottom: 18px;
 }
 
+/* Кнопка корзины идёт сразу за списком, у которого нет нижнего отступа. */
+.demo ul + .demo__row {
+    margin-top: 16px;
+}
+
+.demo__row > button,
+.demo__cart button {
+    padding: 4px 10px;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.demo__row > button:hover,
+.demo__cart button:hover {
+    border-color: var(--accent-dim);
+}
+
 .demo input {
     flex: 1 1 200px;
     padding: 9px 12px;

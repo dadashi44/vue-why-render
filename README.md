@@ -25,16 +25,18 @@ through the `renderTriggered` hook — this package is built around it.
 
 ## Features
 
-- **The reason, not just the fact**: the name of the prop, ref, store key or array index, plus the old and new value.
+- **The reason, not just the fact**: the name of the prop, ref, Pinia store field or array index, plus the old and new value.
 - **A dedicated "new reference, same value" verdict** — by far the most common source of wasted renders.
 - **Overlay**: a border around the re-rendered component, coloured from green to red by frequency.
 - **Panel**: top by render count, top by time, a component tree with per-subtree totals, and an event feed.
 - **Jump to your editor**: clicking a row opens the SFC in your IDE through the dev server.
-- **Pause, reset and filter** by component name or file path.
+- **Pinia**: which store, which field, and which action was running — `store cart.items (add) · action add()`. Nothing to configure, no dependency on Pinia.
+- **Pause, reset and filter** by component name or file path; `Alt+Shift+P` pauses from the keyboard. The panel can be dragged anywhere, follows the system light or dark theme, and copies a reason in one click.
 - **Vue DevTools**: an inspector and a timeline layer in the extension, without adding a dependency.
 - **Render assertions in tests**: `expectRenders(ProductCard).toBe(0, …)` — a wasted render you fixed once stops coming back.
 - **Hints**: next to the reason, what to do about it — hoist the object, move the handler into a method, consider `v-memo`.
-- **Reports**: save the whole session as JSON from the panel, and `diffReports(before, after)` to prove a fix actually worked.
+- **Reports**: save the whole session as JSON from the panel, and `diffReports(before, after)` to prove a fix actually worked. Open a saved report back in the panel, copy the session as Markdown for an issue, or `printReport()` to the console.
+- **Render budgets**: `budgets: { maxRenders: 5 }` warns when a component thrashes, and `window.__VUE_WHY_RENDER__` lets a Playwright test fail CI on it.
 - **API**: `getStats()`, `getEvents()`, `getReport()` and an `onRender` callback, so you can build your own tooling.
 
 ## Install
@@ -55,7 +57,7 @@ If installing from the registry is not an option, the tarball attached to every
 link and needs no authentication:
 
 ```sh
-npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.5.0/vue-why-render-0.5.0.tgz
+npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.5.1/vue-why-render-0.5.1.tgz
 ```
 
 ## Usage

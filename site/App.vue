@@ -4,6 +4,8 @@ import type { Locale } from 'vue-why-render'
 import LiveClock from '../playground/components/LiveClock.vue'
 import ProductCard from '../playground/components/ProductCard.vue'
 import StaticNote from '../playground/components/StaticNote.vue'
+import CartSummary from './CartSummary.vue'
+import { useCart } from './stores/cart'
 import { detectLocale, site, siteLocales } from './i18n'
 
 const locale = detectLocale()
@@ -46,6 +48,7 @@ const catalogue: Record<Locale, { currency: string, items: { id: number, title: 
 }
 
 const query = ref('')
+const cart = useCart()
 const tick = ref(0)
 const products = ref(catalogue[locale].items)
 const currency = catalogue[locale].currency
@@ -62,6 +65,11 @@ onBeforeUnmount(() => clearInterval(timer))
 // Панель пометит такой проп как «новая ссылка, значение то же».
 function makeBadge(): { text: string } {
     return { text: 'new' }
+}
+
+function addToCart(): void {
+    const product = products.value[0]
+    if (product) cart.add(product.title, product.price)
 }
 
 function raisePrice(id: number): void {
@@ -131,6 +139,13 @@ function raisePrice(id: number): void {
                         @raise="raisePrice(product.id)"
                     />
                 </ul>
+
+                <div class="demo__row">
+                    <button type="button" @click="addToCart()">
+                        {{ t.addToCart }}
+                    </button>
+                </div>
+                <CartSummary :label="t.cartLabel" :clear-label="t.clearCart" :currency="currency" />
 
                 <StaticNote>{{ t.staticNote }}</StaticNote>
             </div>
