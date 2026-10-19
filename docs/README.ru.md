@@ -3,6 +3,7 @@
 Видно, какие компоненты Vue перерисовываются — и **почему именно**.
 
 [![npm](https://img.shields.io/npm/v/vue-why-render?color=%236ee7a8)](https://www.npmjs.com/package/vue-why-render)
+[![downloads](https://img.shields.io/npm/dm/vue-why-render?color=%236ee7a8)](https://npmtrends.com/vue-why-render)
 [![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
 **[Живое демо →](https://dadashi44.github.io/vue-why-render/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
