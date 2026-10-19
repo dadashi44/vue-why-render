@@ -32,6 +32,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     locale: 'en',
     sampleRate: 1,
     pauseHotkey: 'Alt+Shift+P',
+    theme: 'auto',
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {

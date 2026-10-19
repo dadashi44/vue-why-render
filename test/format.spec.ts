@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
     averageDuration,
+    copyText,
     formatDuration,
     formatPropChange,
     formatReason,
@@ -169,5 +170,24 @@ describe('локализация', () => {
         expect(formatPropChange(change, en)).toContain('new reference')
         expect(formatPropChange(change, ru)).toContain('новая ссылка')
         expect(formatPropChange(change, getMessages('zh-CN'))).toContain('新引用')
+    })
+})
+
+describe('copyText', () => {
+    it('собирает шапку и причины деревом, как в README', () => {
+        const text = copyText(record({
+            lastReasons: [{ type: 'set', key: 'count', source: 'setup', oldValue: '0', newValue: '1' }],
+            lastPropChanges: [{ key: 'badge', oldValue: '{ text }', newValue: '{ text }', referenceOnly: true, newFunction: false }],
+        }), en)
+        expect(text).toBe([
+            'Card ×4 · 2.5ms · components/Card.vue',
+            '├─ state count: 0 → 1',
+            '└─ prop badge: { text } → { text } — new reference, same value',
+        ].join('\n'))
+    })
+
+    it('без времени и файла шапка не оставляет пустых разделителей', () => {
+        const text = copyText(record({ file: undefined, totalDuration: 0 }), en)
+        expect(text).toBe('Card ×4')
     })
 })

@@ -73,6 +73,8 @@ export interface ComponentRecord {
     lastPropChanges: PropChange[]
 }
 
+export type PanelTheme = 'auto' | 'dark' | 'light'
+
 export type NameFilter = string | RegExp | ((name: string, file?: string) => boolean)
 
 export interface VueWhyRenderOptions {
@@ -125,6 +127,8 @@ export interface VueWhyRenderOptions {
     sampleRate?: number
     /** Горячая клавиша паузы, например `Alt+Shift+P`. `false` — без клавиши. */
     pauseHotkey?: string | false
+    /** Тема панели. `auto` следует `prefers-color-scheme`. */
+    theme?: PanelTheme
     /** Колбэк на каждое событие рендера. */
     onRender?: (event: RenderEvent) => void
 }

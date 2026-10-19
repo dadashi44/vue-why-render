@@ -11,6 +11,7 @@ import { bindHotkey } from './utils/hotkey'
 export type {
     ComponentRecord,
     NameFilter,
+    PanelTheme,
     PropChange,
     ReasonSource,
     RenderEvent,
@@ -76,7 +77,6 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
     const unbindHotkey = resolved.pauseHotkey
         ? bindHotkey(resolved.pauseHotkey, () => scanner.registry.setPaused(!scanner.registry.isPaused()))
         : null
-
 
     const handle: ScanHandle = {
         scanner,

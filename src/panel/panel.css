@@ -6,6 +6,73 @@
     box-sizing: border-box;
 }
 
+/*
+ * Цвета — переменными: светлая тема переопределяет только их.
+ * На белом фоне оранжевый и мятный из тёмной темы не читаются, поэтому
+ * у текста причин и подсказок в светлой теме свои, более тёмные оттенки.
+ */
+.vwr {
+    --vwr-fg: #e6e6e6;
+    --vwr-bg: #16181d;
+    --vwr-bg-soft: #1d2029;
+    --vwr-raised: #23262f;
+    --vwr-input: #0f1115;
+    --vwr-line: #2c3039;
+    --vwr-row-line: #20232b;
+    --vwr-dim: #8b93a4;
+    --vwr-btn-fg: #cfd4de;
+    --vwr-indent: #3d434f;
+    --vwr-accent: #6ee7a8;
+    --vwr-on-accent: #0e1014;
+    --vwr-focus: #4b7bec;
+    --vwr-why: #f0b86e;
+    --vwr-prop: #7aa2f7;
+    --vwr-hint: #6ee7a8;
+    --vwr-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+.vwr--light {
+    --vwr-fg: #1f2329;
+    --vwr-bg: #ffffff;
+    --vwr-bg-soft: #f3f4f6;
+    --vwr-raised: #eceef2;
+    --vwr-input: #f7f8fa;
+    --vwr-line: #d9dde3;
+    --vwr-row-line: #eceef1;
+    --vwr-dim: #5f6773;
+    --vwr-btn-fg: #2a2f37;
+    --vwr-indent: #c3c8d0;
+    --vwr-accent: #6ee7a8;
+    --vwr-on-accent: #0e1014;
+    --vwr-focus: #2f6fe0;
+    --vwr-why: #a35400;
+    --vwr-prop: #2453c4;
+    --vwr-hint: #137a48;
+    --vwr-shadow: 0 12px 32px rgb(15 20 30 / 18%);
+}
+
+@media (prefers-color-scheme: light) {
+    .vwr--auto {
+        --vwr-fg: #1f2329;
+        --vwr-bg: #ffffff;
+        --vwr-bg-soft: #f3f4f6;
+        --vwr-raised: #eceef2;
+        --vwr-input: #f7f8fa;
+        --vwr-line: #d9dde3;
+        --vwr-row-line: #eceef1;
+        --vwr-dim: #5f6773;
+        --vwr-btn-fg: #2a2f37;
+        --vwr-indent: #c3c8d0;
+        --vwr-accent: #6ee7a8;
+        --vwr-on-accent: #0e1014;
+        --vwr-focus: #2f6fe0;
+        --vwr-why: #a35400;
+        --vwr-prop: #2453c4;
+        --vwr-hint: #137a48;
+        --vwr-shadow: 0 12px 32px rgb(15 20 30 / 18%);
+    }
+}
+
 .vwr {
     position: fixed;
     right: 16px;
@@ -16,11 +83,11 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12px;
     line-height: 1.45;
-    color: #e6e6e6;
-    background: #16181d;
-    border: 1px solid #2c3039;
+    color: var(--vwr-fg);
+    background: var(--vwr-bg);
+    border: 1px solid var(--vwr-line);
     border-radius: 10px;
-    box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+    box-shadow: var(--vwr-shadow);
     overflow: hidden;
 }
 
@@ -33,9 +100,15 @@
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
-    background: #1d2029;
-    cursor: pointer;
+    background: var(--vwr-bg-soft);
+    cursor: grab;
     user-select: none;
+    /* Без этого на тачскрине жест перетаскивания уходит в прокрутку страницы. */
+    touch-action: none;
+}
+
+.vwr__head:active {
+    cursor: grabbing;
 }
 
 .vwr__title {
@@ -45,8 +118,8 @@
 
 .vwr__badge {
     padding: 1px 6px;
-    color: #0e1014;
-    background: #6ee7a8;
+    color: var(--vwr-on-accent);
+    background: var(--vwr-accent);
     border-radius: 999px;
     font-size: 11px;
 }
@@ -56,7 +129,7 @@
 }
 
 .vwr__stat {
-    color: #8b93a4;
+    color: var(--vwr-dim);
     white-space: nowrap;
 }
 
@@ -70,12 +143,12 @@
     display: flex;
     gap: 2px;
     padding: 6px 8px 0;
-    border-bottom: 1px solid #2c3039;
+    border-bottom: 1px solid var(--vwr-line);
 }
 
 .vwr__tab {
     padding: 4px 10px;
-    color: #8b93a4;
+    color: var(--vwr-dim);
     background: none;
     border: none;
     border-radius: 6px 6px 0 0;
@@ -84,12 +157,12 @@
 }
 
 .vwr__tab:hover {
-    color: #e6e6e6;
+    color: var(--vwr-fg);
 }
 
 .vwr__tab--active {
-    color: #e6e6e6;
-    background: #23262f;
+    color: var(--vwr-fg);
+    background: var(--vwr-raised);
 }
 
 .vwr__toolbar {
@@ -97,42 +170,42 @@
     gap: 6px;
     align-items: center;
     padding: 6px 8px;
-    border-bottom: 1px solid #2c3039;
+    border-bottom: 1px solid var(--vwr-line);
 }
 
 .vwr__search {
     flex: 1;
     min-width: 0;
     padding: 4px 8px;
-    color: #e6e6e6;
-    background: #0f1115;
-    border: 1px solid #2c3039;
+    color: var(--vwr-fg);
+    background: var(--vwr-input);
+    border: 1px solid var(--vwr-line);
     border-radius: 6px;
     font: inherit;
 }
 
 .vwr__search:focus {
-    outline: 1px solid #4b7bec;
+    outline: 1px solid var(--vwr-focus);
 }
 
 .vwr__btn {
     padding: 4px 9px;
-    color: #cfd4de;
-    background: #23262f;
-    border: 1px solid #2c3039;
+    color: var(--vwr-btn-fg);
+    background: var(--vwr-raised);
+    border: 1px solid var(--vwr-line);
     border-radius: 6px;
     font: inherit;
     cursor: pointer;
 }
 
 .vwr__btn:hover {
-    background: #2c3039;
+    background: var(--vwr-line);
 }
 
 .vwr__btn--on {
-    color: #0e1014;
-    background: #6ee7a8;
-    border-color: #6ee7a8;
+    color: var(--vwr-on-accent);
+    background: var(--vwr-accent);
+    border-color: var(--vwr-accent);
 }
 
 .vwr__list {
@@ -143,23 +216,52 @@
     list-style: none;
 }
 
+.vwr__line {
+    display: flex;
+    border-bottom: 1px solid var(--vwr-row-line);
+}
+
 .vwr__row {
     display: flex;
+    flex: 1;
     gap: 8px;
     align-items: baseline;
-    width: 100%;
+    min-width: 0;
     padding: 6px 10px;
     color: inherit;
     text-align: left;
     background: none;
     border: none;
-    border-bottom: 1px solid #20232b;
     font: inherit;
     cursor: pointer;
 }
 
+/* В дереве строка без обёртки — разделитель вешаем на неё саму. */
+.vwr__list > li > .vwr__row {
+    border-bottom: 1px solid var(--vwr-row-line);
+}
+
 .vwr__row:hover {
-    background: #1d2029;
+    background: var(--vwr-bg-soft);
+}
+
+.vwr__copy {
+    padding: 0 10px;
+    color: var(--vwr-dim);
+    background: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.vwr__copy--empty {
+    visibility: hidden;
+    cursor: default;
+}
+
+.vwr__copy:hover {
+    color: var(--vwr-fg);
+    background: var(--vwr-bg-soft);
 }
 
 .vwr__name {
@@ -178,7 +280,7 @@
 
 .vwr__time {
     min-width: 64px;
-    color: #8b93a4;
+    color: var(--vwr-dim);
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
@@ -186,34 +288,34 @@
 .vwr__why {
     display: block;
     padding: 0 10px 6px 10px;
-    color: #f0b86e;
+    color: var(--vwr-why);
     font-size: 11px;
     overflow-wrap: anywhere;
 }
 
 .vwr__why--prop {
-    color: #7aa2f7;
+    color: var(--vwr-prop);
 }
 
 /* Подсказка — это версия, а не факт, поэтому цвет приглушённее причин. */
 .vwr__why--hint {
-    color: #6ee7a8;
+    color: var(--vwr-hint);
 }
 
 .vwr__empty {
     padding: 18px 10px;
-    color: #8b93a4;
+    color: var(--vwr-dim);
     text-align: center;
 }
 
 .vwr__tree-indent {
     display: inline-block;
-    color: #3d434f;
+    color: var(--vwr-indent);
 }
 
 .vwr__event {
     padding: 5px 10px;
-    border-bottom: 1px solid #20232b;
+    border-bottom: 1px solid var(--vwr-row-line);
 }
 
 .vwr__event-head {
@@ -222,5 +324,5 @@
 }
 
 .vwr__dim {
-    color: #8b93a4;
+    color: var(--vwr-dim);
 }

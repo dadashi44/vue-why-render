@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import type { Scanner } from '../core/scanner'
 import { getMessages } from '../i18n'
 import type { TreeNode } from '../core/registry'
@@ -7,6 +7,7 @@ import type { ComponentRecord } from '../types'
 import { throttle } from '../utils/throttle'
 import {
     averageDuration,
+    copyText,
     formatDuration,
     formatHint,
     formatPropChange,
@@ -18,6 +19,9 @@ import {
 import { hintsForRecord } from '../core/hints'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
 import { createReport, downloadReport } from '../core/report'
+import { copyToClipboard } from './clipboard'
+import { clampPosition, loadPosition, savePosition } from './position'
+import type { PanelPosition } from './position'
 
 const props = defineProps<{ scanner: Scanner }>()
 
@@ -43,11 +47,22 @@ const refresh = throttle(() => {
 onMounted(() => {
     unsubscribe = props.scanner.registry.subscribe(refresh)
     refresh()
+    keepInView()
+    window.addEventListener('resize', keepInView, { passive: true })
+    // Панель растёт вверх вместе со списком: стоящая высоко, она уводила бы
+    // шапку за верхний край — а за шапку её и тащат обратно.
+    if (typeof ResizeObserver !== 'undefined' && root.value) {
+        sizeObserver = new ResizeObserver(keepInView)
+        sizeObserver.observe(root.value)
+    }
 })
 
 onBeforeUnmount(() => {
     refresh.cancel()
     unsubscribe?.()
+    window.removeEventListener('resize', keepInView)
+    sizeObserver?.disconnect()
+    if (copiedTimer) clearTimeout(copiedTimer)
 })
 
 // Пауза живёт в реестре: её переключают и горячая клавиша, и handle.pause().
@@ -130,6 +145,95 @@ function reset(): void {
     refresh.flush()
 }
 
+const copiedUid = ref<number | null>(null)
+let copiedTimer: ReturnType<typeof setTimeout> | null = null
+
+function copyReason(record: ComponentRecord): void {
+    void copyToClipboard(copyText(record, t)).then((copied) => {
+        if (!copied) return
+        copiedUid.value = record.uid
+        if (copiedTimer) clearTimeout(copiedTimer)
+        copiedTimer = setTimeout(() => {
+            copiedUid.value = null
+            copiedTimer = null
+        }, 1200)
+    })
+}
+
+// Перетаскивание за шапку. Позиция — отступ от правого нижнего угла, как и
+// в исходном положении: тогда свёрнутая панель сжимается к тому же углу.
+const root = ref<HTMLElement | null>(null)
+const position = ref<PanelPosition | null>(loadPosition())
+const DRAG_THRESHOLD = 4
+let sizeObserver: ResizeObserver | null = null
+
+let drag: { x: number, y: number, from: PanelPosition, moved: boolean } | null = null
+// Отпускание после перетаскивания браузер считает кликом по шапке —
+// без этого флага каждый перенос заодно сворачивал бы панель.
+let suppressClick = false
+
+const panelStyle = computed(() => position.value
+    ? { right: `${position.value.right}px`, bottom: `${position.value.bottom}px` }
+    : undefined)
+
+function panelSize(): { width: number, height: number } {
+    const rect = root.value?.getBoundingClientRect()
+    return { width: rect?.width ?? 0, height: rect?.height ?? 0 }
+}
+
+function viewport(): { width: number, height: number } {
+    return { width: window.innerWidth, height: window.innerHeight }
+}
+
+function keepInView(): void {
+    if (!position.value) return
+    position.value = clampPosition(position.value, panelSize(), viewport())
+}
+
+function onHeadPointerDown(event: PointerEvent): void {
+    suppressClick = false
+    if (event.button !== 0 || !root.value) return
+    const rect = root.value.getBoundingClientRect()
+    drag = {
+        x: event.clientX,
+        y: event.clientY,
+        from: { right: window.innerWidth - rect.right, bottom: window.innerHeight - rect.bottom },
+        moved: false,
+    }
+    ;(event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId)
+}
+
+function onHeadPointerMove(event: PointerEvent): void {
+    if (!drag) return
+    const dx = event.clientX - drag.x
+    const dy = event.clientY - drag.y
+    if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+    drag.moved = true
+    position.value = clampPosition(
+        { right: drag.from.right - dx, bottom: drag.from.bottom - dy },
+        panelSize(),
+        viewport(),
+    )
+}
+
+function onHeadPointerUp(): void {
+    if (drag?.moved && position.value) {
+        suppressClick = true
+        savePosition(position.value)
+    }
+    drag = null
+}
+
+function onHeadClick(): void {
+    if (suppressClick) {
+        suppressClick = false
+        return
+    }
+    collapsed.value = !collapsed.value
+    // Развёрнутая у верхнего края панель иначе уезжает за экран.
+    void nextTick(keepInView)
+}
+
 // Подсказку показываем один раз за сессию: по строкам кликают часто,
 // а совет от повторения не улучшается.
 let warnedAboutEditor = false
@@ -148,8 +252,20 @@ function openInEditor(record: ComponentRecord): void {
 </script>
 
 <template>
-    <div class="vwr" :class="{ 'vwr--collapsed': collapsed }">
-        <div class="vwr__head" @click="collapsed = !collapsed">
+    <div
+        ref="root"
+        class="vwr"
+        :class="[`vwr--${props.scanner.options.theme}`, { 'vwr--collapsed': collapsed }]"
+        :style="panelStyle"
+    >
+        <div
+            class="vwr__head"
+            @click="onHeadClick()"
+            @pointerdown="onHeadPointerDown"
+            @pointermove="onHeadPointerMove"
+            @pointerup="onHeadPointerUp()"
+            @pointercancel="onHeadPointerUp()"
+        >
             <span class="vwr__title">why-render</span>
             <span class="vwr__badge">{{ summary.renders }}</span>
             <span class="vwr__spacer" />
@@ -213,14 +329,27 @@ function openInEditor(record: ComponentRecord): void {
                     {{ t.emptyRenders }}
                 </li>
                 <li v-for="record in tab === 'top' ? topRecords : slowRecords" :key="record.uid">
-                    <button class="vwr__row" :title="record.file" @click="openInEditor(record)">
-                        <span class="vwr__name">
-                            {{ record.name }}
-                            <span class="vwr__dim">{{ shortFile(record.file) }}</span>
-                        </span>
-                        <span class="vwr__count">×{{ record.renderCount }}</span>
-                        <span class="vwr__time">{{ formatDuration(averageDuration(record)) }}</span>
-                    </button>
+                    <div class="vwr__line">
+                        <button class="vwr__row" :title="record.file" @click="openInEditor(record)">
+                            <span class="vwr__name">
+                                {{ record.name }}
+                                <span class="vwr__dim">{{ shortFile(record.file) }}</span>
+                            </span>
+                            <span class="vwr__count">×{{ record.renderCount }}</span>
+                            <span class="vwr__time">{{ formatDuration(averageDuration(record)) }}</span>
+                        </button>
+                        <button
+                            v-if="whyLines(record, t).length"
+                            class="vwr__copy"
+                            :title="copiedUid === record.uid ? t.copied : t.copyReason"
+                            :aria-label="t.copyReason"
+                            @click="copyReason(record)"
+                        >
+                            {{ copiedUid === record.uid ? '✓' : '⧉' }}
+                        </button>
+                        <!-- Пустое место под кнопку: иначе колонка времени гуляет от строки к строке. -->
+                        <span v-else class="vwr__copy vwr__copy--empty" aria-hidden="true">⧉</span>
+                    </div>
                     <span
                         v-for="(line, index) in whyLines(record, t)"
                         :key="index"

@@ -66,3 +66,22 @@ export function matchesQuery(record: ComponentRecord, query: string): boolean {
     return record.name.toLowerCase().includes(trimmed)
         || (record.file ?? '').toLowerCase().includes(trimmed)
 }
+
+/**
+ * Причина одним блоком для вставки в issue — в том же виде, что в README:
+ *
+ *     ProductCard ×7 · 2.4ms · components/ProductCard.vue
+ *     └─ prop badge: { text } → { text } — new reference, same value
+ */
+export function copyText(record: ComponentRecord, t: Messages): string {
+    const head = [`${record.name} ×${record.renderCount}`]
+    const average = averageDuration(record)
+    if (average > 0) head.push(formatDuration(average))
+    if (record.file) head.push(shortFile(record.file))
+
+    const lines = whyLines(record, t)
+    return [
+        head.join(' · '),
+        ...lines.map((line, index) => `${index === lines.length - 1 ? '└─' : '├─'} ${line}`),
+    ].join('\n')
+}

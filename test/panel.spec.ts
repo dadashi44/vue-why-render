@@ -234,7 +234,11 @@ describe('Panel · локаль', () => {
     })
 })
 
-describe('Panel: выборка и пауза', () => {
+describe('Panel: мелочи 0.5.0', () => {
+    afterEach(() => {
+        localStorage.clear()
+    })
+
     it('кнопка паузы следует за паузой, включённой не из панели', async () => {
         scanner = makeScanner()
         const wrapper = await mountPanel(scanner)
@@ -249,9 +253,87 @@ describe('Panel: выборка и пауза', () => {
         expect(scanner.registry.isPaused()).toBe(false)
     })
 
+    it('копирует причину строки', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+        scanner = makeScanner()
+        seed(scanner, 1, 2, {
+            reasons: [{ type: 'set', key: 'count', source: 'setup', oldValue: '0', newValue: '1' }],
+        })
+        const wrapper = await mountPanel(scanner)
+
+        await wrapper.find('button.vwr__copy').trigger('click')
+        await new Promise(resolve => setTimeout(resolve, 0))
+        expect(writeText).toHaveBeenCalledWith('C1 ×2 · 2.0ms · src/C1.vue\n└─ state count: 0 → 1')
+        expect(wrapper.find('button.vwr__copy').text()).toBe('✓')
+        vi.unstubAllGlobals()
+    })
+
+    it('без причины кнопки копирования нет', async () => {
+        scanner = makeScanner()
+        seed(scanner, 1)
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.find('button.vwr__copy').exists()).toBe(false)
+    })
+
+    it('ставит класс темы из опции', async () => {
+        scanner = makeScanner(undefined, { theme: 'light' })
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.find('.vwr').classes()).toContain('vwr--light')
+    })
+
+    it('по умолчанию тема следует системе', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.find('.vwr').classes()).toContain('vwr--auto')
+    })
+
     it('говорит в шапке, что счётчики выборочные', async () => {
         scanner = makeScanner(undefined, { sampleRate: 0.1 })
         const wrapper = await mountPanel(scanner)
         expect(wrapper.find('.vwr__head').text()).toContain('sample 10%')
+    })
+
+    it('перетаскивается за шапку, запоминает место и не сворачивается от переноса', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        // В jsdom у элементов нулевой прямоугольник — ставим панель как в браузере:
+        // 420×300 в правом нижнем углу окна 1280×800 с отступом 16.
+        vi.spyOn(wrapper.find('.vwr').element, 'getBoundingClientRect').mockReturnValue(
+            { left: 844, top: 484, right: 1264, bottom: 784, width: 420, height: 300, x: 844, y: 484 } as DOMRect,
+        )
+        const head = wrapper.find('.vwr__head')
+
+        await head.trigger('pointerdown', { button: 0, clientX: 500, clientY: 500 })
+        await head.trigger('pointermove', { clientX: 400, clientY: 450 })
+        await head.trigger('pointerup')
+        await head.trigger('click')
+
+        const style = wrapper.find('.vwr').attributes('style')
+        expect(style).toContain('right: 116px')
+        expect(style).toContain('bottom: 66px')
+        expect(wrapper.find('.vwr__body').exists()).toBe(true)
+        expect(JSON.parse(localStorage.getItem('vue-why-render:panel-position')!)).toEqual({ right: 116, bottom: 66 })
+    })
+
+    it('дрожание руки при клике не считается переносом', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        const head = wrapper.find('.vwr__head')
+
+        await head.trigger('pointerdown', { button: 0, clientX: 500, clientY: 500 })
+        await head.trigger('pointermove', { clientX: 502, clientY: 501 })
+        await head.trigger('pointerup')
+        await head.trigger('click')
+
+        expect(wrapper.find('.vwr__body').exists()).toBe(false)
+        expect(localStorage.getItem('vue-why-render:panel-position')).toBeNull()
+    })
+
+    it('встаёт на сохранённое место', async () => {
+        localStorage.setItem('vue-why-render:panel-position', '{"right":40,"bottom":30}')
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.find('.vwr').attributes('style')).toContain('right: 40px')
     })
 })

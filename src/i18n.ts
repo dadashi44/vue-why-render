@@ -24,6 +24,9 @@ export interface Messages {
     saveReport: string
     /** Подпись кнопки паузы во всплывающей подсказке: «пауза (Alt+Shift+P)». */
     pauseTitle: string
+    /** Кнопка «скопировать причину» и подтверждение после копирования. */
+    copyReason: string
+    copied: string
     /** Пометка в шапке, что счётчики выборочные: «выборка 10%». */
     sampled: string
     components: string
@@ -67,6 +70,8 @@ export const messages: Record<Locale, Messages> = {
         reset: 'reset',
         saveReport: 'report',
         pauseTitle: 'pause / resume',
+        copyReason: 'copy the reason',
+        copied: 'copied',
         sampled: 'sample',
         components: 'comp.',
         emptyRenders: 'No re-renders yet',
@@ -101,6 +106,8 @@ export const messages: Record<Locale, Messages> = {
         reset: 'сброс',
         saveReport: 'отчёт',
         pauseTitle: 'пауза / продолжить',
+        copyReason: 'скопировать причину',
+        copied: 'скопировано',
         sampled: 'выборка',
         components: 'комп.',
         emptyRenders: 'Пока ни одной перерисовки',
@@ -135,6 +142,8 @@ export const messages: Record<Locale, Messages> = {
         reset: '重置',
         saveReport: '报告',
         pauseTitle: '暂停 / 继续',
+        copyReason: '复制原因',
+        copied: '已复制',
         sampled: '采样',
         components: '个组件',
         emptyRenders: '暂无重新渲染',
