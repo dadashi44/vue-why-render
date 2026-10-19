@@ -20,6 +20,31 @@ export interface OverlayOptions {
 
 const FADE_IN = 25
 const FADE_OUT = 120
+const LABEL_HEIGHT = 15
+const LABEL_PADDING = 4
+/**
+ * Рамки уже́ этого получают подпись только под курсором. В плотной сетке
+ * мелких карточек подписи иначе складываются в сплошную нечитаемую полосу.
+ */
+const MIN_LABELED_WIDTH = 48
+const MIN_LABELED_HEIGHT = 16
+
+interface LabelRect {
+    left: number
+    top: number
+    width: number
+    height: number
+}
+
+function overlaps(a: LabelRect, b: LabelRect): boolean {
+    return a.left < b.left + b.width && b.left < a.left + a.width
+        && a.top < b.top + b.height && b.top < a.top + a.height
+}
+
+function contains(bounds: Bounds, x: number, y: number): boolean {
+    return x >= bounds.left && x <= bounds.left + bounds.width
+        && y >= bounds.top && y <= bounds.top + bounds.height
+}
 
 /** Цвет рамки от зелёного к красному по «жару» 0..1. */
 export function heatColor(heat: number, opacity: number): string {
@@ -43,7 +68,14 @@ export class Overlay {
     private fadeIn: number
     private fadeOut: number
     private disposed = false
+    private pointer: { x: number, y: number } | null = null
     private onViewportChange = (): void => this.resize()
+    private onPointerMove = (event: PointerEvent): void => {
+        this.pointer = { x: event.clientX, y: event.clientY }
+        // Перерисовываем только пока есть что подписывать: курсор над пустой
+        // страницей не должен будить requestAnimationFrame.
+        if (this.items.size > 0 && this.showLabels) this.schedule()
+    }
 
     constructor(options: OverlayOptions = {}) {
         this.displayDuration = options.displayDuration ?? 600
@@ -77,6 +109,9 @@ export class Overlay {
         this.resize()
         window.addEventListener('resize', this.onViewportChange, { passive: true })
         window.addEventListener('scroll', this.onViewportChange, { passive: true })
+        if (this.showLabels) {
+            window.addEventListener('pointermove', this.onPointerMove, { passive: true })
+        }
     }
 
     private resize(): void {
@@ -145,6 +180,7 @@ export class Overlay {
         ctx.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace'
         ctx.textBaseline = 'middle'
 
+        const visible: HighlightItem[] = []
         for (const [id, item] of this.items) {
             const sinceStart = now - item.startedAt
             const idle = now - item.updatedAt
@@ -176,7 +212,12 @@ export class Overlay {
 
             if (!isInViewport(item.bounds)) continue
             this.drawBox(item)
+            visible.push(item)
         }
+
+        // Подписи — вторым проходом, поверх всех рамок: иначе рамка соседа
+        // перечёркивает уже нарисованный текст.
+        if (this.showLabels) this.drawLabels(visible)
 
         if (this.items.size > 0) this.schedule()
     }
@@ -189,19 +230,61 @@ export class Overlay {
         ctx.strokeStyle = heatColor(item.heat, opacity)
         ctx.lineWidth = 1.5
         ctx.strokeRect(bounds.left, bounds.top, bounds.width, bounds.height)
+    }
 
-        if (!this.showLabels) return
+    /**
+     * Подписи без наложений. Место раздаётся по «жару»: самый горячий
+     * компонент — самый интересный, его подпись видна всегда, а соседняя,
+     * которая на неё налезла бы, пропускается. Подпись под курсором
+     * рисуется в любом случае и последней — то, что навёл, видно всегда.
+     */
+    private drawLabels(items: HighlightItem[]): void {
+        const ctx = this.ctx
+        if (!ctx) return
 
-        const padding = 4
-        const height = 15
-        const width = ctx.measureText(item.label).width + padding * 2
+        const pointer = this.pointer
+        const hovered = pointer
+            // Самая вложенная рамка под курсором — та, что меньше по площади.
+            ? items
+                .filter(item => contains(item.bounds, pointer.x, pointer.y))
+                .sort((a, b) => a.bounds.width * a.bounds.height - b.bounds.width * b.bounds.height)[0]
+            : undefined
+
+        const placed: LabelRect[] = []
+        const hoveredRect = hovered ? this.labelRect(hovered) : null
+        if (hoveredRect) placed.push(hoveredRect)
+
+        const candidates = items
+            .filter(item => item !== hovered
+                && item.bounds.width >= MIN_LABELED_WIDTH
+                && item.bounds.height >= MIN_LABELED_HEIGHT)
+            .sort((a, b) => b.heat - a.heat)
+
+        for (const item of candidates) {
+            const rect = this.labelRect(item)
+            if (placed.some(other => overlaps(rect, other))) continue
+            placed.push(rect)
+            this.drawLabel(item, rect)
+        }
+
+        if (hovered && hoveredRect) this.drawLabel(hovered, hoveredRect)
+    }
+
+    private labelRect(item: HighlightItem): LabelRect {
+        const width = (this.ctx?.measureText(item.label).width ?? 0) + LABEL_PADDING * 2
+        const { bounds } = item
         // Если места сверху нет — кладём подпись внутрь рамки, иначе уедет за экран.
-        const top = bounds.top > height ? bounds.top - height : bounds.top
+        const top = bounds.top > LABEL_HEIGHT ? bounds.top - LABEL_HEIGHT : bounds.top
+        return { left: bounds.left, top, width, height: LABEL_HEIGHT }
+    }
 
-        ctx.fillStyle = heatColor(item.heat, opacity * 0.9)
-        ctx.fillRect(bounds.left, top, width, height)
-        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`
-        ctx.fillText(item.label, bounds.left + padding, top + height / 2)
+    private drawLabel(item: HighlightItem, rect: LabelRect): void {
+        const ctx = this.ctx
+        if (!ctx) return
+        ctx.fillStyle = heatColor(item.heat, item.opacity * 0.9)
+        ctx.fillRect(rect.left, rect.top, rect.width, rect.height)
+        ctx.fillStyle = `rgba(255, 255, 255, ${item.opacity})`
+        ctx.fillText(item.label, rect.left + LABEL_PADDING, rect.top + rect.height / 2)
     }
 
     dispose(): void {
@@ -214,6 +297,7 @@ export class Overlay {
         if (typeof window !== 'undefined') {
             window.removeEventListener('resize', this.onViewportChange)
             window.removeEventListener('scroll', this.onViewportChange)
+            window.removeEventListener('pointermove', this.onPointerMove)
         }
         this.canvas?.remove()
         this.canvas = null

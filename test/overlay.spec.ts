@@ -80,6 +80,48 @@ describe('Overlay', () => {
         expect(methods()).not.toContain('fillText')
     })
 
+    function labels(): string[] {
+        return (lastContext?.calls ?? []).filter(call => call.method === 'fillText').map(call => String(call.args[0]))
+    }
+
+    it('из налезающих подписей оставляет самую горячую', () => {
+        overlay = new Overlay()
+        overlay.highlight('cold', { top: 50, left: 10, width: 100, height: 40 }, 'Cold', 0.1)
+        overlay.highlight('hot', { top: 52, left: 20, width: 100, height: 40 }, 'Hot', 0.9)
+        runFrame()
+        expect(labels()).toEqual(['Hot'])
+        expect(methods().filter(method => method === 'strokeRect')).toHaveLength(2)
+    })
+
+    it('подписи, которые не пересекаются, рисует все', () => {
+        overlay = new Overlay()
+        overlay.highlight('a', { top: 50, left: 10, width: 100, height: 40 }, 'A', 0.1)
+        overlay.highlight('b', { top: 300, left: 10, width: 100, height: 40 }, 'B', 0.9)
+        runFrame()
+        expect(labels().sort()).toEqual(['A', 'B'])
+    })
+
+    it('мелкую рамку не подписывает, пока на неё не навели', () => {
+        overlay = new Overlay()
+        const small = { top: 100, left: 100, width: 20, height: 20 }
+        overlay.highlight('s', small, 'Small', 0.5)
+        runFrame()
+        expect(labels()).toEqual([])
+
+        window.dispatchEvent(new MouseEvent('pointermove', { clientX: 110, clientY: 110 }))
+        runFrame()
+        expect(labels()).toEqual(['Small'])
+    })
+
+    it('под курсором подписывает самую вложенную рамку, даже если она холоднее', () => {
+        overlay = new Overlay()
+        overlay.highlight('outer', { top: 50, left: 10, width: 300, height: 200 }, 'Outer', 0.9)
+        overlay.highlight('inner', { top: 52, left: 12, width: 60, height: 30 }, 'Inner', 0.1)
+        window.dispatchEvent(new MouseEvent('pointermove', { clientX: 30, clientY: 60 }))
+        runFrame()
+        expect(labels()).toEqual(['Inner'])
+    })
+
     it('не рисует то, что вне экрана', () => {
         overlay = new Overlay()
         overlay.highlight('1', { top: 9000, left: 0, width: 10, height: 10 }, 'Off', 0)
