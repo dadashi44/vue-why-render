@@ -319,6 +319,16 @@ the scanner options alongside the numbers. Those are not decoration: without the
 a report from someone else is unreadable, because there is no way to tell whether
 a component never re-rendered or was simply filtered out.
 
+### Opening a saved report
+
+Press **open** in the panel, or drop a report file onto it. The panel switches to that
+report — the same tabs, filter, hints and budget marks — with a bar on top saying whose
+session it is and a **back to live** button. The live session keeps recording in the
+background, so nothing is lost. **report** and **md** act on the open report.
+
+The component tree is not stored in reports, so the **Tree** tab says so instead of
+showing a flat list that would look like a tree with no children.
+
 ### Printing to the console
 
 When the panel is off or in the way, print the session as a table:

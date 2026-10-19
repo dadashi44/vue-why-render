@@ -203,6 +203,17 @@ export class Registry {
     }
 
     /**
+     * Загрузить события и итоги как есть, без подсчёта: для реестра,
+     * собранного из сохранённого отчёта, — там счётчики уже посчитаны.
+     */
+    restore(init: { events: RenderEvent[], totalRenders: number, startedAt: number }): void {
+        this.events = init.events.slice(-this.maxEvents)
+        this.totalRenders = init.totalRenders
+        this.startedAt = init.startedAt
+        this.notify()
+    }
+
+    /**
      * Записать нарушение бюджета. Повторное — по тому же компоненту и виду —
      * не добавляет строку, а копит счётчик и худшее значение.
      * Возвращает true, если нарушение новое: о нём и стоит сказать вслух.

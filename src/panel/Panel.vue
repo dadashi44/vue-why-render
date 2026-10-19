@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import type { Scanner } from '../core/scanner'
 import { getMessages } from '../i18n'
-import type { TreeNode } from '../core/registry'
+import type { Registry, TreeNode } from '../core/registry'
 import type { ComponentRecord } from '../types'
 import { throttle } from '../utils/throttle'
 import {
@@ -18,7 +18,9 @@ import {
 } from './format'
 import { hintsForRecord } from '../core/hints'
 import { EDITOR_HELP, requestOpenInEditor } from './open-in-editor'
-import { componentKey, createReport, downloadReport } from '../core/report'
+import { componentKey, createReport, downloadReport, parseReport } from '../core/report'
+import type { Report } from '../core/report'
+import { registryFromReport } from '../core/import'
 import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
 import { clampPosition, loadPosition, savePosition } from './position'
@@ -35,15 +37,31 @@ const t = getMessages(props.scanner.options.locale)
 const collapsed = ref(false)
 const tab = ref<Tab>('top')
 const query = ref('')
+// Открытый отчёт. Пока он есть, панель читает его реестр вместо живого,
+// а живой продолжает писать в фоне — возврат к нему ничего не теряет.
+const viewing = shallowRef<{ report: Report, registry: Registry } | null>(null)
+const source = computed<Registry>(() => viewing.value?.registry ?? props.scanner.registry)
+
 const snapshot = shallowRef(props.scanner.registry.snapshot())
 const tree = shallowRef<TreeNode[]>([])
 
 let unsubscribe: (() => void) | null = null
 
 const refresh = throttle(() => {
-    snapshot.value = props.scanner.registry.snapshot()
-    if (tab.value === 'tree') tree.value = props.scanner.registry.tree()
+    snapshot.value = source.value.snapshot()
+    if (tab.value === 'tree') tree.value = source.value.tree()
 }, props.scanner.options.flushInterval)
+
+/**
+ * Снять снимок сразу. `refresh.flush()` здесь не годится: он выполняет только
+ * отложенный вызов, а при смене источника реестр ничего не сообщал — и
+ * откладывать нечего. Без этого шапка показывала бы цифры прежнего источника.
+ */
+function sync(): void {
+    refresh.cancel()
+    snapshot.value = source.value.snapshot()
+    if (tab.value === 'tree') tree.value = source.value.tree()
+}
 
 onMounted(() => {
     unsubscribe = props.scanner.registry.subscribe(refresh)
@@ -65,6 +83,7 @@ onBeforeUnmount(() => {
     sizeObserver?.disconnect()
     if (copiedTimer) clearTimeout(copiedTimer)
     if (markdownTimer) clearTimeout(markdownTimer)
+    if (importErrorTimer) clearTimeout(importErrorTimer)
 })
 
 // Пауза живёт в реестре: её переключают и горячая клавиша, и handle.pause().
@@ -88,12 +107,12 @@ const pauseTitle = computed(() => {
 // без обращения к нему список пересчитается только при смене фильтра.
 const topRecords = computed<ComponentRecord[]>(() => {
     void snapshot.value
-    return props.scanner.registry.top(50).filter(record => matchesQuery(record, query.value))
+    return source.value.top(50).filter(record => matchesQuery(record, query.value))
 })
 
 const slowRecords = computed<ComponentRecord[]>(() => {
     void snapshot.value
-    return props.scanner.registry.slowest(50).filter(record => matchesQuery(record, query.value))
+    return source.value.slowest(50).filter(record => matchesQuery(record, query.value))
 })
 
 const flatTree = computed<TreeNode[]>(() => {
@@ -112,7 +131,10 @@ const flatTree = computed<TreeNode[]>(() => {
 const events = computed(() => [...snapshot.value.events].reverse().slice(0, 100))
 
 const summary = computed(() => {
-    const seconds = Math.max(1, (Date.now() - snapshot.value.startedAt) / 1000)
+    // У отчёта своя длительность: «сейчас минус начало» для него — время с момента записи.
+    const seconds = viewing.value
+        ? Math.max(0.001, viewing.value.report.meta.durationMs / 1000)
+        : Math.max(1, (Date.now() - snapshot.value.startedAt) / 1000)
     return {
         renders: snapshot.value.totalRenders,
         components: snapshot.value.totalComponents,
@@ -122,7 +144,7 @@ const summary = computed(() => {
 
 function selectTab(next: Tab): void {
     tab.value = next
-    if (next === 'tree') tree.value = props.scanner.registry.tree()
+    if (next === 'tree') tree.value = source.value.tree()
 }
 
 function togglePause(): void {
@@ -131,26 +153,108 @@ function togglePause(): void {
 
 /** Превышен ли бюджет у компонента — счётчик тогда красный. */
 function overBudget(record: ComponentRecord): boolean {
-    return props.scanner.registry.hasViolation(componentKey(record))
+    return source.value.hasViolation(componentKey(record))
 }
 
 /** Подсказки по строке списка. Пустой массив — значит сказать нечего. */
 function hintLines(record: ComponentRecord): string[] {
-    return hintsForRecord(record, props.scanner.options).map(hint => formatHint(hint, t))
+    // У отчёта свои trackProps/trackReasons: подсказки зависят от того,
+    // за чем смотрели при записи, а не от настроек текущей панели.
+    const options = viewing.value?.report.meta.options ?? props.scanner.options
+    return hintsForRecord(record, options).map(hint => formatHint(hint, t))
+}
+
+/** Отчёт того, что сейчас на экране: открытый — как есть, живой — снимком. */
+function currentReport(): Report {
+    return viewing.value?.report
+        ?? createReport({ registry: props.scanner.registry, options: props.scanner.options })
 }
 
 function saveReport(): void {
-    downloadReport(createReport({
-        registry: props.scanner.registry,
-        options: props.scanner.options,
-    }))
+    downloadReport(currentReport())
 }
+
+const importError = ref('')
+let importErrorTimer: ReturnType<typeof setTimeout> | null = null
+const fileInput = ref<HTMLInputElement | null>(null)
+const dropping = ref(false)
+
+function showImportError(message: string): void {
+    importError.value = message
+    if (importErrorTimer) clearTimeout(importErrorTimer)
+    importErrorTimer = setTimeout(() => {
+        importError.value = ''
+        importErrorTimer = null
+    }, 5000)
+}
+
+/** Текст файла. `Blob.text()` есть не везде — во вебвью и jsdom его нет, FileReader есть. */
+function readText(file: Blob): Promise<string> {
+    if (typeof file.text === 'function') return file.text()
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result))
+        reader.onerror = () => reject(reader.error ?? new Error('read failed'))
+        reader.readAsText(file)
+    })
+}
+
+/** Открыть отчёт. Битый файл — строка с ошибкой, а не падение панели. */
+async function openReportFile(file: File): Promise<void> {
+    try {
+        const report = parseReport(await readText(file))
+        viewing.value = { report, registry: registryFromReport(report) }
+        importError.value = ''
+        sync()
+    }
+    catch (error) {
+        showImportError(`${t.importFailed}: ${(error as Error).message.replace(/^\[vue-why-render\] /, '')}`)
+    }
+}
+
+function onFilePicked(event: Event): void {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    // Сбрасываем значение, иначе повторный выбор того же файла не даст change.
+    input.value = ''
+    if (file) void openReportFile(file)
+}
+
+function hasFiles(event: DragEvent): boolean {
+    return Boolean(event.dataTransfer?.types && Array.from(event.dataTransfer.types).includes('Files'))
+}
+
+function onDragOver(event: DragEvent): void {
+    if (!hasFiles(event)) return
+    event.preventDefault()
+    dropping.value = true
+}
+
+function onDrop(event: DragEvent): void {
+    dropping.value = false
+    const file = event.dataTransfer?.files?.[0]
+    if (!file) return
+    event.preventDefault()
+    void openReportFile(file)
+}
+
+function backToLive(): void {
+    viewing.value = null
+    sync()
+}
+
+const viewingLabel = computed(() => {
+    if (!viewing.value) return ''
+    const { meta } = viewing.value.report
+    const stamp = new Date(meta.createdAt).toLocaleString()
+    return `${t.viewingReport} · ${stamp} · vue-why-render ${meta.package} · Vue ${meta.vue}`
+})
 
 const markdownCopied = ref(false)
 let markdownTimer: ReturnType<typeof setTimeout> | null = null
 
 function copyMarkdown(): void {
-    const report = createReport({ registry: props.scanner.registry, options: props.scanner.options })
+    const report = currentReport()
     // Блок всегда английский, даже при русской панели: заголовки таблиц
     // и так английские, а смесь языков в одном issue читается хуже обоих.
     void copyToClipboard(formatReportMarkdown(report))
@@ -281,8 +385,11 @@ function openInEditor(record: ComponentRecord): void {
     <div
         ref="root"
         class="vwr"
-        :class="[`vwr--${props.scanner.options.theme}`, { 'vwr--collapsed': collapsed }]"
+        :class="[`vwr--${props.scanner.options.theme}`, { 'vwr--collapsed': collapsed, 'vwr--dropping': dropping }]"
         :style="panelStyle"
+        @dragover="onDragOver"
+        @dragleave="dropping = false"
+        @drop="onDrop"
     >
         <div
             class="vwr__head"
@@ -332,25 +439,48 @@ function openInEditor(record: ComponentRecord): void {
                 </button>
             </div>
 
+            <div v-if="viewing" class="vwr__banner">
+                <span class="vwr__banner-text" :title="viewingLabel">📄 {{ viewingLabel }}</span>
+                <button class="vwr__btn" @click="backToLive()">
+                    {{ t.backToLive }}
+                </button>
+            </div>
+            <div v-if="importError" class="vwr__error">
+                {{ importError }}
+            </div>
+
             <div class="vwr__toolbar">
                 <input v-model="query" class="vwr__search" type="search" :placeholder="t.searchPlaceholder">
-                <button
-                    class="vwr__btn"
-                    :class="{ 'vwr__btn--on': paused }"
-                    :title="pauseTitle"
-                    @click="togglePause()"
-                >
-                    {{ paused ? t.paused : t.recording }}
-                </button>
-                <button class="vwr__btn" @click="reset()">
-                    {{ t.reset }}
-                </button>
+                <!-- Запись и сброс относятся к живой сессии, к открытому отчёту — нет. -->
+                <template v-if="!viewing">
+                    <button
+                        class="vwr__btn"
+                        :class="{ 'vwr__btn--on': paused }"
+                        :title="pauseTitle"
+                        @click="togglePause()"
+                    >
+                        {{ paused ? t.paused : t.recording }}
+                    </button>
+                    <button class="vwr__btn" @click="reset()">
+                        {{ t.reset }}
+                    </button>
+                </template>
                 <button class="vwr__btn" @click="saveReport()">
                     {{ t.saveReport }}
                 </button>
                 <button class="vwr__btn" :title="t.copyMarkdownTitle" @click="copyMarkdown()">
                     {{ markdownCopied ? '✓' : t.copyMarkdown }}
                 </button>
+                <button class="vwr__btn" :title="t.openReportTitle" @click="fileInput?.click()">
+                    {{ t.openReport }}
+                </button>
+                <input
+                    ref="fileInput"
+                    class="vwr__file"
+                    type="file"
+                    accept=".json,application/json"
+                    @change="onFilePicked"
+                >
             </div>
 
             <ul v-if="tab === 'top' || tab === 'slow'" class="vwr__list">
@@ -396,10 +526,13 @@ function openInEditor(record: ComponentRecord): void {
             </ul>
 
             <ul v-else-if="tab === 'tree'" class="vwr__list">
-                <li v-if="flatTree.length === 0" class="vwr__empty">
+                <li v-if="viewing" class="vwr__empty">
+                    {{ t.treeNotInReport }}
+                </li>
+                <li v-else-if="flatTree.length === 0" class="vwr__empty">
                     {{ t.emptyTree }}
                 </li>
-                <li v-for="node in flatTree" :key="node.uid">
+                <li v-for="node in (viewing ? [] : flatTree)" :key="node.uid">
                     <button class="vwr__row" :title="node.file" @click="openInEditor(node)">
                         <span class="vwr__name">
                             <span class="vwr__tree-indent">{{ '│ '.repeat(node.depth) }}</span>

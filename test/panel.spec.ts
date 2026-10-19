@@ -4,6 +4,8 @@ import Panel from '../src/panel/Panel.vue'
 import { Scanner } from '../src/core/scanner'
 import { resolveOptions } from '../src/options'
 import type { RenderEvent, VueWhyRenderOptions } from '../src/types'
+import { serializeReport } from '../src/core/report'
+import { sampleReport } from './import.spec'
 
 function makeScanner(locale?: 'en' | 'ru' | 'zh-CN', extra: VueWhyRenderOptions = {}): Scanner {
     return new Scanner(resolveOptions({
@@ -368,5 +370,98 @@ describe('Panel: мелочи 0.5.0', () => {
         scanner = makeScanner()
         const wrapper = await mountPanel(scanner)
         expect(wrapper.find('.vwr').attributes('style')).toContain('right: 40px')
+    })
+})
+
+describe('Panel: открытие отчёта', () => {
+    function jsonFile(text: string): File {
+        return new File([text], 'report.json', { type: 'application/json' })
+    }
+
+    async function pick(wrapper: Awaited<ReturnType<typeof mountPanel>>, file: File) {
+        const input = wrapper.find('input[type="file"]')
+        Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
+        await input.trigger('change')
+        await settled(wrapper)
+    }
+
+    /** FileReader в jsdom асинхронный, сколько тиков — не угадать: ждём результат, а не время. */
+    async function settled(wrapper: Awaited<ReturnType<typeof mountPanel>>) {
+        await vi.waitFor(() => {
+            if (!wrapper.find('.vwr__banner').exists() && !wrapper.find('.vwr__error').exists()) {
+                throw new Error('report is still loading')
+            }
+        })
+        await wrapper.vm.$nextTick()
+    }
+
+    it('показывает открытый отчёт вместо живой сессии и возвращается обратно', async () => {
+        scanner = makeScanner()
+        seed(scanner, 1, 1)
+        const wrapper = await mountPanel(scanner)
+
+        await pick(wrapper, jsonFile(serializeReport(sampleReport())))
+
+        expect(wrapper.find('.vwr__banner').text()).toContain('report · ')
+        expect(wrapper.text()).toContain('Card')
+        expect(wrapper.text()).not.toContain('C1')
+        expect(wrapper.find('.vwr__badge').text()).toBe('3')
+        // Запись и сброс — про живую сессию.
+        expect(wrapper.findAll('.vwr__btn').map(item => item.text())).not.toContain('recording')
+        expect(wrapper.find('.vwr__count--over').exists()).toBe(true)
+
+        await wrapper.find('.vwr__banner .vwr__btn').trigger('click')
+        expect(wrapper.find('.vwr__banner').exists()).toBe(false)
+        expect(wrapper.text()).toContain('C1')
+    })
+
+    it('открывает файл, брошенный на панель', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        const file = jsonFile(serializeReport(sampleReport()))
+
+        await wrapper.find('.vwr').trigger('dragover', { dataTransfer: { types: ['Files'], files: [file] } })
+        expect(wrapper.find('.vwr').classes()).toContain('vwr--dropping')
+        await wrapper.find('.vwr').trigger('drop', { dataTransfer: { types: ['Files'], files: [file] } })
+        await settled(wrapper)
+
+        expect(wrapper.find('.vwr').classes()).not.toContain('vwr--dropping')
+        expect(wrapper.find('.vwr__banner').exists()).toBe(true)
+    })
+
+    it('на битый файл пишет ошибку и остаётся в живой сессии', async () => {
+        scanner = makeScanner()
+        seed(scanner, 1, 1)
+        const wrapper = await mountPanel(scanner)
+
+        await pick(wrapper, jsonFile('{"meta":{}}'))
+
+        expect(wrapper.find('.vwr__error').text()).toBe('Could not open the report: report has no format version')
+        expect(wrapper.find('.vwr__banner').exists()).toBe(false)
+        expect(wrapper.text()).toContain('C1')
+    })
+
+    it('во вкладке дерева говорит, что дерево в отчёте не хранится', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        await pick(wrapper, jsonFile(serializeReport(sampleReport())))
+        await wrapper.findAll('.vwr__tab')[2].trigger('click')
+        expect(wrapper.text()).toContain('Saved reports do not keep the component tree')
+    })
+
+    it('md в режиме просмотра копирует открытый отчёт, а не живой', async () => {
+        const writeText = vi.fn().mockResolvedValue(undefined)
+        vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+        scanner = makeScanner()
+        seed(scanner, 1, 5)
+        const wrapper = await mountPanel(scanner)
+        await pick(wrapper, jsonFile(serializeReport(sampleReport())))
+
+        await wrapper.findAll('.vwr__btn').find(item => item.text() === 'md')!.trigger('click')
+        await new Promise(resolve => setTimeout(resolve, 0))
+        const text = writeText.mock.calls[0][0] as string
+        expect(text).toContain('`Card`')
+        expect(text).not.toContain('`C1`')
+        vi.unstubAllGlobals()
     })
 })

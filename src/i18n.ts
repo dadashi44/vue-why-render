@@ -25,6 +25,13 @@ export interface Messages {
     /** Кнопка «скопировать отчёт Markdown-ом для issue». */
     copyMarkdown: string
     copyMarkdownTitle: string
+    /** Открытие сохранённого отчёта и режим просмотра. */
+    openReport: string
+    openReportTitle: string
+    viewingReport: string
+    backToLive: string
+    treeNotInReport: string
+    importFailed: string
     /** Подпись кнопки паузы во всплывающей подсказке: «пауза (Alt+Shift+P)». */
     pauseTitle: string
     /** Кнопка «скопировать причину» и подтверждение после копирования. */
@@ -74,6 +81,12 @@ export const messages: Record<Locale, Messages> = {
         saveReport: 'report',
         copyMarkdown: 'md',
         copyMarkdownTitle: 'copy the report as Markdown for an issue',
+        openReport: 'open',
+        openReportTitle: 'open a saved report — or drop the file onto the panel',
+        viewingReport: 'report',
+        backToLive: 'back to live',
+        treeNotInReport: 'Saved reports do not keep the component tree',
+        importFailed: 'Could not open the report',
         pauseTitle: 'pause / resume',
         copyReason: 'copy the reason',
         copied: 'copied',
@@ -112,6 +125,12 @@ export const messages: Record<Locale, Messages> = {
         saveReport: 'отчёт',
         copyMarkdown: 'md',
         copyMarkdownTitle: 'скопировать отчёт в Markdown для issue',
+        openReport: 'открыть',
+        openReportTitle: 'открыть сохранённый отчёт — или перетащи файл на панель',
+        viewingReport: 'отчёт',
+        backToLive: 'к живой сессии',
+        treeNotInReport: 'Дерево компонентов в отчёте не сохраняется',
+        importFailed: 'Не удалось открыть отчёт',
         pauseTitle: 'пауза / продолжить',
         copyReason: 'скопировать причину',
         copied: 'скопировано',
@@ -150,6 +169,12 @@ export const messages: Record<Locale, Messages> = {
         saveReport: '报告',
         copyMarkdown: 'md',
         copyMarkdownTitle: '复制为 Markdown，用于 issue',
+        openReport: '打开',
+        openReportTitle: '打开已保存的报告 —— 也可以把文件拖到面板上',
+        viewingReport: '报告',
+        backToLive: '返回实时会话',
+        treeNotInReport: '报告中不保存组件树',
+        importFailed: '无法打开报告',
         pauseTitle: '暂停 / 继续',
         copyReason: '复制原因',
         copied: '已复制',

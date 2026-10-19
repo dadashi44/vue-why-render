@@ -176,6 +176,42 @@
     border-bottom: 1px solid var(--vwr-line);
 }
 
+.vwr__banner {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 8px;
+    background: var(--vwr-raised);
+    border-bottom: 1px solid var(--vwr-line);
+}
+
+.vwr__banner-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--vwr-dim);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vwr__error {
+    padding: 6px 8px;
+    color: var(--vwr-over);
+    border-bottom: 1px solid var(--vwr-line);
+    overflow-wrap: anywhere;
+}
+
+/* Выбор файла — через кнопку «открыть», само поле не показываем. */
+.vwr__file {
+    display: none;
+}
+
+/* Файл тащат над панелью — показываем, что его можно отпустить. */
+.vwr--dropping {
+    outline: 2px dashed var(--vwr-accent);
+    outline-offset: -2px;
+}
+
 .vwr__search {
     flex: 1;
     min-width: 0;
