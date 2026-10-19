@@ -22,6 +22,8 @@ export interface Messages {
     paused: string
     reset: string
     saveReport: string
+    /** Подпись кнопки паузы во всплывающей подсказке: «пауза (Alt+Shift+P)». */
+    pauseTitle: string
     /** Пометка в шапке, что счётчики выборочные: «выборка 10%». */
     sampled: string
     components: string
@@ -64,6 +66,7 @@ export const messages: Record<Locale, Messages> = {
         paused: 'paused',
         reset: 'reset',
         saveReport: 'report',
+        pauseTitle: 'pause / resume',
         sampled: 'sample',
         components: 'comp.',
         emptyRenders: 'No re-renders yet',
@@ -97,6 +100,7 @@ export const messages: Record<Locale, Messages> = {
         paused: 'пауза',
         reset: 'сброс',
         saveReport: 'отчёт',
+        pauseTitle: 'пауза / продолжить',
         sampled: 'выборка',
         components: 'комп.',
         emptyRenders: 'Пока ни одной перерисовки',
@@ -130,6 +134,7 @@ export const messages: Record<Locale, Messages> = {
         paused: '已暂停',
         reset: '重置',
         saveReport: '报告',
+        pauseTitle: '暂停 / 继续',
         sampled: '采样',
         components: '个组件',
         emptyRenders: '暂无重新渲染',

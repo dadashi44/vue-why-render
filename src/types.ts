@@ -123,6 +123,8 @@ export interface VueWhyRenderOptions {
      * Счётчики тогда не абсолютные, а выборочные — панель и отчёт об этом говорят.
      */
     sampleRate?: number
+    /** Горячая клавиша паузы, например `Alt+Shift+P`. `false` — без клавиши. */
+    pauseHotkey?: string | false
     /** Колбэк на каждое событие рендера. */
     onRender?: (event: RenderEvent) => void
 }

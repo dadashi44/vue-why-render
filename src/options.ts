@@ -31,6 +31,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     openInEditorUrl: '/__open-in-editor?file={file}',
     locale: 'en',
     sampleRate: 1,
+    pauseHotkey: 'Alt+Shift+P',
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {

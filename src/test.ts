@@ -43,8 +43,10 @@ const TEST_OPTIONS: VueWhyRenderOptions = {
     trackReasons: true,
     trackProps: true,
     minDuration: 0,
-    // Проверка «ровно 0 рендеров» с выборкой превратилась бы в лотерею.
+    // Проверка «ровно 0 рендеров» с выборкой превратилась бы в лотерею,
+    // а клавиша паузы в тестах — лишний слушатель на window.
     sampleRate: 1,
+    pauseHotkey: false,
 }
 
 /**

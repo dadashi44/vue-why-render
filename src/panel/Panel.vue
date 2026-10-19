@@ -30,7 +30,6 @@ const t = getMessages(props.scanner.options.locale)
 const collapsed = ref(false)
 const tab = ref<Tab>('top')
 const query = ref('')
-const paused = ref(false)
 const snapshot = shallowRef(props.scanner.registry.snapshot())
 const tree = shallowRef<TreeNode[]>([])
 
@@ -51,9 +50,21 @@ onBeforeUnmount(() => {
     unsubscribe?.()
 })
 
+// Пауза живёт в реестре: её переключают и горячая клавиша, и handle.pause().
+// Своё состояние в панели расходилось бы с ними, поэтому читаем оттуда.
+const paused = computed(() => {
+    void snapshot.value
+    return props.scanner.registry.isPaused()
+})
+
 const sampleLabel = computed(() => {
     const rate = props.scanner.options.sampleRate
     return rate < 1 ? `${t.sampled} ${Math.round(rate * 100)}%` : ''
+})
+
+const pauseTitle = computed(() => {
+    const hotkey = props.scanner.options.pauseHotkey
+    return hotkey ? `${t.pauseTitle} (${hotkey})` : t.pauseTitle
 })
 
 // Реестр намеренно нереактивный, поэтому реактивную зависимость даёт snapshot:
@@ -98,8 +109,7 @@ function selectTab(next: Tab): void {
 }
 
 function togglePause(): void {
-    paused.value = !paused.value
-    props.scanner.registry.setPaused(paused.value)
+    props.scanner.registry.setPaused(!props.scanner.registry.isPaused())
 }
 
 /** Подсказки по строке списка. Пустой массив — значит сказать нечего. */
@@ -182,7 +192,12 @@ function openInEditor(record: ComponentRecord): void {
 
             <div class="vwr__toolbar">
                 <input v-model="query" class="vwr__search" type="search" :placeholder="t.searchPlaceholder">
-                <button class="vwr__btn" :class="{ 'vwr__btn--on': paused }" @click="togglePause()">
+                <button
+                    class="vwr__btn"
+                    :class="{ 'vwr__btn--on': paused }"
+                    :title="pauseTitle"
+                    @click="togglePause()"
+                >
                     {{ paused ? t.paused : t.recording }}
                 </button>
                 <button class="vwr__btn" @click="reset()">

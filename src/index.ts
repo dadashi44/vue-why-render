@@ -6,6 +6,7 @@ import { createReport, downloadReport } from './core/report'
 import type { Report } from './core/report'
 import { mountPanel } from './panel/mount'
 import { setupDevtools } from './devtools/plugin'
+import { bindHotkey } from './utils/hotkey'
 
 export type {
     ComponentRecord,
@@ -71,12 +72,18 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
 
     const unmountPanel = resolved.panel ? mountPanel(scanner) : null
     const stopDevtools = resolved.devtools ? setupDevtools(app, scanner) : null
+    // Пауза живёт в реестре, а не в панели: клавиша работает и с выключенной панелью.
+    const unbindHotkey = resolved.pauseHotkey
+        ? bindHotkey(resolved.pauseHotkey, () => scanner.registry.setPaused(!scanner.registry.isPaused()))
+        : null
+
 
     const handle: ScanHandle = {
         scanner,
         stop() {
             unmountPanel?.()
             stopDevtools?.()
+            unbindHotkey?.()
             scanner.dispose()
             if (activeHandle === handle) activeHandle = null
         },

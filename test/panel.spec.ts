@@ -234,7 +234,21 @@ describe('Panel · локаль', () => {
     })
 })
 
-describe('Panel: выборка', () => {
+describe('Panel: выборка и пауза', () => {
+    it('кнопка паузы следует за паузой, включённой не из панели', async () => {
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+
+        scanner.registry.setPaused(true)
+        await wrapper.vm.$nextTick()
+        const button = wrapper.findAll('.vwr__btn')[0]
+        expect(button.text()).toBe('paused')
+        expect(button.attributes('title')).toBe('pause / resume (Alt+Shift+P)')
+
+        await button.trigger('click')
+        expect(scanner.registry.isPaused()).toBe(false)
+    })
+
     it('говорит в шапке, что счётчики выборочные', async () => {
         scanner = makeScanner(undefined, { sampleRate: 0.1 })
         const wrapper = await mountPanel(scanner)
