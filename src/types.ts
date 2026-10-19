@@ -13,6 +13,10 @@ export interface RenderReason {
     oldValue?: string
     /** Короткое превью нового значения. */
     newValue?: string
+    /** id стора Pinia, если причина в нём. Ключ тогда — `store.path`. */
+    store?: string
+    /** Экшен стора, выполнявшийся в момент изменения. */
+    action?: string
 }
 
 export type ReasonSource = 'props' | 'setup' | 'data' | 'store' | 'array' | 'collection' | 'unknown'
@@ -172,6 +176,11 @@ export interface VueWhyRenderOptions {
     theme?: PanelTheme
     /** Бюджеты рендеров: превышение пишется в консоль, в отчёт и в колбэк. */
     budgets?: RenderBudget | RenderBudget[]
+    /**
+     * Узнавать сторы Pinia и экшены, которые их меняют. Pinia не нужна в
+     * зависимостях: пакет находит её у приложения сам, если она там есть.
+     */
+    pinia?: boolean
     /** Колбэк на первое превышение бюджета каждым компонентом. */
     onBudgetExceeded?: (violation: BudgetViolation) => void
     /** Колбэк на каждое событие рендера. */

@@ -5,11 +5,13 @@ import type { ComponentRecord, PropChange, RenderReason } from '../types'
 /** Строка вида «проп title: "a" → "b"». */
 export function formatReason(reason: RenderReason, t: Messages): string {
     const label = `${t.source[reason.source]} ${reason.key}`
+    // Экшен — последним: сначала что изменилось, потом кто это сделал.
+    const action = reason.action ? ` · ${t.action} ${reason.action}()` : ''
     if (reason.oldValue !== undefined && reason.newValue !== undefined) {
-        return `${label}: ${reason.oldValue} → ${reason.newValue}`
+        return `${label}: ${reason.oldValue} → ${reason.newValue}${action}`
     }
-    if (reason.type !== 'set') return `${label} (${reason.type})`
-    return label
+    if (reason.type !== 'set') return `${label} (${reason.type})${action}`
+    return `${label}${action}`
 }
 
 export function formatPropChange(change: PropChange, t: Messages): string {

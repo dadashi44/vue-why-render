@@ -34,6 +34,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     pauseHotkey: 'Alt+Shift+P',
     theme: 'auto',
     budgets: [],
+    pinia: true,
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {

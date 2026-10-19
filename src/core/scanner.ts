@@ -7,6 +7,7 @@ import { getComponentBounds, getComponentFile, getComponentName } from './instan
 import { describeTrigger, dedupeReasons, diffProps, snapshotProps } from './reason'
 import { Registry } from './registry'
 import { watchBudgets } from './budgets'
+import { PiniaTracker } from './pinia'
 
 const FLASH_WINDOW = 1000
 
@@ -40,11 +41,13 @@ export class Scanner {
     private fps = new FpsMeter()
     private active = true
     private unwatchBudgets: () => void
+    private pinia: PiniaTracker | null
 
     constructor(options: ResolvedOptions) {
         this.options = options
         this.registry = new Registry({ maxEvents: options.maxEvents })
         this.unwatchBudgets = watchBudgets(this.registry, options)
+        this.pinia = options.pinia ? new PiniaTracker() : null
 
         if (options.overlay && typeof document !== 'undefined') {
             this.overlay = new Overlay({
@@ -92,6 +95,9 @@ export class Scanner {
 
     private init(instance: TrackedInstance): TrackedInstance['__vwr'] {
         if (instance.__vwr) return instance.__vwr
+        // Pinia ставится в приложение когда угодно относительно нас, поэтому
+        // пробуем на каждом новом компоненте, пока не найдём. После — бесплатно.
+        this.pinia?.connect(instance.appContext)
 
         const name = getComponentName(instance)
         const file = getComponentFile(instance)
@@ -189,7 +195,7 @@ export class Scanner {
         if (!state?.tracked) return
         // Причины копятся между триггером и updated — там их и заберём.
         if (state.reasons.length < 32) {
-            state.reasons.push(describeTrigger(event, instance))
+            state.reasons.push(describeTrigger(event, instance, this.pinia))
         }
     }
 
@@ -273,6 +279,7 @@ export class Scanner {
     dispose(): void {
         this.active = false
         this.unwatchBudgets()
+        this.pinia?.dispose()
         this.fps.stop()
         this.overlay?.dispose()
         this.overlay = null

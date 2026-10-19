@@ -149,6 +149,7 @@ handle?.stop()
 | `pauseHotkey` | `'Alt+Shift+P'` | Shortcut that pauses and resumes recording, even with the panel off. `false` binds nothing. |
 | `sampleRate` | `1` | Share of renders to record, `0`–`1`. On apps with thousands of components `0.1` keeps every tenth and skips the rest of the work. Counts become sampled — the panel header and the report say so. |
 | `budgets` | `[]` | Render budgets, see [Budgets](#budgets). |
+| `pinia` | `true` | Recognise Pinia stores and the actions that change them. Pinia does not have to be a dependency. |
 | `onBudgetExceeded` | — | Called on the first violation of each component. |
 | `onRender` | — | Callback fired on every render event. |
 
@@ -393,6 +394,41 @@ so in `diff.warnings`, and `formatDiff` prints those lines first:
 
 A silent "−80%" that came from changing a filter is worse than no diff at all.
 
+## Pinia
+
+When the reason is a store, the panel says which store, which field, and which action
+was running at the time:
+
+```
+CartSummary ×3 · 0.2ms
+├─ store cart.items: Array(1) → Array(0) · action clear()
+└─ store cart.total: 2100 → 0 · action clear()
+```
+
+Nothing to configure: the package finds Pinia on the app by itself, in whatever order
+`app.use(pinia)` and the plugin were called, and works with Pinia 2, 3 and 4 without
+depending on any of them.
+
+Why this needs work at all: Vue reports the object a change happened on, and for a
+store that object is never the store. `cart.count++` fires on the state object,
+`cart.items.push()` on the array, a setup store's `ref` on the ref itself — and none of
+them knows which store it belongs to. So the package keeps an index of where every
+object of every store's state sits. A lookup is a single `WeakMap` read, and when a new
+object is put into a store (`push({ … })`, `cart.current = { … }`) its subtree is added
+to the index right away.
+
+- **The action** comes from `$onAction`. An async action counts as running until it
+  settles, so a change after an `await` is still attributed to it; in nested calls the
+  innermost action wins. A direct assignment or `$patch` from a component has no action,
+  and the panel does not invent one.
+- **Adding to or removing from an array** in a store is reported as the array itself —
+  `store cart.items (add)` — not as `cart.items[7]`: every `push` has its own index, and
+  the diff, the frequency table and the budgets would see a new reason each time.
+- **Limits.** The index goes four levels deep and up to 500 nodes per store. The tail of
+  a huge array in a store shows up as an ordinary array change, without the store name.
+
+`pinia: false` turns it all off.
+
 ## How the reason is determined
 
 A global mixin attaches `renderTriggered` to every component. Vue passes it
@@ -400,7 +436,7 @@ A global mixin attaches `renderTriggered` to every component. Vue passes it
 and after. From there the package translates it into plain language:
 
 - `target === instance.props` → a **prop**;
-- the target has an `$id` → a **store** (`cart.items`);
+- the target lives in the state of a Pinia store → a **store** with the path inside it (`cart.items`, `cart.meta.open`), see [Pinia](#pinia);
 - the target is a ref and the key is `value` → look up the variable name in `setupState`
   and report **state count** instead of a useless `value`;
 - an array → `[3]`; a `Map` or `Set` → a collection.

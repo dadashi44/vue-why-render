@@ -1,6 +1,7 @@
 import type { ComponentInternalInstance, DebuggerEvent } from 'vue'
 import { isRef, toRaw } from 'vue'
 import type { PropChange, ReasonSource, RenderReason } from '../types'
+import type { PiniaTracker } from './pinia'
 
 const MAX_PREVIEW = 48
 
@@ -104,19 +105,32 @@ function detectStoreId(target: object): string | null {
 export function describeTrigger(
     event: DebuggerEvent,
     instance?: ComponentInternalInstance | null,
+    pinia?: PiniaTracker | null,
 ): RenderReason {
     const target = event.target as object
     const rawKey = normalizeKey(event.key)
 
     let source: ReasonSource = 'unknown'
     let key = rawKey
+    let store: string | undefined
 
     const storeId = detectStoreId(target)
+    // Стор — раньше рефа и массива: реф setup-стора и массив в состоянии стора
+    // иначе уходили в «локальный реф компонента» и «массив [0]».
+    const location = pinia && target && typeof target === 'object'
+        ? pinia.locate(target, rawKey, 'newValue' in event ? event.newValue : undefined)
+        : null
 
     if (instance && instance.props && toRaw(instance.props) === target) {
         source = 'props'
     }
+    else if (location) {
+        source = 'store'
+        store = location.store
+        key = location.path ? `${location.store}.${location.path}` : location.store
+    }
     else if (storeId) {
+        store = storeId
         source = 'store'
         key = `${storeId}.${rawKey}`
     }
@@ -146,9 +160,25 @@ export function describeTrigger(
         source = 'setup'
     }
 
-    const reason: RenderReason = { type: String(event.type), key, source }
-    if ('oldValue' in event) reason.oldValue = formatValue(event.oldValue)
-    if ('newValue' in event) reason.newValue = formatValue(event.newValue)
+    const type = String(event.type)
+    // Добавление и удаление элемента массива в сторе: индекс у каждого push
+    // свой, и `cart.items[0]`, `cart.items[1]`... — разные причины для диффа,
+    // частот и бюджетов, хотя по смыслу одна. А «undefined → "a"» ничего не
+    // объясняет. Поэтому ключ — сам массив, тип — что с ним сделали.
+    const arrayMember = Boolean(location) && Array.isArray(target) && /^\d+$/.test(rawKey)
+        && (type === 'add' || type === 'delete')
+    if (arrayMember) key = key.replace(/\[\d+\]$/, '')
+
+    const reason: RenderReason = { type, key, source }
+    if (!arrayMember) {
+        if ('oldValue' in event) reason.oldValue = formatValue(event.oldValue)
+        if ('newValue' in event) reason.newValue = formatValue(event.newValue)
+    }
+    if (store) {
+        reason.store = store
+        const action = pinia?.activeAction(store)
+        if (action) reason.action = action
+    }
     return reason
 }
 

@@ -6,6 +6,8 @@ export type Locale = 'en' | 'ru' | 'zh-CN'
 export interface Messages {
     /** Подписи источника причины: «проп title», «стор cart.items». */
     source: Record<ReasonSource, string>
+    /** Подпись экшена стора в причине: «· экшен addItem()». */
+    action: string
     /** Пометка «объект пересоздан, а содержимое то же». */
     referenceOnly: string
     /** Пометка «обе стороны — функции»: две стрелки не равны никогда. */
@@ -63,6 +65,7 @@ export const messages: Record<Locale, Messages> = {
             collection: 'collection',
             unknown: 'reactivity',
         },
+        action: 'action',
         referenceOnly: ' — new reference, same value',
         newFunction: ' — a new function every render',
         hints: {
@@ -107,6 +110,7 @@ export const messages: Record<Locale, Messages> = {
             collection: 'коллекция',
             unknown: 'реактивность',
         },
+        action: 'экшен',
         referenceOnly: ' — новая ссылка, значение то же',
         newFunction: ' — новая функция на каждый рендер',
         hints: {
@@ -151,6 +155,7 @@ export const messages: Record<Locale, Messages> = {
             collection: '集合',
             unknown: '响应式',
         },
+        action: 'action',
         referenceOnly: ' — 新引用，值未变',
         newFunction: ' — 每次渲染都是新函数',
         hints: {
