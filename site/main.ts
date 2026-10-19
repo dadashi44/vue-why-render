@@ -1,10 +1,13 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import VueWhyRender from 'vue-why-render'
 import App from './App.vue'
 import { detectLocale } from './i18n'
 import './styles.css'
 
 const app = createApp(App)
+// Pinia — часть демо: панель показывает стор, поле и экшен в причине рендера.
+app.use(createPinia())
 
 app.use(VueWhyRender, {
     enabled: true,
