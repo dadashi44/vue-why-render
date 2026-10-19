@@ -18,3 +18,7 @@ dist-site
 
 # Личный файл с планами, в репозиторий не едет
 PLAN.md
+
+# Отчёты Playwright
+playwright-report
+test-results

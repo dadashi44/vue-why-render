@@ -23,5 +23,5 @@
         "forceConsistentCasingInFileNames": true,
         "noEmit": true
     },
-    "include": ["src", "test", "playground", "*.ts", "*.config.ts"]
+    "include": ["src", "test", "playground", "e2e", "*.ts", "*.config.ts"]
 }
