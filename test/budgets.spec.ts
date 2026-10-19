@@ -175,8 +175,9 @@ describe('бюджеты в живом приложении и window.__VUE_WHY_
     })
 
     it('stop снимает глобал', () => {
-        app = createApp(defineComponent({ render: () => h('div') }))
-        handle = scan(app, { panel: false, overlay: false, devtools: false })!
+        // Приложение не монтируем — и в afterEach его не отдаём, иначе Vue ругается на unmount.
+        const bare = createApp(defineComponent({ render: () => h('div') }))
+        handle = scan(bare, { panel: false, overlay: false, devtools: false })!
         expect(window.__VUE_WHY_RENDER__).toBeDefined()
         handle.stop()
         handle = null
