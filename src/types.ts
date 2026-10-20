@@ -19,7 +19,7 @@ export interface RenderReason {
     action?: string
 }
 
-export type ReasonSource = 'props' | 'setup' | 'data' | 'store' | 'array' | 'collection' | 'unknown'
+export type ReasonSource = 'props' | 'setup' | 'data' | 'store' | 'array' | 'collection' | 'computed' | 'unknown'
 
 /** Изменение пропа, найденное дифом между beforeUpdate и updated. */
 export interface PropChange {

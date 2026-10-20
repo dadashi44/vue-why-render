@@ -92,9 +92,56 @@ function getSetupState(instance: ComponentInternalInstance): Record<string, unkn
     return (instance as unknown as { setupState?: Record<string, unknown> }).setupState
 }
 
-function detectStoreId(target: object): string | null {
+function detectStoreId(target: unknown): string | null {
+    if (!target || typeof target !== 'object') return null
     const id = (target as { $id?: unknown }).$id
     return typeof id === 'string' ? id : null
+}
+
+/** Флаг «значение устарело» у computed в Vue 3.5 — EffectFlags.DIRTY. */
+const COMPUTED_DIRTY = 16
+
+interface DepLink {
+    dep?: { computed?: object & { flags?: number } }
+    nextDep?: DepLink
+}
+
+/**
+ * Computed, из-за которых пришёл триггер.
+ *
+ * В Vue 3.5 computed оповещает подписчиков без отладочной информации:
+ * у события нет ни target, ни key. Но к моменту оповещения computed уже
+ * помечен устаревшим, а рендер-эффект компонента держит список своих
+ * зависимостей — среди них и устаревшие computed. Это внутренности Vue,
+ * поэтому любой сбой здесь — пустой список, а не падение.
+ */
+function dirtyComputeds(instance: ComponentInternalInstance): object[] {
+    const out: object[] = []
+    try {
+        let link = (instance as unknown as { effect?: { deps?: DepLink } }).effect?.deps
+        for (let guard = 0; link && guard < 256; guard++) {
+            const computed = link.dep?.computed
+            if (computed && typeof computed.flags === 'number' && (computed.flags & COMPUTED_DIRTY)) out.push(computed)
+            link = link.nextDep
+        }
+    }
+    catch {
+        return []
+    }
+    return out
+}
+
+/**
+ * Имя устаревшего computed из setupState. Без имени — просто «computed»:
+ * computed мог быть объявлен вне компонента, в композабле или в сторе, и
+ * назвать его нечем, а выдумывать имя хуже, чем честно сказать, что это computed.
+ */
+function describeComputed(instance: ComponentInternalInstance | null | undefined): string {
+    if (!instance) return 'computed'
+    const dirty = dirtyComputeds(instance)
+    const setupState = getSetupState(instance)
+    const names = dirty.map(computed => findRefName(setupState, computed)).filter((name): name is string => Boolean(name))
+    return names.length ? names.join(', ') : 'computed'
 }
 
 /**
@@ -107,7 +154,15 @@ export function describeTrigger(
     instance?: ComponentInternalInstance | null,
     pinia?: PiniaTracker | null,
 ): RenderReason {
-    const target = event.target as object
+    const target = event.target as object | undefined
+
+    // Без target — это computed (Vue 3.5 не передаёт для него отладочной
+    // информации). Раньше здесь всё падало на `target.$id`, причина терялась,
+    // и подсказка ошибочно советовала v-memo: «свои данные не менялись».
+    if (!target || typeof target !== 'object') {
+        return { type: 'computed', key: describeComputed(instance), source: 'computed' }
+    }
+
     const rawKey = normalizeKey(event.key)
 
     let source: ReasonSource = 'unknown'

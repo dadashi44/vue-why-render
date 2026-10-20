@@ -10,6 +10,8 @@ export function formatReason(reason: RenderReason, t: Messages): string {
     if (reason.oldValue !== undefined && reason.newValue !== undefined) {
         return `${label}: ${reason.oldValue} → ${reason.newValue}${action}`
     }
+    // У computed значений в событии нет, а тип совпадает с источником — «(computed)» был бы повтором.
+    if (reason.source === 'computed') return `${label}${action}`
     if (reason.type !== 'set') return `${label} (${reason.type})${action}`
     return `${label}${action}`
 }
