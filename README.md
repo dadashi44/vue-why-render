@@ -596,6 +596,11 @@ Releases go to npm on a `v*` tag through trusted publishing: there are no tokens
 repository secrets — npm exchanges the Actions OIDC token for one-time credentials and
 attaches provenance itself.
 
+## Contributing
+
+Bug reports, ideas and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md)
+for the development setup and what a pull request should include.
+
 ## License
 
 MIT
