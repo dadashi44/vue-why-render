@@ -87,6 +87,12 @@ export interface WindowHandle {
     pause: () => void
     resume: () => void
     reset: () => void
+    /**
+     * Смонтировать панель в чужой контейнер — например, в документ вкладки
+     * Nuxt DevTools. Рисует Vue этого приложения: вкладке не нужен свой
+     * бандл, а данные — тот же живой реестр. Возвращает функцию размонтирования.
+     */
+    mountPanel: (target: Element) => () => void
 }
 
 declare global {
@@ -109,6 +115,7 @@ function exposeOnWindow(handle: ScanHandle): () => void {
         pause: () => handle.pause(),
         resume: () => handle.resume(),
         reset: () => handle.reset(),
+        mountPanel: target => mountPanel(handle.scanner, { target }),
     }
     window.__VUE_WHY_RENDER__ = exposed
     return () => {

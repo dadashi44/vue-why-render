@@ -12,6 +12,7 @@ interface FakeNuxt {
     options: {
         dev: boolean
         plugins: Array<{ src: string, mode?: string }>
+        devServerHandlers: Array<{ route?: string }>
         build: { transpile: unknown[], templates: Array<{ getContents: (ctx: unknown) => string | Promise<string> }> }
         modules: unknown[]
         _installedModules: unknown[]
@@ -28,6 +29,7 @@ function fakeNuxt(dev: boolean): FakeNuxt {
         options: {
             dev,
             plugins: [],
+            devServerHandlers: [],
             build: { transpile: [], templates: [] },
             modules: [],
             _installedModules: [],
@@ -67,5 +69,17 @@ describe('nuxt-модуль на настоящем @nuxt/kit', () => {
         expect(contents).toContain("import { scan } from 'vue-why-render'")
         expect(contents).toContain("import { defineNuxtPlugin } from '#app'")
         expect(contents).toContain('scan(nuxtApp.vueApp, { "exclude": [/^Router/], "includeMounts": true })')
+    })
+})
+
+describe('вкладка DevTools на настоящем @nuxt/kit', () => {
+    it('addDevServerHandler доносит страницу вкладки до nuxt.options', async () => {
+        const nuxt = await install({})
+        expect(nuxt.options.devServerHandlers.map(item => item.route)).toEqual(['/__vue-why-render/devtools'])
+    })
+
+    it('в прод-сборке обработчика нет', async () => {
+        const nuxt = await install({}, false)
+        expect(nuxt.options.devServerHandlers).toEqual([])
     })
 })

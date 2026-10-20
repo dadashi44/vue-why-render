@@ -8,24 +8,40 @@ import styles from './panel.css?inline'
  * Отдельным — потому что глобальный миксин вешается на конкретное приложение,
  * так что панель не сканирует сама себя и не попадает в собственную статистику.
  */
-export function mountPanel(scanner: Scanner): () => void {
+export interface MountPanelOptions {
+    /**
+     * Куда монтировать. По умолчанию — в body страницы плавающей панелью.
+     * С target панель встроенная: занимает контейнер целиком, не плавает и
+     * не перетаскивается — так она живёт во вкладке Nuxt DevTools.
+     */
+    target?: Element
+}
+
+export function mountPanel(scanner: Scanner, options: MountPanelOptions = {}): () => void {
     if (typeof document === 'undefined') return () => {}
 
-    const host = document.createElement('div')
-    host.dataset.vueWhyRender = 'panel'
-    document.body.appendChild(host)
+    // Документ берём у контейнера, а не глобальный: вкладка DevTools — это
+    // другой документ (iframe), и узлы для него создаются его же фабрикой.
+    const doc = options.target?.ownerDocument ?? document
+    const embedded = Boolean(options.target)
+
+    const host = doc.createElement('div')
+    host.dataset.vueWhyRender = embedded ? 'panel-embedded' : 'panel'
+    if (embedded) Object.assign(host.style, { display: 'block', height: '100%' })
+    ;(options.target ?? doc.body).appendChild(host)
 
     const shadow = host.attachShadow({ mode: 'open' })
-    const style = document.createElement('style')
+    const style = doc.createElement('style')
     style.textContent = styles
     shadow.appendChild(style)
 
-    const container = document.createElement('div')
+    const container = doc.createElement('div')
+    if (embedded) container.style.height = '100%'
     shadow.appendChild(container)
 
     const app = createApp({
         name: 'VueWhyRenderPanel',
-        render: () => h(Panel, { scanner }),
+        render: () => h(Panel, { scanner, embedded }),
     })
     app.mount(container)
 

@@ -33,6 +33,7 @@ ProductCard ×7 · 2.4ms · badge
 - **Vue Router**：导航按变化的部分命名 —— `路由 params.id: "/p/1" → "/p/42"` —— 当组件在每次导航时都重新渲染，还会给出提示。
 - **暂停、重置与过滤**：按组件名或文件路径；`Alt+Shift+P` 可用键盘暂停。面板可拖到任意位置，跟随系统的浅色或深色主题，一键复制原因。
 - **Vue DevTools**：在扩展中提供检查器与时间线图层，且不引入新依赖。
+- **Nuxt DevTools**：Nuxt 模块提供的 **Why render** 标签页，展示同一个实时面板，无额外依赖。
 - **测试断言**：`expectRenders(ProductCard).toBe(0, …)` —— 修好一次的多余渲染不会再回来。
 - **提示**：在原因旁边给出该怎么办 —— 提取对象、把处理函数提为方法、考虑 `v-memo`。
 - **报告**：面板上一键把整个会话导出为 JSON，再用 `diffReports(before, after)` 证明修复确实奏效。已保存的报告可以重新在面板中打开，会话可以复制为 Markdown 贴进 issue，或通过 `printReport()` 打印到控制台。
@@ -96,6 +97,21 @@ export default defineNuxtConfig({
 下表中的所有选项都可以写在 `whyRender` 键下，只有 `onRender` 除外：回调函数无法从
 `nuxt.config` 搬进生成的插件。如果需要回调，请按下面的方式手动注册。出于同样的原因，
 `include` 和 `exclude` 中的函数会被丢弃并在终端给出提示；正则和字符串则完整保留。
+
+#### Nuxt DevTools
+
+模块会在 Nuxt DevTools 中添加一个 **Why render** 标签页 —— 同一个面板，实时更新，铺满整个标签页，
+与其他工具并列。已在 DevTools 3.4 上验证；DevTools 4.0（仍在 beta）通过同一个 hook 收集模块标签页。不增加任何依赖：标签页是开发服务器提供的一个页面，
+其中的面板由应用自己的 Vue 通过 `window.__VUE_WHY_RENDER__` 绘制。
+
+如果浮动面板碍事，可以只保留标签页：
+
+```ts
+whyRender: { panel: false },        // DevTools 标签页依然可用
+whyRender: { devtoolsTab: false },  // 或者反过来
+```
+
+`devtoolsTab` 只存在于 `nuxt.config` 中：标签页由构建注册，而不是由应用注册。
 
 #### 手动注册，不使用模块
 

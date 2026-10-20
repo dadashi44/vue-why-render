@@ -94,6 +94,26 @@
     overflow: hidden;
 }
 
+/* Во вкладке Nuxt DevTools: не плавает, занимает всю вкладку. */
+.vwr--embedded {
+    position: static;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.vwr--embedded .vwr__head {
+    cursor: default;
+}
+
+.vwr--embedded .vwr__body {
+    max-height: none;
+    height: calc(100% - 34px);
+}
+
 .vwr--collapsed {
     width: auto;
 }
