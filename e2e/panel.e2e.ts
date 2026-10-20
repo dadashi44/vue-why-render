@@ -173,7 +173,9 @@ test.describe('буфер обмена', () => {
         await row.locator('button.vwr__copy').click()
         await expect(row.locator('button.vwr__copy')).toHaveText('✓')
         const text = await clipboard(page)
-        expect(text).toMatch(/^Counter ×1 · [\d.]+ms · fixture\/Counter\.vue\n└─ prop count: 0 → 1$/)
+        // Время необязательно: рендер Counter настолько быстрый, что Chromium с его
+        // загрублённым performance.now() иногда меряет 0 — и тогда «0ms» не пишется.
+        expect(text).toMatch(/^Counter ×1(?: · [\d.]+ms)? · fixture\/Counter\.vue\n└─ prop count: 0 → 1$/)
     })
 
     test('md копирует отчёт Markdown-ом', async ({ page }) => {
