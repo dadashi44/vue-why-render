@@ -8,7 +8,7 @@ See which Vue components re-render — and **why exactly**.
 
 **[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
 
-![vue-why-render: a component re-renders and the panel names the prop behind it](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
+![vue-why-render: components re-render and the panel names the cause — a prop rebuilt with the same value, a Pinia store field and the action that changed it](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
 Other tools flash a border around a component that just updated. That is enough to
 notice a problem, but not to fix it — you are still left asking *what actually changed?*

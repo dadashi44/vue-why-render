@@ -8,7 +8,7 @@
 
 **[Живое демо →](https://dadashi44.github.io/vue-why-render/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
 
-![vue-why-render: компонент перерисовался, панель называет проп-виновник](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
+![vue-why-render: компоненты перерисовываются, а панель называет причину — проп с тем же значением и новой ссылкой, поле стора Pinia и экшен, который его поменял](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
 Аналоги для Vue умеют мигать рамкой вокруг обновившегося компонента. Этого хватает,
 чтобы заметить проблему, но не чтобы её починить: остаётся вопрос «а что вообще
