@@ -35,6 +35,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     theme: 'auto',
     budgets: [],
     pinia: true,
+    router: true,
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {

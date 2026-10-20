@@ -31,6 +31,7 @@ through the `renderTriggered` hook — this package is built around it.
 - **Panel**: top by render count, top by time, a component tree with per-subtree totals, and an event feed.
 - **Jump to your editor**: clicking a row opens the SFC in your IDE through the dev server.
 - **Pinia**: which store, which field, and which action was running — `store cart.items (add) · action add()`. Nothing to configure, no dependency on Pinia.
+- **Vue Router**: a navigation is named by what changed — `route params.id: "/p/1" → "/p/42"` — with a hint when a component re-renders on every navigation.
 - **Pause, reset and filter** by component name or file path; `Alt+Shift+P` pauses from the keyboard. The panel can be dragged anywhere, follows the system light or dark theme, and copies a reason in one click.
 - **Vue DevTools**: an inspector and a timeline layer in the extension, without adding a dependency.
 - **Render assertions in tests**: `expectRenders(ProductCard).toBe(0, …)` — a wasted render you fixed once stops coming back.
@@ -152,6 +153,7 @@ handle?.stop()
 | `sampleRate` | `1` | Share of renders to record, `0`–`1`. On apps with thousands of components `0.1` keeps every tenth and skips the rest of the work. Counts become sampled — the panel header and the report say so. |
 | `budgets` | `[]` | Render budgets, see [Budgets](#budgets). |
 | `pinia` | `true` | Recognise Pinia stores and the actions that change them. Pinia does not have to be a dependency. |
+| `router` | `true` | Recognise Vue Router navigation and name what changed in the route. The router does not have to be a dependency. |
 | `onBudgetExceeded` | — | Called on the first violation of each component. |
 | `onRender` | — | Callback fired on every render event. |
 
@@ -290,13 +292,14 @@ prop badge: { text } → { text } — new reference, same value
 💡 badge: looks like this object is rebuilt in the parent — hoist it into a constant or a computed
 ```
 
-Three patterns are recognised, all of them from runtime data alone:
+Four patterns are recognised, all of them from runtime data alone:
 
 | What the data shows | The hint |
 | --- | --- |
 | A prop changed by reference only, the value is equal | the object is rebuilt in the parent — hoist it |
 | A prop is a function and it is a different one every render | the handler is recreated — move it into a method |
 | The component re-rendered with no reasons and no prop changes | the parent drove it — a candidate for `v-memo` |
+| The reason is a route change | reading the route subscribes to every navigation — wrap the one field in `computed` |
 
 **Hints are hypotheses, not diagnoses.** The package knows a prop arrived as a new
 reference; it does not know where from — an inline call in the template, a computed
@@ -431,6 +434,32 @@ to the index right away.
 
 `pinia: false` turns it all off.
 
+## Vue Router
+
+A navigation is named by what changed in the route, not reported as a ref that
+swapped one route object for another:
+
+```
+ProductPage ×3 · 1.2ms
+└─ route params.id: "/p/1" → "/p/42"
+```
+
+Params, query and hash are named by key — `params.id`, `query.tab`, `hash` — because
+the parameter is the cause and the path is only its consequence. `path` shows up only
+when nothing else changed, that is, when the page itself did. The values are the full
+paths before and after, so you see both what changed and where from. The key does not
+carry the values, so for the report diff and the budgets every navigation of
+`params.id` is the same reason.
+
+**The hint.** `useRoute()` and `$route` both read one ref, so a component that touches
+any field of the route re-renders on **every** navigation — a header that only shows the
+path re-renders when the query changes. The panel says so, and suggests the fix: if one
+field is enough, `computed(() => route.params.id)` re-renders only when that field
+changes. Which fields a component reads is not visible at runtime, so the wording is a
+suggestion, not a verdict.
+
+Works with Vue Router 4 and 5 without depending on either. `router: false` turns it off.
+
 ## How the reason is determined
 
 A global mixin attaches `renderTriggered` to every component. Vue passes it
@@ -442,6 +471,7 @@ and after. From there the package translates it into plain language:
 - the target is a ref and the key is `value` → look up the variable name in `setupState`
   and report **state count** instead of a useless `value`;
 - an array → `[3]`; a `Map` or `Set` → a collection;
+- the target is the router's current route → a **route** change, named by what changed (`params.id`, `query.tab`), see [Vue Router](#vue-router);
 - no target at all → a **computed**. Vue 3.5 notifies a component about a computed without any debug info, so the package walks the component's own dependencies for the computeds that just went stale and names them from `setupState` — **computed total**. A computed declared outside the component, in a composable or a store has no name to give, and is reported simply as **computed**.
 
 Independently of all that, props are diffed between consecutive updates. That is what
