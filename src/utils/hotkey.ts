@@ -81,3 +81,35 @@ export function bindHotkey(spec: string, handler: () => void): () => void {
     window.addEventListener('keydown', onKeydown)
     return () => window.removeEventListener('keydown', onKeydown)
 }
+
+type Modifier = keyof Omit<Hotkey, 'key'>
+
+/** Порядок модификаторов, привычный на обеих платформах: Ctrl, Alt, Shift, Meta. */
+const MODIFIER_ORDER: Modifier[] = ['ctrl', 'alt', 'shift', 'meta']
+const MAC_SYMBOLS: Record<Modifier, string> = { ctrl: '⌃', alt: '⌥', shift: '⇧', meta: '⌘' }
+const PC_NAMES: Record<Modifier, string> = { ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift', meta: 'Meta' }
+
+/** Маковский ли это компьютер. userAgentData есть не везде — откатываемся на platform. */
+export function isMac(): boolean {
+    if (typeof navigator === 'undefined') return false
+    const nav = navigator as Navigator & { userAgentData?: { platform?: string } }
+    const platform = nav.userAgentData?.platform || nav.platform || ''
+    return /mac/i.test(platform)
+}
+
+/**
+ * Сочетание для подписи: на маке — `⌥⇧P`, как в меню системы, на остальных —
+ * `Alt+Shift+P`. Модификаторы — в привычном порядке платформы, а не в том,
+ * в каком их написали в опции.
+ */
+export function formatHotkey(spec: string, mac = isMac()): string {
+    const hotkey = parseHotkey(spec)
+    if (!hotkey) return spec
+
+    // Клавиша хранится в нижнем регистре: «p» → «P», «f8» → «F8».
+    const key = hotkey.key.charAt(0).toUpperCase() + hotkey.key.slice(1)
+    const held = MODIFIER_ORDER.filter(name => hotkey[name])
+    return mac
+        ? held.map(name => MAC_SYMBOLS[name]).join('') + key
+        : [...held.map(name => PC_NAMES[name]), key].join('+')
+}

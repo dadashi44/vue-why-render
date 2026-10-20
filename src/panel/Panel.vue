@@ -24,6 +24,7 @@ import { registryFromReport } from '../core/import'
 import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
 import PanelIcon from './PanelIcon.vue'
+import { formatHotkey } from '../utils/hotkey'
 import { clampPosition, loadPosition, savePosition } from './position'
 import type { PanelPosition } from './position'
 
@@ -101,7 +102,7 @@ const sampleLabel = computed(() => {
 
 const pauseTitle = computed(() => {
     const hotkey = props.scanner.options.pauseHotkey
-    return hotkey ? `${t.pauseTitle} (${hotkey})` : t.pauseTitle
+    return hotkey ? `${t.pauseTitle} (${formatHotkey(hotkey)})` : t.pauseTitle
 })
 
 // Реестр намеренно нереактивный, поэтому реактивную зависимость даёт snapshot:

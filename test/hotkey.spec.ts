@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h } from 'vue'
 import type { App } from 'vue'
-import { bindHotkey, matchesHotkey, parseHotkey } from '../src/utils/hotkey'
+import { bindHotkey, formatHotkey, isMac, matchesHotkey, parseHotkey } from '../src/utils/hotkey'
 import { scan } from '../src/index'
 import type { ScanHandle } from '../src/index'
 
@@ -48,6 +48,38 @@ describe('matchesHotkey', () => {
 
     it('не-буквенную клавишу сверяет по key', () => {
         expect(matchesHotkey(new KeyboardEvent('keydown', { key: 'F8' }), parseHotkey('F8')!)).toBe(true)
+    })
+})
+
+describe('formatHotkey', () => {
+    it('на маке — символами, как в меню системы', () => {
+        expect(formatHotkey('Alt+Shift+P', true)).toBe('⌥⇧P')
+        expect(formatHotkey('cmd+shift+k', true)).toBe('⇧⌘K')
+        expect(formatHotkey('Ctrl+Alt+Shift+Meta+X', true)).toBe('⌃⌥⇧⌘X')
+    })
+
+    it('на остальных — словами через плюс, в привычном порядке', () => {
+        expect(formatHotkey('Shift+Alt+P', false)).toBe('Alt+Shift+P')
+        expect(formatHotkey('f8', false)).toBe('F8')
+    })
+
+    it('кривое сочетание показывает как есть', () => {
+        expect(formatHotkey('Alt+Shift', true)).toBe('Alt+Shift')
+    })
+})
+
+describe('isMac', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
+    it('узнаёт мак по userAgentData и по platform', () => {
+        vi.stubGlobal('navigator', { userAgentData: { platform: 'macOS' } })
+        expect(isMac()).toBe(true)
+        vi.stubGlobal('navigator', { platform: 'MacIntel' })
+        expect(isMac()).toBe(true)
+        vi.stubGlobal('navigator', { platform: 'Win32' })
+        expect(isMac()).toBe(false)
     })
 })
 

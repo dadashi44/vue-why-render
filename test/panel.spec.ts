@@ -257,6 +257,14 @@ describe('Panel: мелочи 0.5.0', () => {
         expect(scanner.registry.isPaused()).toBe(false)
     })
 
+    it('на маке подписывает сочетание символами', async () => {
+        vi.stubGlobal('navigator', { ...navigator, platform: 'MacIntel' })
+        scanner = makeScanner()
+        const wrapper = await mountPanel(scanner)
+        expect(wrapper.findAll('.vwr__btn')[0].attributes('title')).toBe('pause / resume (⌥⇧P)')
+        vi.unstubAllGlobals()
+    })
+
     it('копирует причину строки', async () => {
         const writeText = vi.fn().mockResolvedValue(undefined)
         vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
