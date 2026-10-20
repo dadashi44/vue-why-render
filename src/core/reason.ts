@@ -2,6 +2,8 @@ import type { ComponentInternalInstance, DebuggerEvent } from 'vue'
 import { isRef, toRaw } from 'vue'
 import type { PropChange, ReasonSource, RenderReason } from '../types'
 import type { PiniaTracker } from './pinia'
+import type { RouterTracker } from './router'
+import { describeRouteChange } from './router'
 
 const MAX_PREVIEW = 48
 
@@ -153,6 +155,7 @@ export function describeTrigger(
     event: DebuggerEvent,
     instance?: ComponentInternalInstance | null,
     pinia?: PiniaTracker | null,
+    router?: RouterTracker | null,
 ): RenderReason {
     const target = event.target as object | undefined
 
@@ -161,6 +164,16 @@ export function describeTrigger(
     // и подсказка ошибочно советовала v-memo: «свои данные не менялись».
     if (!target || typeof target !== 'object') {
         return { type: 'computed', key: describeComputed(instance), source: 'computed' }
+    }
+
+    // Навигация — раньше остального: currentRoute это реф, и без этой ветки
+    // он ушёл бы в «состояние ref» с двумя маршрутами целиком в значениях.
+    if (router?.owns(target)) {
+        const change = describeRouteChange(
+            ('oldValue' in event ? event.oldValue : undefined) as never,
+            ('newValue' in event ? event.newValue : undefined) as never,
+        )
+        return { type: 'set', key: change.key, source: 'route', oldValue: formatValue(change.from), newValue: formatValue(change.to) }
     }
 
     const rawKey = normalizeKey(event.key)

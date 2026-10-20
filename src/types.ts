@@ -19,7 +19,7 @@ export interface RenderReason {
     action?: string
 }
 
-export type ReasonSource = 'props' | 'setup' | 'data' | 'store' | 'array' | 'collection' | 'computed' | 'unknown'
+export type ReasonSource = 'props' | 'setup' | 'data' | 'store' | 'array' | 'collection' | 'computed' | 'route' | 'unknown'
 
 /** Изменение пропа, найденное дифом между beforeUpdate и updated. */
 export interface PropChange {
@@ -181,6 +181,8 @@ export interface VueWhyRenderOptions {
      * зависимостях: пакет находит её у приложения сам, если она там есть.
      */
     pinia?: boolean
+    /** Узнавать навигацию Vue Router и называть, что в маршруте поменялось. */
+    router?: boolean
     /** Колбэк на первое превышение бюджета каждым компонентом. */
     onBudgetExceeded?: (violation: BudgetViolation) => void
     /** Колбэк на каждое событие рендера. */
