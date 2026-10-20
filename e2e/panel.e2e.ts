@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import type { Page } from '@playwright/test'
+import type { FrameLocator, Page } from '@playwright/test'
 
 // Локаторы Playwright проходят сквозь открытый shadow DOM — панель живёт именно там.
 const panel = (page: Page) => page.locator('[data-vue-why-render="panel"] .vwr')
@@ -232,5 +232,53 @@ test.describe('бюджеты', () => {
         for (let i = 0; i < 4; i++) await page.click('#bump')
         const violations = await page.evaluate(() => window.__VUE_WHY_RENDER__?.getViolations() ?? [])
         expect(violations).toEqual([])
+    })
+})
+
+test.describe('вкладка Nuxt DevTools', () => {
+    // Как в DevTools: вкладка — iframe внутри iframe DevTools, внутри страницы приложения.
+    async function openTab(page: Page): Promise<FrameLocator> {
+        await page.evaluate(() => {
+            const outer = document.createElement('iframe')
+            outer.id = 'devtools'
+            // Ниже контента стенда — иначе iframe перекрыл бы кнопки, по которым кликает тест.
+            Object.assign(outer.style, { position: 'fixed', left: '0', top: '200px', width: '720px', height: '420px' })
+            outer.srcdoc = '<html style="height:100%"><body style="margin:0;height:100%">'
+                + '<iframe src="/__vue-why-render/devtools" style="width:100%;height:100%;border:0;display:block"></iframe></body></html>'
+            document.body.appendChild(outer)
+        })
+        return page.frameLocator('#devtools').frameLocator('iframe')
+    }
+
+    test('показывает живую панель приложения на всю вкладку', async ({ page }) => {
+        await open(page)
+        const tab = await openTab(page)
+        const embedded = tab.locator('[data-vue-why-render="panel-embedded"] .vwr')
+        await expect(embedded).toBeVisible()
+        await expect(embedded).toHaveClass(/vwr--embedded/)
+
+        // Данные — тот же живой реестр: рендер в приложении виден во вкладке.
+        await page.click('#bump')
+        await expect(embedded.locator('li', { hasText: 'Counter' })).toContainText('prop count: 0 → 1')
+
+        const box = (await embedded.boundingBox())!
+        expect(box.width).toBeGreaterThan(700)
+        expect(box.height).toBeGreaterThan(400)
+    })
+
+    test('фильтр во вкладке работает и не трогает плавающую панель', async ({ page }) => {
+        await open(page)
+        await page.click('#bump')
+        const tab = await openTab(page)
+        const embedded = tab.locator('[data-vue-why-render="panel-embedded"] .vwr')
+        await embedded.locator('.vwr__search').fill('Count')
+        await expect(embedded.locator('.vwr__row')).toHaveCount(1)
+        await expect(panel(page).locator('.vwr__search')).toHaveValue('')
+    })
+
+    test('без сканера на странице объясняет, в чём дело', async ({ page }) => {
+        await page.goto('/__vue-why-render/devtools')
+        await expect(page.locator('#note')).toBeVisible({ timeout: 6000 })
+        await expect(page.locator('#note')).toContainText('vue-why-render is not running on this page')
     })
 })

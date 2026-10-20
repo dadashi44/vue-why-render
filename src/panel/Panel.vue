@@ -28,7 +28,11 @@ import { formatHotkey } from '../utils/hotkey'
 import { clampPosition, loadPosition, savePosition } from './position'
 import type { PanelPosition } from './position'
 
-const props = defineProps<{ scanner: Scanner }>()
+const props = defineProps<{
+    scanner: Scanner
+    /** Встроенная панель: во всю ширину контейнера, без сворачивания и перетаскивания. */
+    embedded?: boolean
+}>()
 
 type Tab = 'top' | 'slow' | 'tree' | 'events'
 
@@ -324,6 +328,7 @@ function keepInView(): void {
 
 function onHeadPointerDown(event: PointerEvent): void {
     suppressClick = false
+    if (props.embedded) return
     if (event.button !== 0 || !root.value) return
     const rect = root.value.getBoundingClientRect()
     drag = {
@@ -357,6 +362,8 @@ function onHeadPointerUp(): void {
 }
 
 function onHeadClick(): void {
+    // Во вкладке DevTools сворачивать нечего — вкладку закрывают самой DevTools.
+    if (props.embedded) return
     if (suppressClick) {
         suppressClick = false
         return
@@ -387,8 +394,8 @@ function openInEditor(record: ComponentRecord): void {
     <div
         ref="root"
         class="vwr"
-        :class="[`vwr--${props.scanner.options.theme}`, { 'vwr--collapsed': collapsed, 'vwr--dropping': dropping }]"
-        :style="panelStyle"
+        :class="[`vwr--${props.scanner.options.theme}`, { 'vwr--collapsed': collapsed, 'vwr--dropping': dropping, 'vwr--embedded': props.embedded }]"
+        :style="props.embedded ? undefined : panelStyle"
         @dragover="onDragOver"
         @dragleave="dropping = false"
         @drop="onDrop"
@@ -406,7 +413,7 @@ function openInEditor(record: ComponentRecord): void {
             <span class="vwr__spacer" />
             <span v-if="sampleLabel" class="vwr__stat">{{ sampleLabel }}</span>
             <span class="vwr__stat">{{ summary.perSecond }}/s · {{ summary.components }} {{ t.components }}</span>
-            <span class="vwr__stat">{{ collapsed ? '▲' : '▼' }}</span>
+            <span v-if="!props.embedded" class="vwr__stat">{{ collapsed ? '▲' : '▼' }}</span>
         </div>
 
         <div v-if="!collapsed" class="vwr__body">

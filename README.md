@@ -33,6 +33,7 @@ through the `renderTriggered` hook — this package is built around it.
 - **Pinia**: which store, which field, and which action was running — `store cart.items (add) · action add()`. Nothing to configure, no dependency on Pinia.
 - **Pause, reset and filter** by component name or file path; `Alt+Shift+P` pauses from the keyboard. The panel can be dragged anywhere, follows the system light or dark theme, and copies a reason in one click.
 - **Vue DevTools**: an inspector and a timeline layer in the extension, without adding a dependency.
+- **Nuxt DevTools**: a **Why render** tab with the same live panel, from the Nuxt module, without a dependency.
 - **Render assertions in tests**: `expectRenders(ProductCard).toBe(0, …)` — a wasted render you fixed once stops coming back.
 - **Hints**: next to the reason, what to do about it — hoist the object, move the handler into a method, consider `v-memo`.
 - **Reports**: save the whole session as JSON from the panel, and `diffReports(before, after)` to prove a fix actually worked. Open a saved report back in the panel, copy the session as Markdown for an issue, or `printReport()` to the console.
@@ -99,6 +100,23 @@ Every option from the table below works under the `whyRender` key, except
 plugin. If you need one, register the plugin by hand (below). Functions passed to
 `include` or `exclude` are dropped for the same reason and reported in the terminal;
 regular expressions and strings survive.
+
+#### Nuxt DevTools
+
+The module adds a **Why render** tab to Nuxt DevTools — the same panel, live, filling the
+whole tab, next to the other tools. Checked with DevTools 3.4; DevTools 4.0 (in beta) still collects module tabs through
+the same hook. It adds no dependency: the tab is a page the dev server serves, and the panel inside it is
+drawn by your app's own Vue through `window.__VUE_WHY_RENDER__`.
+
+If the floating panel is in the way, keep only the tab:
+
+```ts
+whyRender: { panel: false },        // the DevTools tab still works
+whyRender: { devtoolsTab: false },  // or the other way round
+```
+
+`devtoolsTab` exists only in `nuxt.config`: the tab is registered by the build, not by
+the app.
 
 #### By hand, without the module
 

@@ -6,20 +6,35 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  * добавляет плагин только в деве и что опции доезжают до него без потерь.
  */
 const addPluginTemplate = vi.fn()
+const addDevServerHandler = vi.fn()
 
 vi.mock('@nuxt/kit', () => ({
     defineNuxtModule: (definition: unknown) => definition,
     addPluginTemplate: (...args: unknown[]) => addPluginTemplate(...args),
+    addDevServerHandler: (...args: unknown[]) => addDevServerHandler(...args),
 }))
 
 const { buildPluginSource, serializeOptions } = await import('../src/nuxt')
 const moduleDefinition = (await import('../src/nuxt')).default as unknown as {
     meta: { name: string, configKey: string }
-    setup: (options: Record<string, unknown>, nuxt: { options: { dev: boolean } }) => void
+    setup: (options: Record<string, unknown>, nuxt: { options: { dev: boolean }, hook: (name: string, fn: (...args: never[]) => unknown) => void }) => void
 }
 
+/** Подписки модуля на хуки Nuxt — по имени хука. */
+let hooks = new Map<string, Array<(...args: never[]) => unknown>>()
+
 function runSetup(options: Record<string, unknown>, dev = true): void {
-    moduleDefinition.setup(options, { options: { dev } })
+    moduleDefinition.setup(options, {
+        options: { dev },
+        hook: (name, fn) => hooks.set(name, [...(hooks.get(name) ?? []), fn]),
+    })
+}
+
+/** Вкладки, которые соберёт Nuxt DevTools, вызвав хук. */
+function collectTabs(): Array<{ name: string, view: { src: string } }> {
+    const tabs: Array<{ name: string, view: { src: string } }> = []
+    for (const fn of hooks.get('devtools:customTabs') ?? []) (fn as (t: typeof tabs) => void)(tabs)
+    return tabs
 }
 
 /** Последний исходник плагина, отданный в addPluginTemplate. */
@@ -31,6 +46,8 @@ function lastPluginSource(): string {
 
 beforeEach(() => {
     addPluginTemplate.mockClear()
+    addDevServerHandler.mockClear()
+    hooks = new Map()
 })
 
 describe('serializeOptions', () => {
@@ -121,5 +138,61 @@ describe('модуль', () => {
         runSetup({ include: [() => true] })
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('include[0]'))
         warn.mockRestore()
+    })
+})
+
+describe('вкладка в Nuxt DevTools', () => {
+    it('в деве регистрирует страницу и вкладку на неё', () => {
+        runSetup({})
+        expect(addDevServerHandler).toHaveBeenCalledTimes(1)
+        const { route } = addDevServerHandler.mock.calls[0][0] as { route: string }
+        expect(route).toBe('/__vue-why-render/devtools')
+        expect(collectTabs()).toEqual([
+            { name: 'vue-why-render', title: 'Why render', icon: 'carbon:renew', view: { type: 'iframe', src: '/__vue-why-render/devtools' } },
+        ])
+    })
+
+    it('хук, вызванный дважды (refresh в DevTools), не задваивает вкладку', () => {
+        runSetup({})
+        const tabs: Array<{ name: string }> = []
+        const [fn] = hooks.get('devtools:customTabs')!
+        ;(fn as (t: typeof tabs) => void)(tabs)
+        ;(fn as (t: typeof tabs) => void)(tabs)
+        expect(tabs).toHaveLength(1)
+    })
+
+    it('devtoolsTab: false — ни страницы, ни вкладки, а плагин на месте', () => {
+        runSetup({ devtoolsTab: false })
+        expect(addDevServerHandler).not.toHaveBeenCalled()
+        expect(collectTabs()).toEqual([])
+        expect(addPluginTemplate).toHaveBeenCalledTimes(1)
+    })
+
+    it('в прод-сборке вкладки нет', () => {
+        runSetup({}, false)
+        expect(addDevServerHandler).not.toHaveBeenCalled()
+        expect(hooks.size).toBe(0)
+    })
+
+    it('devtoolsTab не уезжает в опции scan() — сканер о ней не знает', () => {
+        runSetup({ devtoolsTab: true, includeMounts: true })
+        expect(lastPluginSource()).not.toContain('devtoolsTab')
+        expect(lastPluginSource()).toContain('"includeMounts": true')
+    })
+
+    it('обработчик отдаёт HTML и ставит тип для h3 1.x и 2.x', () => {
+        runSetup({})
+        const { handler } = addDevServerHandler.mock.calls[0][0] as { handler: ((event: unknown) => string) & { __is_handler__?: boolean } }
+        expect(handler.__is_handler__).toBe(true)
+
+        const setHeader = vi.fn()
+        const html = handler({ node: { res: { setHeader } } })
+        expect(setHeader).toHaveBeenCalledWith('content-type', 'text/html; charset=utf-8')
+        expect(html).toContain('<!doctype html>')
+        expect(html).toContain('__VUE_WHY_RENDER__')
+
+        const set = vi.fn()
+        handler({ res: { headers: { set } } })
+        expect(set).toHaveBeenCalledWith('content-type', 'text/html; charset=utf-8')
     })
 })
