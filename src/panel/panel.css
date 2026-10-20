@@ -237,6 +237,22 @@
     cursor: pointer;
 }
 
+.vwr__btn--icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 7px;
+}
+
+/* Красная точка записи: «идёт запись» должно читаться с одного взгляда. */
+.vwr__btn--icon:not(.vwr__btn--on) .vwr__icon circle {
+    color: var(--vwr-over);
+}
+
+.vwr__icon {
+    display: block;
+}
+
 .vwr__btn:hover {
     background: var(--vwr-line);
 }

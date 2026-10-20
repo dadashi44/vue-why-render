@@ -4,7 +4,8 @@ import type { Page } from '@playwright/test'
 // Локаторы Playwright проходят сквозь открытый shadow DOM — панель живёт именно там.
 const panel = (page: Page) => page.locator('[data-vue-why-render="panel"] .vwr')
 const head = (page: Page) => panel(page).locator('.vwr__head')
-const button = (page: Page, name: string) => panel(page).locator('.vwr__toolbar .vwr__btn', { hasText: name })
+// Кнопки тулбара — иконки, поэтому ищем по доступному имени, а не по видимому тексту.
+const button = (page: Page, name: string) => panel(page).locator('.vwr__toolbar').getByRole('button', { name, exact: true })
 
 async function open(page: Page, query = ''): Promise<void> {
     await page.goto(`/${query}`)
@@ -60,10 +61,10 @@ test.describe('горячая клавиша', () => {
     test('Alt+Shift+P ставит запись на паузу и снимает с неё', async ({ page }) => {
         await open(page)
         const pause = panel(page).locator('.vwr__toolbar .vwr__btn').first()
-        await expect(pause).toHaveText('recording')
+        await expect(pause).toHaveAttribute('aria-label', 'recording')
 
         await page.keyboard.press('Alt+Shift+KeyP')
-        await expect(pause).toHaveText('paused')
+        await expect(pause).toHaveAttribute('aria-label', 'paused')
 
         // На паузе рендеры не считаются.
         const badge = panel(page).locator('.vwr__badge')
@@ -73,7 +74,7 @@ test.describe('горячая клавиша', () => {
         await expect(badge).toHaveText(counted!)
 
         await page.keyboard.press('Alt+Shift+KeyP')
-        await expect(pause).toHaveText('recording')
+        await expect(pause).toHaveAttribute('aria-label', 'recording')
         await page.click('#bump')
         await expect(badge).not.toHaveText(counted!)
     })
@@ -157,6 +158,9 @@ test.describe('открытие отчёта', () => {
 
 test.describe('буфер обмена', () => {
     test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+    // Буфер обмена у браузера общий на всю систему: параллельные тесты
+    // перезаписывали бы друг другу текст, и падал бы то один, то другой.
+    test.describe.configure({ mode: 'serial' })
 
     const clipboard = (page: Page) => page.evaluate(() => navigator.clipboard.readText())
 
@@ -177,7 +181,7 @@ test.describe('буфер обмена', () => {
         await page.click('#add')
         await expect(panel(page)).toContainText('store cart.items')
 
-        await button(page, 'md').click()
+        await button(page, 'copy the report as Markdown for an issue').click()
         const text = await clipboard(page)
         expect(text).toContain('### vue-why-render report')
         expect(text).toContain('`store cart.items (add) · action add()`')

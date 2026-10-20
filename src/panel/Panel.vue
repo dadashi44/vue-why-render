@@ -23,6 +23,7 @@ import type { Report } from '../core/report'
 import { registryFromReport } from '../core/import'
 import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
+import PanelIcon from './PanelIcon.vue'
 import { clampPosition, loadPosition, savePosition } from './position'
 import type { PanelPosition } from './position'
 
@@ -453,26 +454,31 @@ function openInEditor(record: ComponentRecord): void {
                 <input v-model="query" class="vwr__search" type="search" :placeholder="t.searchPlaceholder">
                 <!-- Запись и сброс относятся к живой сессии, к открытому отчёту — нет. -->
                 <template v-if="!viewing">
+                    <!-- Иконкой, с текстом в title и aria-label: шести текстовым кнопкам
+                         не хватало ширины, и поле фильтра сжималось до «filter b…». -->
                     <button
-                        class="vwr__btn"
+                        class="vwr__btn vwr__btn--icon"
                         :class="{ 'vwr__btn--on': paused }"
                         :title="pauseTitle"
+                        :aria-label="paused ? t.paused : t.recording"
+                        :aria-pressed="paused"
                         @click="togglePause()"
                     >
-                        {{ paused ? t.paused : t.recording }}
+                        <PanelIcon :name="paused ? 'pause' : 'record'" />
                     </button>
-                    <button class="vwr__btn" @click="reset()">
-                        {{ t.reset }}
+                    <button class="vwr__btn vwr__btn--icon" :title="t.resetTitle" :aria-label="t.reset" @click="reset()">
+                        <PanelIcon name="reset" />
                     </button>
                 </template>
-                <button class="vwr__btn" @click="saveReport()">
-                    {{ t.saveReport }}
+                <button class="vwr__btn vwr__btn--icon" :title="t.saveReportTitle" :aria-label="t.saveReport" @click="saveReport()">
+                    <PanelIcon name="download" />
                 </button>
-                <button class="vwr__btn" :title="t.copyMarkdownTitle" @click="copyMarkdown()">
+                <!-- «md» — текстом: короче и понятнее любой иконки. -->
+                <button class="vwr__btn" :title="t.copyMarkdownTitle" :aria-label="t.copyMarkdownTitle" @click="copyMarkdown()">
                     {{ markdownCopied ? '✓' : t.copyMarkdown }}
                 </button>
-                <button class="vwr__btn" :title="t.openReportTitle" @click="fileInput?.click()">
-                    {{ t.openReport }}
+                <button class="vwr__btn vwr__btn--icon" :title="t.openReportTitle" :aria-label="t.openReport" @click="fileInput?.click()">
+                    <PanelIcon name="open" />
                 </button>
                 <input
                     ref="fileInput"

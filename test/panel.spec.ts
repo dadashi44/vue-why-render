@@ -248,7 +248,9 @@ describe('Panel: мелочи 0.5.0', () => {
         scanner.registry.setPaused(true)
         await wrapper.vm.$nextTick()
         const button = wrapper.findAll('.vwr__btn')[0]
-        expect(button.text()).toBe('paused')
+        // Кнопка — иконка, состояние — в aria-label и aria-pressed.
+        expect(button.attributes('aria-label')).toBe('paused')
+        expect(button.attributes('aria-pressed')).toBe('true')
         expect(button.attributes('title')).toBe('pause / resume (Alt+Shift+P)')
 
         await button.trigger('click')
@@ -407,7 +409,7 @@ describe('Panel: открытие отчёта', () => {
         expect(wrapper.text()).not.toContain('C1')
         expect(wrapper.find('.vwr__badge').text()).toBe('3')
         // Запись и сброс — про живую сессию.
-        expect(wrapper.findAll('.vwr__btn').map(item => item.text())).not.toContain('recording')
+        expect(wrapper.findAll('.vwr__btn').map(item => item.attributes('aria-label'))).not.toContain('recording')
         expect(wrapper.find('.vwr__count--over').exists()).toBe(true)
 
         await wrapper.find('.vwr__banner .vwr__btn').trigger('click')

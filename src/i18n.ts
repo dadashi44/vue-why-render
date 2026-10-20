@@ -24,6 +24,9 @@ export interface Messages {
     paused: string
     reset: string
     saveReport: string
+    /** Всплывающие подсказки кнопок-иконок. */
+    saveReportTitle: string
+    resetTitle: string
     /** Кнопка «скопировать отчёт Markdown-ом для issue». */
     copyMarkdown: string
     copyMarkdownTitle: string
@@ -82,6 +85,8 @@ export const messages: Record<Locale, Messages> = {
         paused: 'paused',
         reset: 'reset',
         saveReport: 'report',
+        saveReportTitle: 'save the session as JSON',
+        resetTitle: 'reset the counters',
         copyMarkdown: 'md',
         copyMarkdownTitle: 'copy the report as Markdown for an issue',
         openReport: 'open',
@@ -127,6 +132,8 @@ export const messages: Record<Locale, Messages> = {
         paused: 'пауза',
         reset: 'сброс',
         saveReport: 'отчёт',
+        saveReportTitle: 'сохранить сессию в JSON',
+        resetTitle: 'обнулить счётчики',
         copyMarkdown: 'md',
         copyMarkdownTitle: 'скопировать отчёт в Markdown для issue',
         openReport: 'открыть',
@@ -172,6 +179,8 @@ export const messages: Record<Locale, Messages> = {
         paused: '已暂停',
         reset: '重置',
         saveReport: '报告',
+        saveReportTitle: '把会话保存为 JSON',
+        resetTitle: '重置计数',
         copyMarkdown: 'md',
         copyMarkdownTitle: '复制为 Markdown，用于 issue',
         openReport: '打开',
