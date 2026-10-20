@@ -9,7 +9,7 @@ import type { ComponentRecord, PropChange, RenderReason, ResolvedOptions } from 
  * Инструмент, уверенно советующий не то, хуже инструмента, который просто
  * показывает факты.
  */
-export type HintCode = 'newReference' | 'newFunction' | 'parentRender'
+export type HintCode = 'newReference' | 'newFunction' | 'parentRender' | 'wholeRoute'
 
 export interface Hint {
     code: HintCode
@@ -47,6 +47,14 @@ export function hintsFor(input: HintInput, options: Pick<ResolvedOptions, 'track
         if (newFunction.length) {
             hints.push({ code: 'newFunction', keys: newFunction.map(change => change.key) })
         }
+    }
+
+    // Маршрут — один реф на всё: компонент, прочитавший хоть одно поле,
+    // перерисовывается на любую навигацию. Какие поля он читает, рантайм не
+    // знает, поэтому это версия: «если нужно одно поле — computed отсечёт
+    // лишнее» (с 3.4 computed с тем же значением зависимых не будит).
+    if (options.trackReasons && input.reasons.some(reason => reason.source === 'route')) {
+        hints.push({ code: 'wholeRoute', keys: [] })
     }
 
     // Свои реактивные данные не трогали и пропы не менялись — значит
