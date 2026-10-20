@@ -122,6 +122,77 @@ describe('Overlay', () => {
         expect(labels()).toEqual(['Inner'])
     })
 
+    function strokes(): unknown[][] {
+        return (lastContext?.calls ?? []).filter(call => call.method === 'strokeRect').map(call => call.args)
+    }
+
+    it('после прокрутки рисует рамку там, где компонент теперь', () => {
+        overlay = new Overlay()
+        let top = 100
+        overlay.highlight('1', { top, left: 10, width: 100, height: 40 }, 'Card', 0.2, () => ({ top, left: 10, width: 100, height: 40 }))
+        runFrame()
+        expect(strokes().at(-1)).toEqual([10, 100, 100, 40])
+
+        top = 40
+        window.dispatchEvent(new Event('scroll'))
+        runFrame()
+        expect(strokes().at(-1)).toEqual([10, 40, 100, 40])
+    })
+
+    it('ловит прокрутку внутри блока, а не только окна', () => {
+        overlay = new Overlay()
+        let top = 100
+        overlay.highlight('1', { top, left: 10, width: 100, height: 40 }, 'Card', 0.2, () => ({ top, left: 10, width: 100, height: 40 }))
+        runFrame()
+
+        const scroller = document.createElement('div')
+        document.body.appendChild(scroller)
+        top = 60
+        // scroll не всплывает — оверлей слушает его на фазе захвата.
+        scroller.dispatchEvent(new Event('scroll', { bubbles: false }))
+        runFrame()
+        expect(strokes().at(-1)).toEqual([10, 60, 100, 40])
+        scroller.remove()
+    })
+
+    it('за кадр меряет один раз, сколько бы событий скролла ни пришло', () => {
+        overlay = new Overlay()
+        const measure = vi.fn(() => ({ top: 50, left: 10, width: 100, height: 40 }))
+        overlay.highlight('1', { top: 50, left: 10, width: 100, height: 40 }, 'Card', 0.2, measure)
+        runFrame()
+
+        for (let i = 0; i < 20; i++) window.dispatchEvent(new Event('scroll'))
+        runFrame()
+        expect(measure).toHaveBeenCalledTimes(1)
+    })
+
+    it('скролл не переразмечает canvas — это дело resize', () => {
+        overlay = new Overlay()
+        overlay.highlight('1', bounds, 'Card', 0.2, () => bounds)
+        runFrame()
+        lastContext!.calls.length = 0
+        window.dispatchEvent(new Event('scroll'))
+        runFrame()
+        expect(methods()).not.toContain('setTransform')
+    })
+
+    it('упавший замер оставляет рамку на прежнем месте', () => {
+        overlay = new Overlay()
+        overlay.highlight('1', { top: 70, left: 10, width: 100, height: 40 }, 'Card', 0.2, () => {
+            throw new Error('detached')
+        })
+        runFrame()
+        window.dispatchEvent(new Event('scroll'))
+        expect(() => runFrame()).not.toThrow()
+        expect(strokes().at(-1)).toEqual([10, 70, 100, 40])
+    })
+
+    it('без рамок скролл не будит requestAnimationFrame', () => {
+        overlay = new Overlay()
+        window.dispatchEvent(new Event('scroll'))
+        expect(frames).toHaveLength(0)
+    })
+
     it('не рисует то, что вне экрана', () => {
         overlay = new Overlay()
         overlay.highlight('1', { top: 9000, left: 0, width: 10, height: 10 }, 'Off', 0)

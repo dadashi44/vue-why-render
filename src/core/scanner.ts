@@ -266,6 +266,8 @@ export class Scanner {
             bounds,
             buildLabel(state.name, flashCount, event),
             flashCount / this.options.hotThreshold,
+            // Пока рамка видна, страницу могут прокрутить — оверлей перемеряет компонент сам.
+            () => getComponentBounds(instance),
         )
 
         // Окно «жара»: без сброса счётчик копится всю сессию и всё становится красным.

@@ -3,6 +3,8 @@ import { isInViewport } from '../core/instance'
 
 interface HighlightItem {
     bounds: Bounds
+    /** Замерить заново. Нет — рамка стоит там, где её нарисовали. */
+    measure?: () => Bounds
     label: string
     heat: number
     startedAt: number
@@ -69,7 +71,13 @@ export class Overlay {
     private fadeOut: number
     private disposed = false
     private pointer: { x: number, y: number } | null = null
-    private onViewportChange = (): void => this.resize()
+    /** Страницу прокрутили — координаты рамок устарели, пересчёт в ближайшем кадре. */
+    private stale = false
+    private onResize = (): void => {
+        this.resize()
+        this.invalidate()
+    }
+    private onScroll = (): void => this.invalidate()
     private onPointerMove = (event: PointerEvent): void => {
         this.pointer = { x: event.clientX, y: event.clientY }
         // Перерисовываем только пока есть что подписывать: курсор над пустой
@@ -107,8 +115,10 @@ export class Overlay {
         this.canvas = canvas
         this.ctx = ctx
         this.resize()
-        window.addEventListener('resize', this.onViewportChange, { passive: true })
-        window.addEventListener('scroll', this.onViewportChange, { passive: true })
+        window.addEventListener('resize', this.onResize, { passive: true })
+        // capture: событие scroll не всплывает, и без него прокрутка внутри
+        // блока с overflow: auto проходила бы мимо — рамки оставались бы на месте.
+        window.addEventListener('scroll', this.onScroll, { passive: true, capture: true })
         if (this.showLabels) {
             window.addEventListener('pointermove', this.onPointerMove, { passive: true })
         }
@@ -122,7 +132,31 @@ export class Overlay {
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     }
 
-    highlight(id: string, bounds: Bounds, label: string, heat: number): void {
+    /**
+     * Координаты рамок пересчитываются не на каждое событие скролла, а раз
+     * в кадр: за один кадр скролл приходит десятками, а замер — это
+     * getBoundingClientRect на каждый компонент.
+     */
+    private invalidate(): void {
+        if (this.items.size === 0) return
+        this.stale = true
+        this.schedule()
+    }
+
+    private remeasure(): void {
+        this.stale = false
+        for (const item of this.items.values()) {
+            if (!item.measure) continue
+            try {
+                item.bounds = item.measure()
+            }
+            catch {
+                // Компонент мог уйти из DOM между рендером и кадром — рамка доживёт на прежнем месте.
+            }
+        }
+    }
+
+    highlight(id: string, bounds: Bounds, label: string, heat: number, measure?: () => Bounds): void {
         if (this.disposed || !this.ctx) return
         if (!isInViewport(bounds)) return
 
@@ -130,6 +164,7 @@ export class Overlay {
         const existing = this.items.get(id)
         if (existing) {
             existing.bounds = bounds
+            existing.measure = measure
             existing.label = label
             existing.heat = heat
             existing.updatedAt = now
@@ -142,6 +177,7 @@ export class Overlay {
         else {
             this.items.set(id, {
                 bounds,
+                measure,
                 label,
                 heat,
                 startedAt: now,
@@ -174,6 +210,8 @@ export class Overlay {
         const ctx = this.ctx
         const canvas = this.canvas
         if (!ctx || !canvas) return
+
+        if (this.stale) this.remeasure()
 
         const now = Date.now()
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -295,8 +333,8 @@ export class Overlay {
         this.frame = null
         this.items.clear()
         if (typeof window !== 'undefined') {
-            window.removeEventListener('resize', this.onViewportChange)
-            window.removeEventListener('scroll', this.onViewportChange)
+            window.removeEventListener('resize', this.onResize)
+            window.removeEventListener('scroll', this.onScroll, { capture: true })
             window.removeEventListener('pointermove', this.onPointerMove)
         }
         this.canvas?.remove()
