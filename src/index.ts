@@ -10,6 +10,7 @@ import { mountPanel } from './panel/mount'
 import { setupDevtools } from './devtools/plugin'
 import { bindHotkey } from './utils/hotkey'
 import { VERSION } from './version'
+import { loadWasm } from './core/wasm'
 
 export type {
     BudgetKind,
@@ -43,12 +44,14 @@ export {
 export type { Hint, HintCode, HintInput } from './core/hints'
 export { hintsFor, hintsForRecord } from './core/hints'
 export type { ComponentDiff, DiffStatus, ReportDiff } from './core/diff'
+export { loadWasm, isWasmReady, wasmVersion } from './core/wasm'
 export type { MarkdownOptions } from './core/markdown'
 export { formatReportMarkdown } from './core/markdown'
 export { registryFromReport } from './core/import'
 export type { PrintOptions, PrintRow } from './core/console'
 export { reportRows } from './core/console'
-export { diffReports, formatDiff } from './core/diff'
+export { diffReports } from './core/wasm'
+export { formatDiff } from './core/diff'
 export { VERSION } from './version'
 export { Registry } from './core/registry'
 export { Scanner } from './core/scanner'
@@ -132,6 +135,10 @@ let activeHandle: ScanHandle | null = null
 export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | null {
     const resolved = resolveOptions(options)
     if (!resolved.enabled) return null
+
+    // Start loading WASM engine in the background — it'll be ready
+    // by the time the user requests a report or tree view.
+    loadWasm()
 
     const scanner = new Scanner(resolved)
     app.mixin(scanner.createMixin())

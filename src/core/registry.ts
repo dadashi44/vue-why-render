@@ -1,4 +1,5 @@
 import type { BudgetViolation, ComponentRecord, RenderEvent } from '../types'
+import { buildTree as wasmBuildTree } from './wasm'
 
 export interface TreeNode extends ComponentRecord {
     children: TreeNode[]
@@ -136,27 +137,7 @@ export class Registry {
 
     /** Дерево живых компонентов с суммой рендеров по поддереву. */
     tree(): TreeNode[] {
-        const nodes = new Map<number, TreeNode>()
-        for (const record of this.records.values()) {
-            nodes.set(record.uid, { ...record, children: [], subtreeRenders: record.renderCount, depth: 0 })
-        }
-
-        const roots: TreeNode[] = []
-        for (const node of nodes.values()) {
-            const parent = node.parentUid !== null ? nodes.get(node.parentUid) : undefined
-            if (parent) parent.children.push(node)
-            else roots.push(node)
-        }
-
-        const applyDepth = (node: TreeNode, depth: number): number => {
-            node.depth = depth
-            let total = node.renderCount
-            for (const child of node.children) total += applyDepth(child, depth + 1)
-            node.subtreeRenders = total
-            return total
-        }
-        for (const root of roots) applyDepth(root, 0)
-        return roots
+        return wasmBuildTree([...this.records.values()])
     }
 
     snapshot(): RegistrySnapshot {
