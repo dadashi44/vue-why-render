@@ -9,7 +9,7 @@
  * making the WASM self-contained within the JS bundle — no external fetch needed.
  */
 import { execSync } from 'node:child_process'
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -29,8 +29,7 @@ execSync('wasm-pack build --target web --release --out-dir ../../src/wasm/pkg', 
 // Step 2: Read .wasm binary
 const wasmPath = resolve(pkgDir, 'vue_why_render_wasm_bg.wasm')
 if (!existsSync(wasmPath)) {
-    console.error(`wasm: ${wasmPath} not found`)
-    process.exit(1)
+    throw new Error(`wasm: ${wasmPath} not found`)
 }
 
 const wasmBytes = readFileSync(wasmPath)

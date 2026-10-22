@@ -11,10 +11,9 @@ import { build_tree_js } from '../src/core/tree-js'
 import { aggregate_components_js } from '../src/core/report-js'
 import { dedupeReasons } from '../src/core/reason'
 import { diffReports } from '../src/core/diff'
-import { createReport, componentKey } from '../src/core/report'
+import { createReport } from '../src/core/report'
 import { Registry } from '../src/core/registry'
 import { resolveOptions } from '../src/options'
-import { hintsFor } from '../src/core/hints'
 
 // --- Helpers: generate test data ---
 
@@ -23,7 +22,7 @@ function makeRecord(uid: number, parentUid: number | null, name: string, file: s
         ? [{ type: 'set', key: `prop${uid % 5}`, source: 'props' }]
         : []
     const propChanges: PropChange[] = renders > 2
-        ? [{ key: `style`, oldValue: '{}', newValue: '{}', referenceOnly: true, newFunction: false }]
+        ? [{ key: 'style', oldValue: '{}', newValue: '{}', referenceOnly: true, newFunction: false }]
         : []
 
     return {
