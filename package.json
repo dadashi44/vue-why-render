@@ -58,7 +58,7 @@
         "dev:site": "vite --config site/vite.config.ts",
         "build:site": "vite build --config site/vite.config.ts",
         "build:wasm": "node scripts/build-wasm.mjs",
-        "build": "npm run build:wasm && vite build && node scripts/ascii-bundle.mjs && node scripts/build-nuxt.mjs && node scripts/build-test.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
+        "build": "node scripts/build-wasm.mjs && vite build && node scripts/ascii-bundle.mjs && node scripts/build-nuxt.mjs && node scripts/build-test.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:coverage": "vitest run --coverage",

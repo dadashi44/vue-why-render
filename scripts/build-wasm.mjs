@@ -19,8 +19,18 @@ const crateDir = resolve(root, 'crates/wasm-engine')
 const pkgDir = resolve(root, 'src/wasm/pkg')
 const inlineFile = resolve(root, 'src/wasm/inline.ts')
 
+// Skip if wasm-pack is not installed (CI without Rust toolchain).
+try {
+    execSync('wasm-pack --version', { stdio: 'ignore' })
+}
+catch {
+    console.warn('wasm: wasm-pack not found, skipping WASM build (JS fallback will be used)')
+    // eslint-disable-next-line no-undef
+    process.exit(0)
+}
+
 // Step 1: Build with wasm-pack
-console.log('wasm: compiling Rust to WASM...')
+console.warn('wasm: compiling Rust to WASM...')
 execSync('wasm-pack build --target web --release --out-dir ../../src/wasm/pkg', {
     cwd: crateDir,
     stdio: 'inherit',
@@ -55,4 +65,4 @@ export function getWasmBytes(): Uint8Array {
 `
 
 writeFileSync(inlineFile, output)
-console.log(`wasm: inline module generated (${sizeKb} KB)`)
+console.warn(`wasm: inline module generated (${sizeKb} KB)`)
