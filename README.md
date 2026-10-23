@@ -613,6 +613,83 @@ The endpoint itself is found automatically: the package tries the configured
 `/__nuxt_devtools__/open-in-editor`. If none of them answers, it prints a hint to
 the browser console once per session.
 
+## Compared to other tools
+
+| Feature | vue-why-render | Vue DevTools | Chrome DevTools (Performance) |
+|---------|:-:|:-:|:-:|
+| **Shows which component re-rendered** | yes | yes (highlight) | no |
+| **Names the exact prop / ref / store field** | yes | no | no |
+| **"New reference, same value" verdict** | yes | no | no |
+| **Pinia: store + field + action** | yes | partial (store only) | no |
+| **Vue Router: names the changed param** | yes | no | no |
+| **Render assertions in tests** | yes | no | no |
+| **Render budgets (CI-friendly)** | yes | no | no |
+| **Save / diff / compare reports** | yes | no | no |
+| **Actionable hints (what to fix)** | yes | no | no |
+| **Flame graph / CPU profile** | no | yes | yes |
+| **Memory profiling** | no | no | yes |
+| **Works in production** | no | yes | yes |
+
+**Vue DevTools** shows that a component updated, but not which dependency caused it.
+You still need to bisect props or add `watch` calls to find the trigger.
+`vue-why-render` tells you the trigger directly — it is a debugging tool, not a
+general profiler.
+
+**Chrome Performance tab** profiles CPU time, paints and layout. It cannot tell you
+that `ProductCard` re-rendered because `badge` is a new object with the same value.
+Use both: Chrome for *where the time went*, this package for *why it happened*.
+
+## FAQ
+
+### How do I find and fix unnecessary re-renders in Vue 3?
+
+Install `vue-why-render` as a dev dependency. It hooks into Vue's `renderTriggered`
+and names the exact reactive dependency — a prop, ref, computed or Pinia store
+field — that caused each re-render. The most common cause is passing a new object
+reference that carries the same value (e.g. an inline `{ text }` in a template); the
+package detects this and labels it "new reference, same value".
+
+### Does it slow down my app?
+
+The scanner runs `renderTriggered` callbacks, which Vue only fires in development
+builds. In production, the hooks are never called — zero cost. The hot-path
+algorithms run in WebAssembly (Rust) to minimise overhead during profiling, with a
+JS fallback when WASM is unavailable.
+
+### Does it work with Pinia?
+
+Yes. When a Pinia store field triggers a render, the panel shows the store name,
+the field, and which action was running: `store cart.items (add) · action add()`.
+No configuration needed, no dependency on Pinia.
+
+### Does it work with Vue Router?
+
+Yes. A navigation is named by what changed — `route params.id: "/p/1" → "/p/42"` —
+instead of showing the full route object. If a component re-renders on *every*
+navigation (because it reads the whole route), a hint warns about it.
+
+### Does it work with Nuxt?
+
+Yes. Add `modules: ['vue-why-render/nuxt']` to your Nuxt config. A **Why render**
+tab appears in Nuxt DevTools with the live panel. The module auto-disables in
+production builds.
+
+### Can I use it in CI / automated tests?
+
+Yes. The package exports `expectRenders(Component).toBe(n, ...)` for Vitest, and
+render budgets (`budgets: { maxRenders: 5 }`) that expose violations through
+`window.__VUE_WHY_RENDER__` for Playwright. A wasted render you fixed once never
+comes back.
+
+### Why WebAssembly?
+
+A profiling tool that allocates on the JS heap is subject to the same garbage
+collection pauses as the code it measures. A GC stop-the-world pause during a
+`buildTree` call inflates the reported render time — the tool distorts its own
+measurements. WASM linear memory is invisible to the garbage collector: no GC
+scanning, no pauses, deterministic memory management via Rust ownership. The result
+is 2× lower worst-case latency and 2.4× less jitter compared to the JS path.
+
 ## What this package does not do
 
 - It does not replace Vue DevTools flame graphs or browser traces: it shows *what* re-rendered and *why*, not where the time went inside a render.

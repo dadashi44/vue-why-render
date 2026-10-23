@@ -16,7 +16,13 @@
         "nuxt",
         "nuxt-module",
         "testing",
-        "vitest"
+        "vitest",
+        "wasm",
+        "webassembly",
+        "rust",
+        "wasted-renders",
+        "reactivity",
+        "pinia"
     ],
     "license": "MIT",
     "author": "dadashi44",
