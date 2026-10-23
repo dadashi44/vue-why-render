@@ -11,6 +11,7 @@ import { setupDevtools } from './devtools/plugin'
 import { bindHotkey } from './utils/hotkey'
 import { VERSION } from './version'
 import { loadWasm } from './core/wasm'
+import { Bridge, BRIDGE_DEFAULTS } from './core/bridge'
 
 export type {
     BudgetKind,
@@ -57,6 +58,8 @@ export { Registry } from './core/registry'
 export { Scanner } from './core/scanner'
 export { describeTrigger, diffProps, formatValue } from './core/reason'
 export { resolveOptions, shouldTrack } from './options'
+export { Bridge, BRIDGE_DEFAULTS } from './core/bridge'
+export type { BridgeOptions } from './core/bridge'
 
 export interface ScanHandle {
     scanner: Scanner
@@ -145,10 +148,22 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
 
     const unmountPanel = resolved.panel ? mountPanel(scanner) : null
     const stopDevtools = resolved.devtools ? setupDevtools(app, scanner) : null
-    // Пауза живёт в реестре, а не в панели: клавиша работает и с выключенной панелью.
     const unbindHotkey = resolved.pauseHotkey
         ? bindHotkey(resolved.pauseHotkey, () => scanner.registry.setPaused(!scanner.registry.isPaused()))
         : null
+
+    let bridge: Bridge | null = null
+    if (options.vscode) {
+        const bridgeOpts = typeof options.vscode === 'object'
+            ? { ...BRIDGE_DEFAULTS, ...options.vscode }
+            : BRIDGE_DEFAULTS
+        bridge = new Bridge(scanner.registry, scanner.depsGraph, bridgeOpts, (cmd) => {
+            if (cmd === 'pause') scanner.registry.setPaused(true)
+            else if (cmd === 'resume') scanner.registry.setPaused(false)
+            else if (cmd === 'reset') scanner.registry.reset()
+        })
+        bridge.connect()
+    }
 
     const handle: ScanHandle = {
         scanner,
@@ -156,6 +171,7 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
             unmountPanel?.()
             stopDevtools?.()
             unbindHotkey?.()
+            bridge?.dispose()
             unexpose()
             scanner.dispose()
             if (activeHandle === handle) activeHandle = null

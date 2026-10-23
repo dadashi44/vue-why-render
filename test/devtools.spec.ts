@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h, nextTick, ref } from 'vue'
 import { Scanner } from '../src/core/scanner'
 import { resolveOptions } from '../src/options'
-import { INSPECTOR_ID, TIMELINE_ID, setupDevtools } from '../src/devtools/plugin'
+import { INSPECTOR_ID, DEPS_INSPECTOR_ID, TIMELINE_ID, TIMELINE_DEPS_ID, setupDevtools } from '../src/devtools/plugin'
 import { setupDevtoolsPlugin } from '../src/devtools/types'
 import type { DevtoolsPluginApi, GetInspectorStatePayload, GetInspectorTreePayload } from '../src/devtools/types'
 
@@ -44,6 +44,20 @@ function fakeApi() {
         state(nodeId: string) {
             const payload: GetInspectorStatePayload = {
                 app: null as never, inspectorId: INSPECTOR_ID, nodeId, state: {},
+            }
+            for (const handler of stateHandlers) handler(payload)
+            return payload.state as Record<string, Array<{ key: string, value: unknown }>>
+        },
+        depsTree(filter = '') {
+            const payload: GetInspectorTreePayload = {
+                app: null as never, inspectorId: DEPS_INSPECTOR_ID, filter, rootNodes: [],
+            }
+            for (const handler of treeHandlers) handler(payload)
+            return payload.rootNodes
+        },
+        depsState(nodeId: string) {
+            const payload: GetInspectorStatePayload = {
+                app: null as never, inspectorId: DEPS_INSPECTOR_ID, nodeId, state: {},
             }
             for (const handler of stateHandlers) handler(payload)
             return payload.state as Record<string, Array<{ key: string, value: unknown }>>
@@ -114,8 +128,14 @@ describe('инспектор', () => {
         const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
         setupDevtools(createApp({ render: () => null }), scanner)
 
-        expect(fake.inspectors).toEqual([expect.objectContaining({ id: INSPECTOR_ID })])
-        expect(fake.layers).toEqual([expect.objectContaining({ id: TIMELINE_ID })])
+        expect(fake.inspectors).toEqual([
+            expect.objectContaining({ id: INSPECTOR_ID }),
+            expect.objectContaining({ id: DEPS_INSPECTOR_ID }),
+        ])
+        expect(fake.layers).toEqual([
+            expect.objectContaining({ id: TIMELINE_ID }),
+            expect.objectContaining({ id: TIMELINE_DEPS_ID }),
+        ])
     })
 
     it('отдаёт компоненты с числом рендеров', async () => {
@@ -218,5 +238,94 @@ describe('таймлайн', () => {
         host.querySelector('button')!.click()
         await nextTick()
         expect(fake.timeline).toHaveLength(before)
+    })
+
+    it('пишет deps-trigger события при перерисовке', async () => {
+        const fake = fakeApi()
+        installHook(fake)
+        const { app, host } = mountCounter()
+        const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
+        app.mixin(scanner.createMixin())
+        setupDevtools(app, scanner)
+        app.mount(host)
+
+        host.querySelector('button')!.click()
+        await nextTick()
+
+        const depsEvents = fake.timeline.filter(item => item.layerId === TIMELINE_DEPS_ID)
+        expect(depsEvents.length).toBeGreaterThan(0)
+    })
+})
+
+describe('deps inspector', () => {
+    it('показывает зависимости в состоянии компонента', async () => {
+        const fake = fakeApi()
+        installHook(fake)
+        const { app, host } = mountCounter()
+        const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
+        app.mixin(scanner.createMixin())
+        setupDevtools(app, scanner)
+        app.mount(host)
+
+        host.querySelector('button')!.click()
+        await nextTick()
+
+        const card = fake.tree().find(node => node.label === 'ProductCard')!
+        const state = fake.state(card.id)
+        expect(state.dependencies).toBeDefined()
+        expect(state.dependencies.length).toBeGreaterThan(0)
+    })
+
+    it('показывает источники зависимостей в дереве', async () => {
+        const fake = fakeApi()
+        installHook(fake)
+        const { app, host } = mountCounter()
+        const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
+        app.mixin(scanner.createMixin())
+        setupDevtools(app, scanner)
+        app.mount(host)
+
+        host.querySelector('button')!.click()
+        await nextTick()
+
+        const nodes = fake.depsTree()
+        expect(nodes.length).toBeGreaterThan(0)
+        expect(nodes[0].tags).toBeDefined()
+        expect(nodes[0].tags!.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('показывает зависимых компонентов при выборе источника', async () => {
+        const fake = fakeApi()
+        installHook(fake)
+        const { app, host } = mountCounter()
+        const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
+        app.mixin(scanner.createMixin())
+        setupDevtools(app, scanner)
+        app.mount(host)
+
+        host.querySelector('button')!.click()
+        await nextTick()
+
+        const nodes = fake.depsTree()
+        expect(nodes.length).toBeGreaterThan(0)
+        const state = fake.depsState(nodes[0].id)
+        expect(state.source).toBeDefined()
+        expect(state.dependents).toBeDefined()
+        expect(state.dependents.length).toBeGreaterThan(0)
+    })
+
+    it('фильтрует deps дерево по строке', async () => {
+        const fake = fakeApi()
+        installHook(fake)
+        const { app, host } = mountCounter()
+        const scanner = new Scanner(resolveOptions({ panel: false, overlay: false }))
+        app.mixin(scanner.createMixin())
+        setupDevtools(app, scanner)
+        app.mount(host)
+
+        host.querySelector('button')!.click()
+        await nextTick()
+
+        expect(fake.depsTree('нетакого')).toHaveLength(0)
     })
 })

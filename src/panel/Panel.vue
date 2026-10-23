@@ -24,6 +24,7 @@ import { registryFromReport } from '../core/import'
 import { formatReportMarkdown } from '../core/markdown'
 import { copyToClipboard } from './clipboard'
 import PanelIcon from './PanelIcon.vue'
+import DepsPanel from './DepsPanel.vue'
 import { formatHotkey } from '../utils/hotkey'
 import { clampPosition, loadPosition, savePosition } from './position'
 import type { PanelPosition } from './position'
@@ -34,7 +35,7 @@ const props = defineProps<{
     embedded?: boolean
 }>()
 
-type Tab = 'top' | 'slow' | 'tree' | 'events'
+type Tab = 'top' | 'slow' | 'tree' | 'events' | 'deps'
 
 // Локаль задаётся один раз при подключении и не меняется на лету,
 // поэтому словарь берём сразу, без реактивной обёртки.
@@ -446,6 +447,13 @@ function openInEditor(record: ComponentRecord): void {
                 >
                     {{ t.tabEvents }}
                 </button>
+                <button
+                    class="vwr__tab"
+                    :class="{ 'vwr__tab--active': tab === 'deps' }"
+                    @click="selectTab('deps')"
+                >
+                    {{ t.tabDeps }}
+                </button>
             </div>
 
             <div v-if="viewing" class="vwr__banner">
@@ -558,7 +566,7 @@ function openInEditor(record: ComponentRecord): void {
                 </li>
             </ul>
 
-            <ul v-else class="vwr__list">
+            <ul v-else-if="tab === 'events'" class="vwr__list">
                 <li v-if="events.length === 0" class="vwr__empty">
                     {{ t.emptyEvents }}
                 </li>
@@ -578,6 +586,8 @@ function openInEditor(record: ComponentRecord): void {
                     >{{ formatPropChange(change, t) }}</span>
                 </li>
             </ul>
+
+            <DepsPanel v-else-if="tab === 'deps'" :graph="props.scanner.depsGraph" :locale="props.scanner.options.locale" />
         </div>
     </div>
 </template>

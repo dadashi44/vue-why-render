@@ -183,6 +183,11 @@ export interface VueWhyRenderOptions {
     pinia?: boolean
     /** Узнавать навигацию Vue Router и называть, что в маршруте поменялось. */
     router?: boolean
+    /**
+     * Подключиться к VS Code extension по WebSocket.
+     * `true` — порт 7710, или объект `{ port, host }`.
+     */
+    vscode?: boolean | { port?: number, host?: string }
     /** Колбэк на первое превышение бюджета каждым компонентом. */
     onBudgetExceeded?: (violation: BudgetViolation) => void
     /** Колбэк на каждое событие рендера. */

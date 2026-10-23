@@ -1,5 +1,6 @@
 import type { ComponentOptions, DebuggerEvent } from 'vue'
-import type { RenderEvent, RenderPhase, ResolvedOptions, TrackedInstance } from '../types'
+import { toRaw } from 'vue'
+import type { ReasonSource, RenderEvent, RenderPhase, ResolvedOptions, TrackedInstance } from '../types'
 import { shouldTrack } from '../options'
 import { Overlay } from '../overlay/canvas'
 import { FpsMeter } from './fps'
@@ -7,6 +8,7 @@ import { getComponentBounds, getComponentFile, getComponentName } from './instan
 import { describeTrigger, diffProps, snapshotProps } from './reason'
 import { dedupeReasons } from './wasm'
 import { Registry } from './registry'
+import { DepsGraph } from './deps-graph'
 import { watchBudgets } from './budgets'
 import { PiniaTracker } from './pinia'
 import { RouterTracker } from './router'
@@ -38,6 +40,7 @@ function safe(label: string, fn: () => void): void {
  */
 export class Scanner {
     readonly registry: Registry
+    readonly depsGraph: DepsGraph
     readonly options: ResolvedOptions
     private overlay: Overlay | null = null
     private fps = new FpsMeter()
@@ -49,6 +52,7 @@ export class Scanner {
     constructor(options: ResolvedOptions) {
         this.options = options
         this.registry = new Registry({ maxEvents: options.maxEvents })
+        this.depsGraph = new DepsGraph()
         this.unwatchBudgets = watchBudgets(this.registry, options)
         this.pinia = options.pinia ? new PiniaTracker() : null
         this.router = options.router ? new RouterTracker() : null
@@ -93,6 +97,9 @@ export class Scanner {
             },
             renderTriggered(this: { $: TrackedInstance }, event: DebuggerEvent) {
                 safe('renderTriggered', () => scanner.onRenderTriggered(this.$, event))
+            },
+            renderTracked(this: { $: TrackedInstance }, event: DebuggerEvent) {
+                safe('renderTracked', () => scanner.onRenderTracked(this.$, event))
             },
         }
     }
@@ -150,6 +157,7 @@ export class Scanner {
     private onMounted(instance: TrackedInstance): void {
         const state = this.init(instance)
         if (!state?.tracked || !this.active) return
+        this.depsGraph.registerComponent(state.uid, state.name, state.file)
         if (!this.options.includeMounts) return
         this.emit(instance, state, 'mount', 0)
     }
@@ -198,10 +206,58 @@ export class Scanner {
         if (!this.options.trackReasons || !this.active) return
         const state = this.init(instance)
         if (!state?.tracked) return
-        // Причины копятся между триггером и updated — там их и заберём.
+        const reason = describeTrigger(event, instance, this.pinia, this.router)
         if (state.reasons.length < 32) {
-            state.reasons.push(describeTrigger(event, instance, this.pinia, this.router))
+            state.reasons.push(reason)
         }
+        const depId = `${reason.source}:${reason.key}`
+        this.depsGraph.recordTrigger(state.uid, depId, reason.key, reason.source, reason.store)
+    }
+
+    private onRenderTracked(instance: TrackedInstance, event: DebuggerEvent): void {
+        if (!this.active) return
+        const state = this.init(instance)
+        if (!state?.tracked) return
+
+        const { source, key, store } = this.classifyDep(event, instance)
+        const depId = `${source}:${key}`
+        this.depsGraph.recordRead(state.uid, depId, key, source, store)
+    }
+
+    private classifyDep(
+        event: DebuggerEvent,
+        instance: TrackedInstance,
+    ): { source: ReasonSource, key: string, store?: string } {
+        const target = event.target as Record<string, unknown> | undefined
+        if (!target || typeof target !== 'object') return { source: 'computed', key: 'computed' }
+
+        if (this.router?.owns(target)) return { source: 'route', key: 'route' }
+
+        const rawKey = event.key != null ? String(event.key) : '?'
+
+        const storeId = typeof target.$id === 'string' ? target.$id : null
+        if (storeId) return { source: 'store', key: `${storeId}.${rawKey}`, store: storeId }
+
+        if (instance.props && toRaw(instance.props) === target) return { source: 'props', key: rawKey }
+
+        if (Array.isArray(target)) return { source: 'array', key: `[${rawKey}]` }
+
+        if (rawKey === 'value') {
+            const setupState = (instance as unknown as { setupState?: Record<string, unknown> }).setupState
+            if (setupState) {
+                const raw = toRaw(setupState)
+                const descriptors = Object.getOwnPropertyDescriptors(raw)
+                for (const k of Object.keys(descriptors)) {
+                    const d = descriptors[k]
+                    if (d && typeof d.get !== 'function' && toRaw(d.value as object) === target) {
+                        return { source: 'setup', key: k }
+                    }
+                }
+            }
+            return { source: 'setup', key: 'ref' }
+        }
+
+        return { source: 'setup', key: rawKey }
     }
 
     private onUnmounted(instance: TrackedInstance): void {
@@ -210,6 +266,7 @@ export class Scanner {
         if (state.flashTimer) clearTimeout(state.flashTimer)
         this.overlay?.clear(String(state.uid))
         this.registry.unregister(state.uid)
+        this.depsGraph.unregisterComponent(state.uid)
         instance.__vwr = undefined
     }
 
@@ -292,6 +349,7 @@ export class Scanner {
         this.overlay?.dispose()
         this.overlay = null
         this.registry.clear()
+        this.depsGraph.clear()
     }
 }
 
