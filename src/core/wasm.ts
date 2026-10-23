@@ -20,6 +20,7 @@ import { diff_reports_js } from './diff-js'
 let wasmReady = false
 let wasmFailed = false
 let wasmLoading: Promise<boolean> | null = null
+let wasmFallbackWarned = false
 
 // WASM function references — set after successful init.
 let wBuildTree: ((records: unknown) => unknown) | null = null
@@ -76,6 +77,13 @@ export function wasmVersion(): string | null {
     return wEngineVersion?.() ?? null
 }
 
+function warnFallback(fn: string, e: unknown): void {
+    if (!wasmFallbackWarned) {
+        wasmFallbackWarned = true
+        console.warn(`[vue-why-render] WASM ${fn} failed, using JS fallback:`, e)
+    }
+}
+
 // --- Public API: WASM with JS fallback ---
 
 /**
@@ -86,8 +94,8 @@ export function buildTree(records: ComponentRecord[]): TreeNode[] {
         try {
             return wBuildTree(records) as TreeNode[]
         }
-        catch {
-            // fallback on any WASM error
+        catch (e) {
+            warnFallback('buildTree', e)
         }
     }
     return build_tree_js(records)
@@ -104,8 +112,8 @@ export function aggregateComponents(
         try {
             return wAggregateComponents(records, options) as ReportComponent[]
         }
-        catch {
-            // fallback
+        catch (e) {
+            warnFallback('aggregateComponents', e)
         }
     }
     return aggregate_components_js(records, options)
@@ -119,8 +127,8 @@ export function dedupeReasons(reasons: RenderReason[], limit = 10): RenderReason
         try {
             return wDedupeReasons(reasons, limit) as RenderReason[]
         }
-        catch {
-            // fallback
+        catch (e) {
+            warnFallback('dedupeReasons', e)
         }
     }
     return dedupe_reasons_js(reasons, limit)
@@ -134,8 +142,8 @@ export function diffReports(before: Report, after: Report): ReportDiff {
         try {
             return wDiffReports(before, after) as ReportDiff
         }
-        catch {
-            // fallback
+        catch (e) {
+            warnFallback('diffReports', e)
         }
     }
     return diff_reports_js(before, after)

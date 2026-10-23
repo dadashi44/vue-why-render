@@ -10,11 +10,6 @@ fn component_key(record: &ComponentRecord) -> String {
     }
 }
 
-/// Unique key for a render reason.
-fn reason_key(reason: &RenderReason) -> String {
-    format!("{}:{}", reason.source, reason.key)
-}
-
 /// Aggregate component records by key — the core of createReport().
 /// Returns components sorted by renderCount descending, then by key.
 pub fn aggregate_components(
@@ -38,8 +33,8 @@ pub fn aggregate_components(
 
             // Deduplicate reasons by key.
             for reason in record.last_reasons {
-                let rk = reason_key(&reason);
-                if !existing.reasons.iter().any(|r| reason_key(r) == rk) {
+                let rk = reason.reason_key();
+                if !existing.reasons.iter().any(|r| r.reason_key() == rk) {
                     existing.reasons.push(reason);
                 }
             }

@@ -17,6 +17,12 @@ pub struct RenderReason {
     pub action: Option<String>,
 }
 
+impl RenderReason {
+    pub fn reason_key(&self) -> String {
+        format!("{}:{}", self.source, self.key)
+    }
+}
+
 /// Mirror of TypeScript PropChange.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropChange {

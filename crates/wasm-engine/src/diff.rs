@@ -76,10 +76,6 @@ fn option_warnings(before: &ReportOptionsForDiff, after: &ReportOptionsForDiff) 
     out
 }
 
-fn reason_key(reason: &RenderReason) -> String {
-    format!("{}:{}", reason.source, reason.key)
-}
-
 fn status_of(before: u32, after: u32, existed_before: bool, exists_after: bool) -> DiffStatus {
     if !existed_before {
         return DiffStatus::Added;
@@ -169,10 +165,10 @@ pub fn diff_reports(before: ReportForDiff, after: ReportForDiff) -> ReportDiff {
         let after_count = right.map(|c| c.render_count).unwrap_or(0);
 
         let before_reasons: HashSet<String> = left
-            .map(|c| c.reasons.iter().map(reason_key).collect())
+            .map(|c| c.reasons.iter().map(|r| r.reason_key()).collect())
             .unwrap_or_default();
         let after_reasons: HashSet<String> = right
-            .map(|c| c.reasons.iter().map(reason_key).collect())
+            .map(|c| c.reasons.iter().map(|r| r.reason_key()).collect())
             .unwrap_or_default();
 
         components.push(ComponentDiff {

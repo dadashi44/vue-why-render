@@ -38,13 +38,19 @@ pub fn build_tree(records: Vec<ComponentRecord>) -> Vec<TreeNode> {
     let mut parent_map: HashMap<u32, Vec<u32>> = HashMap::new();
     let mut root_uids: Vec<u32> = Vec::new();
 
-    for node in nodes.values() {
+    // Collect UIDs in sorted order so iteration is deterministic
+    // (HashMap has no guaranteed order; JS Map preserves insertion order).
+    let mut all_uids: Vec<u32> = nodes.keys().copied().collect();
+    all_uids.sort();
+
+    for &uid in &all_uids {
+        let node = &nodes[&uid];
         match node.parent_uid {
             Some(pid) if nodes.contains_key(&pid) => {
-                parent_map.entry(pid).or_default().push(node.uid);
+                parent_map.entry(pid).or_default().push(uid);
             }
             _ => {
-                root_uids.push(node.uid);
+                root_uids.push(uid);
             }
         }
     }
