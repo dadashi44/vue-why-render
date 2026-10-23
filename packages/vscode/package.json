@@ -1,0 +1,110 @@
+{
+    "name": "vue-why-render-vscode",
+    "displayName": "Vue Why Render",
+    "description": "See which Vue components re-render, why, and how often — right in VS Code",
+    "version": "0.1.0",
+    "publisher": "dadashi44",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dadashi44/vue-why-render",
+        "directory": "packages/vscode"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Debuggers",
+        "Visualization",
+        "Other"
+    ],
+    "keywords": [
+        "vue",
+        "vue3",
+        "render",
+        "performance",
+        "reactivity",
+        "debug"
+    ],
+    "activationEvents": [],
+    "main": "./dist/extension.js",
+    "icon": "icon.png",
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "vue-why-render",
+                    "title": "Why Render",
+                    "icon": "$(debug-alt)"
+                }
+            ]
+        },
+        "views": {
+            "vue-why-render": [
+                {
+                    "id": "vwr.components",
+                    "name": "Components"
+                },
+                {
+                    "id": "vwr.deps",
+                    "name": "Dependencies"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "vwr.connect",
+                "title": "Connect to App",
+                "category": "Why Render"
+            },
+            {
+                "command": "vwr.disconnect",
+                "title": "Disconnect",
+                "category": "Why Render"
+            },
+            {
+                "command": "vwr.pause",
+                "title": "Pause Scanner",
+                "category": "Why Render"
+            },
+            {
+                "command": "vwr.resume",
+                "title": "Resume Scanner",
+                "category": "Why Render"
+            },
+            {
+                "command": "vwr.reset",
+                "title": "Reset Counters",
+                "category": "Why Render"
+            }
+        ],
+        "configuration": {
+            "title": "Vue Why Render",
+            "properties": {
+                "vueWhyRender.port": {
+                    "type": "number",
+                    "default": 7710,
+                    "description": "WebSocket port to connect to the running app"
+                },
+                "vueWhyRender.autoConnect": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically connect when the extension activates"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --target=node18",
+        "watch": "npm run build -- --watch",
+        "package": "npx @vscode/vsce package --no-dependencies"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/ws": "^8.5.10",
+        "esbuild": "^0.25.0"
+    },
+    "dependencies": {
+        "ws": "^8.16.0"
+    }
+}
