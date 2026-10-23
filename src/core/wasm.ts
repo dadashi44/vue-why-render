@@ -40,9 +40,11 @@ export function loadWasm(): Promise<boolean> {
 
     wasmLoading = (async () => {
         try {
+            const inlinePath = '../wasm/inline.js'
+            const wasmPath = '../wasm/pkg/vue_why_render_wasm.js'
             const [{ getWasmBytes }, wasm] = await Promise.all([
-                import(/* @vite-ignore */ '../wasm/inline.js'),
-                import(/* @vite-ignore */ '../wasm/pkg/vue_why_render_wasm.js'),
+                import(/* @vite-ignore */ inlinePath),
+                import(/* @vite-ignore */ wasmPath),
             ])
 
             ;(wasm.initSync as (init: { module: BufferSource }) => void)({ module: getWasmBytes().buffer as ArrayBuffer })
