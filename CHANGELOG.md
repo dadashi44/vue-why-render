@@ -3,6 +3,17 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [SemVer](https://semver.org/lang/ru/).
 
+## [0.8.0] — 2026-10-23
+
+### Добавлено
+
+- **Reactivity graph** — `DepsGraph` отслеживает `renderTracked`/`renderTriggered` и строит живую карту зависимостей компонент→реактивный источник. Новая вкладка **Deps** в панели с двумя режимами: Components (компоненты с их зависимостями) и Sources (реактивные источники с их зависимыми компонентами). Фильтр, detail-панель с числом чтений и триггеров на каждое ребро. Бейджи окрашены по типу источника: ref, prop, store, computed, data, array, collection, route.
+- **Deps inspector в Vue DevTools** — второй инспектор (иконка `account_tree`) показывает дерево реактивных источников с цветными тегами по типу. Второй слой таймлайна логирует каждый `renderTriggered` как deps-событие. В состоянии компонента появилась секция «dependencies».
+- **VS Code extension** — расширение `vue-why-render` для VS Code с WebSocket-мостом (порт 7710). Sidebar: дерево компонентов (сортировка по рендерам, иконки hot/warn), дерево реактивных зависимостей. CodeLens на `.vue`-файлах с числом рендеров и средней длительностью. Status bar с общим счётчиком и числом горячих компонентов. Команды: Connect, Disconnect, Pause, Resume, Reset.
+- `Bridge` — WebSocket-клиент в браузере, стримит снапшоты, deps и события в VS Code. Авто-реконнект каждые 3 с. Принимает команды pause/resume/reset от расширения.
+- Опция `vscode: true | { port?, host? }` в `scan()` — включает мост к VS Code.
+- 5 новых тестов на deps inspector, deps state, deps tree filter и deps timeline.
+
 ## [0.7.0] — 2026-10-23
 
 ### Добавлено
