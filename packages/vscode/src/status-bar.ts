@@ -18,7 +18,7 @@ export class StatusBar implements vscode.Disposable {
         const hot = snapshot.records.filter(r => r.renderCount >= 10).length
 
         if (snapshot.paused) {
-            this.item.text = `$(debug-pause) VWR paused`
+            this.item.text = '$(debug-pause) VWR paused'
             this.item.backgroundColor = undefined
         } else if (hot > 0) {
             this.item.text = `$(flame) ${total} renders · ${hot} hot`

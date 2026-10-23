@@ -39,7 +39,7 @@ export class ComponentsProvider implements vscode.TreeDataProvider<ComponentSnap
             item.tooltip.appendMarkdown(`Renders: ${el.renderCount} (${el.updateCount} updates)  \n`)
             item.tooltip.appendMarkdown(`Duration: avg ${avg}ms, max ${el.maxDuration.toFixed(1)}ms  \n`)
             if (el.lastReasons.length) {
-                item.tooltip.appendMarkdown(`\nLast reasons:  \n`)
+                item.tooltip.appendMarkdown('\nLast reasons:  \n')
                 for (const r of el.lastReasons.slice(0, 5)) {
                     item.tooltip.appendMarkdown(`- ${r.source} \`${r.key}\`  \n`)
                 }
