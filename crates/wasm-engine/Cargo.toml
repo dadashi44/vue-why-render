@@ -1,0 +1,25 @@
+[package]
+name = "vue-why-render-wasm"
+version = "0.1.0"
+edition = "2021"
+description = "WASM engine for vue-why-render: tree building, report aggregation, diffing"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+js-sys = "0.3"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = "symbols"

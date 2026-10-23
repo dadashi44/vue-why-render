@@ -3,7 +3,7 @@ import type { BudgetViolation, NameFilter, PropChange, RenderEvent, RenderReason
 import { VERSION } from '../version'
 import type { Registry } from './registry'
 import type { Hint } from './hints'
-import { hintsFor } from './hints'
+import { aggregateComponents as wasmAggregateComponents } from './wasm'
 
 /**
  * Версия формата отчёта. Поднимается при несовместимом изменении — дифф и
@@ -124,51 +124,7 @@ export function createReport(init: CreateReportInit): Report {
     const createdAt = now()
     const durationMs = Math.max(0, createdAt - snapshot.startedAt)
 
-    const byKey = new Map<string, ReportComponent>()
-    for (const record of snapshot.records) {
-        const key = componentKey(record)
-        const existing = byKey.get(key)
-        if (existing) {
-            existing.instances++
-            existing.renderCount += record.renderCount
-            existing.updateCount += record.updateCount
-            existing.totalDuration += record.totalDuration
-            existing.maxDuration = Math.max(existing.maxDuration, record.maxDuration)
-            for (const reason of record.lastReasons) {
-                if (!existing.reasons.some(item => reasonKey(item) === reasonKey(reason))) {
-                    existing.reasons.push(reason)
-                }
-            }
-            for (const change of record.lastPropChanges) {
-                if (!existing.propChanges.some(item => item.key === change.key)) {
-                    existing.propChanges.push(change)
-                }
-            }
-            continue
-        }
-        byKey.set(key, {
-            key,
-            name: record.name,
-            file: record.file,
-            instances: 1,
-            renderCount: record.renderCount,
-            updateCount: record.updateCount,
-            totalDuration: record.totalDuration,
-            maxDuration: record.maxDuration,
-            reasons: [...record.lastReasons],
-            propChanges: [...record.lastPropChanges],
-            hints: [],
-        })
-    }
-
-    // Подсказки считаются по агрегату, а не по инстансу: совет «вынеси объект
-    // в константу» относится к месту в коде, а оно у инстансов общее.
-    for (const component of byKey.values()) {
-        component.hints = hintsFor(component, init.options)
-    }
-
-    const components = [...byKey.values()].sort((a, b) =>
-        b.renderCount - a.renderCount || a.key.localeCompare(b.key))
+    const components = wasmAggregateComponents(snapshot.records, init.options)
 
     const seconds = Math.max(durationMs / 1000, 0.001)
 
@@ -187,7 +143,7 @@ export function createReport(init: CreateReportInit): Report {
         },
         totals: {
             renders: snapshot.totalRenders,
-            components: byKey.size,
+            components: components.length,
             rendersPerSecond: snapshot.totalRenders / seconds,
         },
         components,
