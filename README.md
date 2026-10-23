@@ -40,6 +40,7 @@ through the `renderTriggered` hook — this package is built around it.
 - **Reports**: save the whole session as JSON from the panel, and `diffReports(before, after)` to prove a fix actually worked. Open a saved report back in the panel, copy the session as Markdown for an issue, or `printReport()` to the console.
 - **Render budgets**: `budgets: { maxRenders: 5 }` warns when a component thrashes, and `window.__VUE_WHY_RENDER__` lets a Playwright test fail CI on it.
 - **API**: `getStats()`, `getEvents()`, `getReport()` and an `onRender` callback, so you can build your own tooling.
+- **Powered by Rust/WASM**: hot-path algorithms run in WebAssembly — no GC pauses, predictable latency, so the tool itself does not distort the measurements it reports. Falls back to JS transparently when WASM is unavailable.
 
 ## Install
 

@@ -3,6 +3,26 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [SemVer](https://semver.org/lang/ru/).
 
+## [0.7.0] — 2026-10-23
+
+### Добавлено
+
+- **Rust/WASM engine**: вычислительные алгоритмы (`buildTree`, `aggregateComponents`, `dedupeReasons`, `diffReports`) перенесены в Rust и компилируются в WebAssembly. WASM грузится лениво через dynamic `import()`, в средах без WebAssembly (SSR, jsdom, CSP) работает JS-фолбэк. Основной бандл не увеличился — WASM-чанки подгружаются отдельно.
+- `loadWasm()` — ручной запуск загрузки WASM (вызывается автоматически в `scan()`).
+- `isWasmReady()` — проверка, загружен ли WASM engine.
+- `wasmVersion()` — версия Rust engine или `null`.
+- 52 unit-теста Rust-крейта, бенчмарки JS-фолбэка.
+
+### Изменено
+
+- `dedupeReasons` и `diffReports` теперь экспортируются из WASM-обёртки с автоматическим fallback на JS. API не изменился.
+
+### Исправлено
+
+- Порядок children в дереве компонентов теперь детерминированный (сортировка по uid) — совпадает между WASM и JS-фолбэком.
+- Ошибки WASM выводятся через `console.warn` вместо молчаливого проглатывания — видно когда WASM не используется.
+- `reason_key()` вынесен в общий модуль — убрана дупликация между report и diff.
+
 ## [0.6.0] — 2026-10-20
 
 ### Добавлено
