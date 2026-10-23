@@ -19,6 +19,7 @@ export interface Messages {
     tabSlow: string
     tabTree: string
     tabEvents: string
+    tabDeps: string
     searchPlaceholder: string
     recording: string
     paused: string
@@ -83,6 +84,7 @@ export const messages: Record<Locale, Messages> = {
         tabSlow: 'Slow',
         tabTree: 'Tree',
         tabEvents: 'Events',
+        tabDeps: 'Deps',
         searchPlaceholder: 'filter by name or file',
         recording: 'recording',
         paused: 'paused',
@@ -133,6 +135,7 @@ export const messages: Record<Locale, Messages> = {
         tabSlow: 'Медленные',
         tabTree: 'Дерево',
         tabEvents: 'События',
+        tabDeps: 'Граф',
         searchPlaceholder: 'фильтр по имени или файлу',
         recording: 'запись',
         paused: 'пауза',
@@ -183,6 +186,7 @@ export const messages: Record<Locale, Messages> = {
         tabSlow: '耗时',
         tabTree: '组件树',
         tabEvents: '事件',
+        tabDeps: '依赖',
         searchPlaceholder: '按名称或文件过滤',
         recording: '记录中',
         paused: '已暂停',
