@@ -3,6 +3,12 @@
 Формат — [Keep a Changelog](https://keepachangelog.com/ru/1.1.0/),
 версии — [SemVer](https://semver.org/lang/ru/).
 
+## [Unreleased]
+
+### Изменено
+
+- Сайт проекта переехал на <https://vue-why-render.js.org/>. Старый адрес на github.io редиректит на новый.
+
 ## [0.8.0] — 2026-10-23
 
 ### Добавлено

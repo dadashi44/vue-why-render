@@ -9,7 +9,8 @@ import { defineConfig } from 'vite'
  */
 export default defineConfig({
     root: resolve(__dirname),
-    // Проект едет на github.io/vue-why-render/, отсюда префикс у ассетов.
+    // В CI base приходит из настроек Pages (на vue-why-render.js.org это корень);
+    // дефолт — для локальной сборки под github.io/vue-why-render/.
     base: process.env.SITE_BASE ?? '/vue-why-render/',
     plugins: [vue()],
     resolve: {

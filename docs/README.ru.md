@@ -6,7 +6,7 @@
 [![downloads](https://img.shields.io/npm/dm/vue-why-render?color=%236ee7a8)](https://npmtrends.com/vue-why-render)
 [![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[Живое демо →](https://dadashi44.github.io/vue-why-render/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
+**[Живое демо →](https://vue-why-render.js.org/)** · [English](https://github.com/dadashi44/vue-why-render/blob/main/README.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
 
 ![vue-why-render: компоненты перерисовываются, а панель называет причину — проп с тем же значением и новой ссылкой, поле стора Pinia и экшен, который его поменял](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 

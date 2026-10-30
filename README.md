@@ -6,7 +6,7 @@ See which Vue components re-render — and **why exactly**.
 [![downloads](https://img.shields.io/npm/dm/vue-why-render?color=%236ee7a8)](https://npmtrends.com/vue-why-render)
 [![license](https://img.shields.io/npm/l/vue-why-render)](https://github.com/dadashi44/vue-why-render/blob/main/LICENSE)
 
-**[Live demo →](https://dadashi44.github.io/vue-why-render/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
+**[Live demo →](https://vue-why-render.js.org/)** · [Русский](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.ru.md) · [中文](https://github.com/dadashi44/vue-why-render/blob/main/docs/README.zh-CN.md)
 
 ![vue-why-render: components re-render and the panel names the cause — a prop rebuilt with the same value, a Pinia store field and the action that changed it](https://raw.githubusercontent.com/dadashi44/vue-why-render/main/docs/demo.gif)
 
