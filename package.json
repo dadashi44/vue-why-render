@@ -72,7 +72,8 @@
         "typecheck": "vue-tsc --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "prepublishOnly": "npm run build"
+        "prepublishOnly": "npm run build",
+        "build:og": "node scripts/build-og.mjs"
     },
     "peerDependencies": {
         "@nuxt/kit": "^3.0.0 || ^4.0.0",
@@ -83,6 +84,8 @@
         "@nuxt/kit": "^4.5.2",
         "@nuxt/schema": "^4.5.2",
         "@playwright/test": "^1.64.1",
+        "@takumi-rs/core": "2.16.3",
+        "@takumi-rs/helpers": "2.16.3",
         "@types/node": "^22.10.2",
         "@vitejs/plugin-vue": "^6.0.10",
         "@vitest/coverage-v8": "^3.2.7",
