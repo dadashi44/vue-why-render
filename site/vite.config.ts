@@ -19,5 +19,12 @@ export default defineConfig({
     build: {
         outDir: resolve(__dirname, '../dist-site'),
         emptyOutDir: true,
+        // Кроме лендинга — статичные страницы кейсов, каждая своим входом.
+        rollupOptions: {
+            input: {
+                main: resolve(__dirname, 'index.html'),
+                bigplay: resolve(__dirname, 'cases/bigplay/index.html'),
+            },
+        },
     },
 })
