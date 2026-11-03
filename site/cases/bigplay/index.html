@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>600 перерисовок в минуту ради одной цифры — кейс vue-why-render</title>
+        <meta name="description" content="Аудит перерисовок на фронте киберспортивной платформы (Nuxt 3, Vue 3.5) с vue-why-render: семь правок, до −98% лишней работы, замеры до и после.">
+        <meta property="og:title" content="600 перерисовок в минуту ради одной цифры">
+        <meta property="og:description" content="Кейс vue-why-render: аудит перерисовок Nuxt-фронта, замеры до и после.">
+        <meta property="og:type" content="article">
+        <meta property="og:url" content="https://vue-why-render.js.org/cases/bigplay/">
+        <meta property="og:image" content="https://vue-why-render.js.org/cases/bigplay/news-after.jpg">
+        <meta name="twitter:card" content="summary_large_image">
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    </head>
+    <body>
+<main class="wrap case-page">
+  <header style="display:flex;flex-direction:column;gap:1rem">
+    <a class="case-back" href="../../">← vue-why-render</a>
+    <h1>600 перерисовок в минуту ради одной цифры</h1>
+    <p class="lede">Как мы прогнали фронт киберспортивной платформы через vue-why-render. Семь правок, каждая в несколько строк или один вынесенный компонент, убрали от 70 до 98% лишней работы там, где она была. Главные проверены на продовых данных. Ещё выяснилось, что перерисовку из-за рефа можно искать не в том компоненте, а тест на «ноль перерисовок» может проходить, ничего не проверяя.</p>
+    <p class="meta">Nuxt 3.14 · Vue 3.5.38 · Pinia · vue-why-render 0.8.0 · октябрь–ноябрь 2026</p>
+  </header>
+
+  <section>
+    <span class="eyebrow">Зачем</span>
+    <h2>Рамка вокруг компонента — это ещё не причина</h2>
+    <p>Подсветку перерисованных компонентов умеет и Vue DevTools. Но мигающая рамка отвечает только на вопрос «что обновилось». Чтобы починить, нужно знать, <em>почему</em>: какой проп, реф или поле стора дёрнули рендер. У Vue для этого есть хук <code>renderTriggered</code>. Он отдаёт объект, ключ, старое и новое значение, и vue-why-render строит вокруг него панель, отчёты и проверки в тестах.</p>
+    <p>Перед нами была конкретная задача: пройти основные экраны BIGPLAY, найти лишние перерисовки, разложить их по критичности, критичные починить и доказать эффект цифрами до и после.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Подготовка</span>
+    <h2>Один флаг, и в прод ничего не уезжает</h2>
+    <p>Раньше пакет висел в проекте ручным плагином с <code>enabled: false</code>. Мы перешли на Nuxt-модуль и спрятали его за переменную окружения:</p>
+<pre><code>// nuxt.config.ts
+const whyRender = !isProd &amp;&amp; ['1', 'true'].includes(process.env.NUXT_WHY_RENDER ?? '')
+
+const WHY_RENDER_OPTIONS = {
+  locale: 'ru',
+  exclude: [/^Nuxt/, /^RouterLink$/, /^RouterView$/, /^Transition/, /^KeepAlive$/, /^ClientOnly$/],
+  budgets: [{ maxRenders: 5, per: 1000 }],
+}
+
+modules: [
+  // …
+  ...(whyRender ? [['vue-why-render/nuxt', WHY_RENDER_OPTIONS]] : []),
+],</code></pre>
+    <p>Опции передаются кортежем вместе с модулем, а не ключом <code>whyRender</code> верхнего уровня. Без флага модуль не подключён, его схема не попадает в типы Nuxt, и <code>typecheck</code> падает на неизвестном ключе.</p>
+    <p><code>NUXT_WHY_RENDER=1 npm run dev</code> — и появляются рамки, панель и вкладка <b>Why render</b> в Nuxt DevTools. Без флага модуль не грузится. В прод-сборке сканера нет: по бандлу <code>.output/public/_nuxt</code> ноль вхождений.</p>
+    <p>Бюджет «не больше пяти перерисовок в секунду» оказался полезнее, чем казалось: нарушитель сам пишет о себе в консоль, и для поиска «критичного» не нужно смотреть в панель постоянно.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Как мерили</span>
+    <h2>Сценарий, reset, отчёт</h2>
+    <p>Каждый сценарий проходил одинаково: <code>reset()</code> → действие → пауза → <code>getReport()</code> в JSON. Отчёты «до» и «после» сравнивались через <code>diffReports</code>. Пройдены главная (загрузка, простой, прокрутка), страница турнира (простой и все пять вкладок), навигация по разделам и смены query. Во втором проходе — блог, статья, рейтинг, биржа, трансляции, промокоды. Прокрутку крутили из консоли: 60 шагов по кадру через <code>requestAnimationFrame</code>, по три прогона на «до» и «после», чтобы цифры воспроизводились.</p>
+    <p>Финальная проверка шла на продовых данных: локальная сборка с правками, но API прода, только на чтение. Скриншоты снимал headless Chrome через <code>puppeteer-core</code>. Перед снимком «до» файлы временно возвращались к старым версиям из git, так что «до» и «после» — один и тот же экран с одними и теми же данными.</p>
+    <p>Часть сценариев пришлось мерить в Vitest с фейковыми часами. Посреди аудита у тестового бэкенда кончилось место на диске, турнира с открытой регистрацией там не было, а чат поддержки без аккаунта не открыть. Число перерисовок от среды не зависит. Время в happy-dom меньше браузерного, поэтому сравнивать стоит доли, а не абсолютные миллисекунды.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Как искать критичное</span>
+    <h2>Критично то, что перерисовывает без вас</h2>
+    <p>Клик, после которого перерисовалась вкладка, почти всегда честный: данные сменились. Дорого обходится другое — работа, которая идёт с частотой, пока пользователь ничего не делает или делает что-то мелкое. Поэтому во втором проходе мы искали не компоненты, а <em>источники частоты</em>, и только потом смотрели, кого они будят:</p>
+    <ul>
+      <li><code>setInterval</code> — секундные отсчёты;</li>
+      <li>обработчики <code>scroll</code>, <code>resize</code>, <code>touchmove</code>, <code>requestAnimationFrame</code> — до 60–120 раз в секунду;</li>
+      <li><code>v-model</code> поля рядом с длинным списком — каждое нажатие клавиши;</li>
+      <li>общий реф сообщений WebSocket — каждое событие с сервера.</li>
+    </ul>
+    <p>Кандидатов набралось около сорока, подтвердились четыре. Остальное отсеялось на замере или при чтении кода: resize-обработчики пишут булевы флаги, а повторная запись того же значения Vue не будит. Сокет у нас отдаёт сообщения колбэками, общего рефа нет. Таймеры розыгрышей тикают раз в минуту и отдают строку. На простое и прокрутке чистыми оказались список блога, турниры, рейтинг, биржа, раздел трансляций и промокоды.</p>
+  </section>
+
+  <hr>
+
+  <section>
+    <span class="eyebrow">Кейс 1 · Критично</span>
+    <h2>Список заявок: каждая карточка — раз в секунду</h2>
+    <div class="case">
+      <dl class="facts">
+        <dt>Компонент</dt><dd><code>applications/card/index.vue</code>, карточка заявки на турнир</dd>
+        <dt>Действие</dt><dd>Никакого. Пользователь просто смотрит на «Мои заявки»</dd>
+        <dt>Что видно</dt><dd>«Осталось на подтверждение: 01 DAY 02 HOUR 59 MINUTES»</dd>
+      </dl>
+      <div class="trace">card ×600 · 1346.7ms
+└─ <b>computed confirmTimeBlocks</b></div>
+      <div class="scale" role="img" aria-label="Перерисовки за минуту на 10 карточках: до 600, после 10">
+        <div class="row"><span class="lbl">до</span><span class="track"><span class="bar before" style="width:100%"></span></span><span class="val">×600 · 1347 мс</span></div>
+        <div class="row"><span class="lbl">после</span><span class="track"><span class="bar after" style="width:1.67%"></span></span><span class="val">×10 · 27 мс</span></div>
+      </div>
+      <p class="delta">−98% перерисовок, −98% времени · 10 карточек, 60 секунд</p>
+    </div>
+    <h3>Почему Vue считал, что карточку нужно обновить</h3>
+    <p>Под карточкой работает общий композабл <code>useCountdownTimer</code>. Раз в секунду он кладёт в реф новый объект <code>dayjs</code>. Секундный тик нужен честно: флаг <code>isTimeFinished</code> должен переключиться ровно в момент дедлайна. От рефа зависит <code>timeDuration</code>, а от него — блоки для шаблона:</p>
+<pre><code>const confirmTimeBlocks = computed(() => [
+  { title: 'DAY',     value: safe(confirmTime.value.days) },
+  { title: 'HOUR',    value: safe(confirmTime.value.hours) },
+  { title: 'MINUTES', value: safe(confirmTime.value.minutes) },
+])</code></pre>
+    <p>Каждую секунду computed пересчитывается и возвращает <em>новый массив</em>. Vue сравнивает результат computed через <code>Object.is</code>, видит другую ссылку и будит шаблон. Шаблон у карточки — полсотни узлов, кнопки, картинки, таблица состава. Видимых изменений за минуту ровно одно: сменились минуты.</p>
+    <h3>Правка</h3>
+    <p>С Vue 3.4 getter у computed получает предыдущее значение. Если значения совпали, возвращаем старый массив, и для Vue «ничего не изменилось»:</p>
+<pre><code>export const keepTimeBlocks = (prev, next) =>
+  prev?.length === next.length &amp;&amp;
+  prev.every((b, i) => b.title === next[i].title &amp;&amp; b.value === next[i].value)
+    ? prev
+    : next
+
+const confirmTimeBlocks = computed&lt;ITimeBlock[]&gt;((prev) => keepTimeBlocks(prev, [ /* … */ ]))</code></pre>
+    <p>Дженерик у <code>computed</code> здесь обязателен: без него TypeScript выводит <code>prev</code> как <code>unknown</code>. Мы это заметили не сразу, только когда <code>vue-tsc</code> насчитал девять ошибок.</p>
+    <p>Таймер по-прежнему тикает раз в секунду, поведение не изменилось. Перерисовка теперь одна в минуту. По пути нашлась утечка: <code>setInterval</code> в композабле и в самой карточке никогда не очищался, и каждый заход на страницу оставлял вечный тик. Добавили <code>clearInterval</code> при размонтировании.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 2 · Критично <span class="prod">проверено на проде</span></span>
+    <h2>Таймер регистрации на странице турнира</h2>
+    <div class="case">
+      <dl class="facts">
+        <dt>Компонент</dt><dd><code>FinishOfRegistrationTimer.vue</code>, стоит на странице дважды (десктоп и мобилка)</dd>
+        <dt>Действие</dt><dd>Открыта страница турнира, регистрация идёт</dd>
+      </dl>
+      <div class="trace">FinishOfRegistrationTimer ×120 · 9.0ms
+└─ <b>computed timeBlocks</b></div>
+      <div class="scale" role="img" aria-label="Перерисовки за минуту двух таймеров: до 120, после 2">
+        <div class="row"><span class="lbl">до</span><span class="track"><span class="bar before" style="width:100%"></span></span><span class="val">×120 · 9,0 мс</span></div>
+        <div class="row"><span class="lbl">после</span><span class="track"><span class="bar after" style="width:1.67%"></span></span><span class="val">×2 · 0,4 мс</span></div>
+      </div>
+      <p class="delta">−98% · 2 экземпляра, 60 секунд</p>
+    </div>
+    <figure>
+      <img src="/cases/bigplay/timer-prod.jpg" loading="lazy" width="1440" height="900" alt="Страница турнира BPL#149 на продовых данных: таймер «до конца регистрации 03 DAY 06 HOUR 24 MINUTES», в панели why-render два экземпляра FinishOfRegistrationTimer по одной перерисовке за минуту">
+      <figcaption><b>Прод, живая минута.</b> BPL#149, идёт регистрация. Два экземпляра таймера (десктоп и мобилка) — по одной перерисовке за 60 секунд, когда сменились минуты. Ровно то, что предсказал тест в Vitest.</figcaption>
+    </figure>
+    <p>Та же болезнь в одиночном экземпляре: 60 перерисовок в минуту на каждый таймер. Сам компонент дешёвый, поэтому в миллисекундах это немного. Но это ровно «компонент перерисовывается на каждый тик», и правка та же — <code>keepTimeBlocks</code>.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 3 · Критично</span>
+    <h2>Шапка перерисовывается на любую смену query</h2>
+    <div class="case">
+      <dl class="facts">
+        <dt>Компоненты</dt><dd><code>navbar</code>, <code>ui-logo</code>, <code>footer</code>, layout <code>default</code></dd>
+        <dt>Действие</dt><dd>Клик по вкладке турнира (<code>?tab=grid</code>), UTM-метка, любая навигация</dd>
+      </dl>
+      <div class="trace">navbar ×10 · 100.8ms
+└─ <b>route query.utm_campaign</b>: "…?utm_campaign=c1" → "…?utm_campaign=c2"
+ui-logo ×20 · 30.0ms
+└─ <b>route query.utm_campaign</b>
+footer ×10 · 19.8ms</div>
+      <div class="scale" role="img" aria-label="Время рендера дерева layout на 10 сменах query: до 101 мс, после 27 мс">
+        <div class="row"><span class="lbl">до</span><span class="track"><span class="bar before" style="width:100%"></span></span><span class="val">101 мс</span></div>
+        <div class="row"><span class="lbl">после</span><span class="track"><span class="bar after" style="width:26.3%"></span></span><span class="val">27 мс</span></div>
+      </div>
+      <p class="delta">navbar, ui-logo, footer: ×40 → ×0 · корень layout: −74% времени · 10 смен query</p>
+    </div>
+    <h3>Почему</h3>
+    <p><code>useRoute()</code> отдаёт один реактивный объект на всё приложение. Любое чтение его поля из шаблона подписывает компонент на весь маршрут. Так и было, и в шапке, и в логотипе:</p>
+<pre><code>&lt;li v-for="link in links"
+    :class="{ 'nav-link--active': route.path.includes(link.path) }"&gt;
+
+&lt;UiLogo :to="localePath('/')" /&gt;   &lt;!-- localePath читает route внутри --&gt;</code></pre>
+    <p>Логотип BIGPLAY рисуется 49 слоями букв ради glitch-анимации и стоит в шапке и в футере. Отсюда <code>×20</code>. На вкладках турнира это стоило 7–9 мс на клик только на шапке.</p>
+    <h3>Правка</h3>
+    <p>Маршрут читается только внутри <code>computed</code>, а наружу отдаётся то, что не меняется без причины: строка, булев флаг или массив, который сохраняет ссылку:</p>
+<pre><code>const activeLinkPaths = computed((prev) => {
+  const next = links.value.filter((l) => route.path.includes(l.path)).map((l) => l.path)
+  return prev?.length === next.length &amp;&amp; prev.every((p, i) => p === next[i]) ? prev : next
+})
+
+const homePath = computed(() => localePath('/'))   // меняется только со сменой локали</code></pre>
+    <p>В Vue 3.5 computed, вернувший прежнее значение, не будит подписчиков. Шапка и логотип перестали реагировать на query совсем. Остаток — <code>×10</code> у layout: его перерисовывает сам <code>NuxtLayout</code>, который на каждую навигацию отдаёт <code>layoutProps: {'{'} ref {'}'}</code> новой ссылкой. Это внутренности Nuxt 3.14, мы их не трогали. Но дешёвым такой рендер стал как раз потому, что дети больше не тянутся следом.</p>
+    <p>Через неделю эта правка чуть не потерялась. Параллельно в основной ветке логотип переделали: адрес главной стал пропсом, и сам логотип маршрут больше не читал. Но шапка и футер стали передавать этот проп как <code>localePath('/')</code> прямо в шаблоне. Конфликта при мерже не было, подписка на маршрут просто переехала на уровень выше. Нашлось только потому, что после мержа мы перечитали шаблоны каркаса на чтение маршрута.</p>
+    <h3>И баг, который нашёлся заодно</h3>
+    <p>Активный пункт меню на русском не подсвечивался никогда. Ссылки строились как <code>/ru/news</code>, а у маршрута на языке по умолчанию префикса нет, и <code>route.path.includes(link.path)</code> всегда давал ложь. Кроме того, каждая такая ссылка стоила лишнего редиректа 302 с <code>/ru/…</code> на адрес без префикса. Теперь путь для языка по умолчанию строится без префикса.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 4 · Критично <span class="new">второй проход</span><span class="prod">проверено на проде</span></span>
+    <h2>Статья блога: каждый кадр прокрутки перерисовывает layout</h2>
+    <div class="case">
+      <dl class="facts">
+        <dt>Компонент</dt><dd>страница статьи <code>News/[slug].vue</code> и её layout <code>NewsLayout</code></dd>
+        <dt>Действие</dt><dd>Пользователь читает статью и крутит страницу</dd>
+        <dt>Что видно</dt><dd>Тонкая полоса прогресса чтения вверху экрана</dd>
+      </dl>
+      <div class="trace">NewsLayout ×59 · 150.6ms · max 6.8ms
+└─ <b>set ref</b> (setup): 0.6576316801230296 → 0.6691657054978855</div>
+      <div class="scale" role="img" aria-label="Время рендера на 60 кадрах прокрутки: до 150 мс, после 11 мс">
+        <div class="row"><span class="lbl">до</span><span class="track"><span class="bar before" style="width:100%"></span></span><span class="val">×59 · 150 мс</span></div>
+        <div class="row"><span class="lbl">после</span><span class="track"><span class="bar after" style="width:7.3%"></span></span><span class="val">×59 · 11 мс</span></div>
+      </div>
+      <p class="delta">−93% времени · 60 кадров прокрутки, браузер, медиана трёх прогонов. После правки ×59 перерисовывается только полоса</p>
+    </div>
+    <div class="pair">
+      <figure>
+        <img src="/cases/bigplay/news-before.jpg" loading="lazy" width="1440" height="900" alt="До: статья блога после прокрутки, в панели why-render NewsLayout перерисован 53 раза, причина — безымянный ref от 0,354 до 0,361">
+        <figcaption><b>До.</b> <code>NewsLayout ×53</code>, причина — безымянный <code>ref</code>. Полоса прогресса видна вверху экрана. Пункт «Блог» в шапке не подсвечен — это баг из кейса 3.</figcaption>
+      </figure>
+      <figure>
+        <img src="/cases/bigplay/news-after.jpg" loading="lazy" width="1440" height="900" alt="После: тот же кадр, в панели перерисовывается только ReadingProgress, 53 раза, причина — progress">
+        <figcaption><b>После.</b> Тот же кадр. Перерисовывается только <code>ReadingProgress</code>, у причины появилось имя — <code>progress</code>. «Блог» подсвечен.</figcaption>
+      </figure>
+    </div>
+    <p class="note">На продовой статье (интервью, 53 кадра до конца текста): <code>NewsLayout</code> 118 мс → <code>ReadingProgress</code> 5,7 мс.</p>
+    <h3>Перерисовывался не тот, чей реф</h3>
+    <p>В отчёте виноват <code>NewsLayout</code>, причина — безымянный <code>ref</code>. Но у layout нет ничего, что меняется при прокрутке. Владельца выдали только значения: дробное число, растущее от кадра к кадру, — это прогресс чтения. Реф объявлен на странице статьи, а полоса стоит в её разметке:</p>
+<pre><code>&lt;NewsLayout&gt;
+  &lt;div class="post-progress"&gt;
+    &lt;span :style="{ transform: `scaleX(${readingProgress})` }" /&gt;
+  &lt;/div&gt;
+  &lt;article ref="articleRef"&gt;…&lt;/article&gt;
+&lt;/NewsLayout&gt;</code></pre>
+    <p>Всё содержимое тега <code>&lt;NewsLayout&gt;</code> — это слот. Функция слота выполняется во время рендера того компонента, который этот слот рисует. Значит, и подписка на <code>readingProgress</code> достаётся layout. Каждое событие scroll будит <code>NewsLayout</code>, а он перерисовывает слот целиком: статью, блок похожих материалов, комментарии. До 6,8 мс на кадр, и сканер записал 120 fps — бюджет кадра на таком экране 8,3 мс.</p>
+    <h3>Правка</h3>
+    <p>Полоса переехала в маленький компонент ядра <code>ReadingProgress</code> со своим обработчиком scroll. Страница передаёт только элемент статьи:</p>
+<pre><code>&lt;NewsLayout&gt;
+  &lt;ReadingProgress :target="articleRef" /&gt;
+  &lt;article ref="articleRef"&gt;…&lt;/article&gt;
+&lt;/NewsLayout&gt;</code></pre>
+    <p>Перерисовок столько же, но теперь перерисовывается полоска из двух узлов. Правило, которое мы для себя вывели: реф, который читает разметка слота, принадлежит не вашему компоненту, а тому, кто рисует слот. Чем больше этот компонент, тем дороже частый реф внутри слота.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 5 · Критично <span class="new">второй проход</span></span>
+    <h2>Чат поддержки: каждая буква перерисовывает всю историю</h2>
+    <div class="case">
+      <dl class="facts">
+        <dt>Компонент</dt><dd><code>GlobalTicketChat.vue</code>, 1100 строк. Висит в <code>app.vue</code> у каждого залогиненного</dd>
+        <dt>Действие</dt><dd>Пользователь пишет в поддержку, в истории 100 сообщений</dd>
+      </dl>
+      <div class="trace">GlobalTicketChat ×22 · 22 буквы
+└─ <b>set inputText</b>
+   └─ v-for 100 сообщений: linkifyText, разделители дат, время</div>
+      <div class="scale" role="img" aria-label="Время на ввод 22 символов при 100 сообщениях: до 180 мс, после 19 мс">
+        <div class="row"><span class="lbl">до</span><span class="track"><span class="bar before" style="width:100%"></span></span><span class="val">180 мс</span></div>
+        <div class="row"><span class="lbl">после</span><span class="track"><span class="bar after" style="width:10.4%"></span></span><span class="val">19 мс</span></div>
+      </div>
+      <p class="delta">−90% времени на ввод · история при наборе: ×0 · Vitest + happy-dom</p>
+    </div>
+    <p>Классика: <code>v-model="inputText"</code> и <code>v-for</code> по истории в одном шаблоне. Каждое нажатие клавиши меняет <code>inputText</code>, компонент перерисовывается целиком и заново прогоняет <code>linkifyText</code> (регулярки по тексту) для каждого сообщения. Это задержка ввода, которая растёт с длиной переписки: долгий тикет печатается медленнее короткого.</p>
+    <p>Историю вынесли в <code>TicketChatHistory</code>. Теперь буква перерисовывает только поле ввода, а у списка пропсы те же, и Vue его пропускает. Новое сообщение по-прежнему будит историю, это проверено отдельным тестом.</p>
+    <p>Две детали переноса. Стили у чата <code>scoped</code>, поэтому вместе с разметкой переехал и её CSS. А корень у нового компонента — фрагмент без обёртки: сообщения должны остаться прямыми детьми контейнера, на них держатся его <code>flex</code> и <code>gap</code>. Лишний <code>&lt;div&gt;</code> вокруг списка тихо сломал бы отступы.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 6 · Важно</span>
+    <h2>Трансляция: секундный отсчёт в большом компоненте</h2>
+    <p>У прогноза на матч и у голосования есть отсчёт до конца. Строка отсчёта жила в рефе самого большого компонента, рядом с сеткой карточек команд и списком вариантов. Раз в секунду перерисовывался весь блок — 60 раз в минуту. У голосования ещё и шапка, куда готовая строка шла пропсом.</p>
+    <p>Здесь <code>keepTimeBlocks</code> не поможет: на экране секунды, строка действительно меняется каждую секунду. Правка другая — отсчёт стал листовым компонентом <code>CountdownText</code>. Он принимает дату, тикает сам и сообщает родителю только о конце событием <code>expired</code>:</p>
+<pre><code>&lt;CountdownText :ends-at="prediction.ends_at" @expired="isExpired = true" /&gt;</code></pre>
+    <p>В тестах: <code>WatchPredictions</code> и <code>WatchVoting</code> — 60 → 0 перерисовок за минуту, тикает один текстовый узел. На живой трансляции не проверено: на тестовом стенде не нашлось эфира с активным прогнозом.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Кейс 7 · Важно <span class="new">второй проход</span><span class="prod">проверено на проде</span></span>
+    <h2>БигМэтч: лента перерисовывается трижды, пока грузится</h2>
+    <p>На простое и прокрутке биржа игроков была чистой, и в первом проходе мы её пропустили. Проблема оказалась в окне, которое мы не смотрели, — в первой секунде после открытия. Отчёт без <code>reset()</code>, с момента загрузки, на продовых данных:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Время</th><th>Кто</th><th>Стоит</th><th>Причина</th></tr></thead>
+        <tbody>
+          <tr><td class="num">280 мс</td><td><code>SubmitAgent</code></td><td class="num">34,5 мс</td><td>проп <code>activeGame</code>: <code>undefined → "mlbb"</code></td></tr>
+          <tr><td class="num">281 мс</td><td><code>ExChanges</code></td><td class="num">34,6 мс</td><td>игра опроса из localStorage, <code>loading false → true</code></td></tr>
+          <tr><td class="num">367 мс</td><td><code>ExChanges</code></td><td class="num">3,3 мс</td><td>пришли варианты фильтров</td></tr>
+          <tr><td class="num">909 мс</td><td><code>ExChanges</code></td><td class="num">23,6 мс</td><td>пришли анкеты, <code>loading true → false</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Последние две строки честные: пришли данные. Первые две — компонент монтируется с неверным начальным состоянием и тут же его исправляет. И это не только миллисекунды, это видно глазами:</p>
+    <ul>
+      <li><code>loading</code> стартовал с <code>false</code>, а пустое состояние показывается при <code>!loading &amp;&amp; listings.length === 0</code>. Первый кадр — «Анкет пока нет. Загляните позже!», следующий — лоадер, потом анкеты.</li>
+      <li>Страница передавала игру в переключатель через экземпляр ленты: <code>:active-game="exchangesRef?.activeGame"</code>. Template ref появляется только после монтирования, поэтому первый кадр переключатель рисовал PUBG и тут же прыгал на MLBB.</li>
+    </ul>
+<pre><code>// было: первый кадр — «анкет нет»
+const loading = ref(false)
+// стало: если загрузка начнётся при монтировании — лоадер с первого кадра
+const loading = ref(!!props.initialListing || !showGameModal.value)
+
+// страница знает начальную игру сама, а не ждёт ref на ленту
+const initialGame = useExchangeInitialGame() ?? undefined
+&lt;SubmitAgent :active-game="exchangesRef?.activeGame ?? initialGame" /&gt;</code></pre>
+    <div class="pair panels">
+      <figure>
+        <img src="/cases/bigplay/exchange-before.png" loading="lazy" width="436" height="177" alt="До: в панели why-render ExChanges перерисован 3 раза при загрузке">
+        <figcaption><b>До.</b> <code>ExChanges ×3</code> за загрузку.</figcaption>
+      </figure>
+      <figure>
+        <img src="/cases/bigplay/exchange-after.png" loading="lazy" width="436" height="177" alt="После: ExChanges перерисован 2 раза — пришли фильтры и анкеты">
+        <figcaption><b>После.</b> <code>ExChanges ×2</code>: остались только приход фильтров и анкет.</figcaption>
+      </figure>
+    </div>
+    <p class="delta">Лента и переключатель на загрузке: ~96 мс → ~30 мс, без мигания «анкет нет» и PUBG → MLBB</p>
+    <p>Урок для поиска: «простой» и «прокрутка» не покрывают первую секунду жизни страницы. Именно там живут перерисовки из-за неверного начального состояния, а их сканер видит, только если не делать <code>reset()</code> после загрузки.</p>
+  </section>
+
+  <hr>
+
+  <section>
+    <span class="eyebrow">Обобщение</span>
+    <h2>Типовые причины в нашем проекте</h2>
+    <ol>
+      <li><b>Секундный тик и минутная точность.</b> Отсчёт нужен посекундно, а показывается поминутно, и computed пересобирает объект на каждый тик. Это самая дорогая находка аудита.</li>
+      <li><b>Частый источник в большом компоненте.</b> Секундный таймер, прогресс прокрутки, поле ввода. Если значение действительно меняется часто, его нужно опустить в маленький листовой компонент. Тогда тикает он, а не весь экран.</li>
+      <li><b>Неверное начальное состояние.</b> <code>loading = false</code> до загрузки, значение из хранилища в <code>onMounted</code>, данные через template ref соседа. Первый кадр рисует не то, второй исправляет — и пользователь видит мигание.</li>
+      <li><b>Реф в слоте будит того, кто рисует слот.</b> Неочевидно, и сканер в отчёте показывает именно этого «невиновного».</li>
+      <li><b>Маршрут прямо в шаблоне.</b> <code>route.path.includes(…)</code>, <code>localePath()</code>, <code>route.name</code> в разметке — подписка на весь маршрут. Чаще всего это встречается в общем каркасе: шапка, футер, layout.</li>
+      <li><b>Новый массив из computed при тех же значениях.</b> Vue не сравнивает содержимое, только ссылку.</li>
+      <li><b>Интервалы без очистки.</b> Сами по себе они не перерисовывают отмонтированный компонент, но копятся с каждым заходом на страницу.</li>
+    </ol>
+    <h3>Перерисовка на каждый символ — это норма?</h3>
+    <p>Для компонента, который владеет значением поля, — да: так работает <code>v-model</code>. Вопрос в том, что перерисовывается вместе с ним и сколько это стоит. Форма промокода — 2,4 мс на букву, ничего делать не нужно. Чат с историей — 8 мс на букву и растёт с длиной переписки, это проблема. Ориентир: до 1–3 мс на нажатие, и цифра не растёт с объёмом данных. Если больше — держать значение поля в маленьком компоненте, для значения, нужного только при отправке, — <code>v-model.lazy</code>, для поиска и фильтров — <code>debounce</code> на запрос, а не на поле.</p>
+    <h2>Что дало эффект</h2>
+    <ul>
+      <li>Сравнение с предыдущим значением в computed: <code>computed((prev) => …)</code>. Пять строк, −98%.</li>
+      <li>Чтение маршрута только в computed с примитивным результатом.</li>
+      <li>Вынос часто меняющегося значения в листовой компонент: <code>CountdownText</code>, <code>ReadingProgress</code>, <code>TicketChatHistory</code>.</li>
+    </ul>
+    <h2>Что не имело смысла</h2>
+    <ul>
+      <li><code>v-memo</code> на карточке. Сканер на неё намекал («родитель перерисовал без причин»), но причина была внутри самой карточки. Мемоизация закрыла бы симптом и оставила бы лишний пересчёт.</li>
+      <li>Переводить таймер на минутный тик. Перерисовок стало бы так же мало, но «Регистрация завершена» появлялась бы с опозданием до 59 секунд. Это изменение поведения.</li>
+      <li>Чинить <code>LayoutLoader</code>. Это код Nuxt, а после правок детей он стоит ~2,7 мс на навигацию.</li>
+      <li>Вкладки турнира (<code>Tabs</code>, <code>InformationSections</code>) и форма промокода. Они перерисовываются, потому что действительно сменились данные: 12 букв — 12 рендеров по 2,4 мс.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="eyebrow">Зачем это всё</span>
+    <h2>Производительность — да, SEO — почти нет</h2>
+    <p>Лишняя перерисовка — это работа главного потока именно тогда, когда пользователь что-то делает. Поэтому она бьёт по тому, что он чувствует руками:</p>
+    <ul>
+      <li><b>INP</b> — задержка отклика на клик и ввод. Это чат поддержки и шапка на вкладках турнира.</li>
+      <li><b>Плавность прокрутки.</b> В INP прокрутка не входит, и метрики её не видят, а глаза видят. Статья блога тратила до 6,8 мс из 8,3 доступных на кадр.</li>
+      <li><b>CPU и батарея на телефонах:</b> секундные тики, пока страница просто открыта.</li>
+    </ul>
+    <p>С SEO связь слабая, и продавать аудит перерисовок как SEO-работу было бы нечестно. Поисковик индексирует HTML, который отдал сервер, а перерисовки происходят уже после загрузки. Из Core Web Vitals они задевают только INP. LCP и CLS решаются в другом месте: SSR, картинки, шрифты, гидрация. Гидрацию сканер в нашей конфигурации не считает вовсе (<code>includeMounts: false</code>).</p>
+    <p>Но аудит задел SEO другим способом: нашлись ссылки, которые вели через лишний редирект 302 (<code>/ru/…</code>). В шапке их починили, на странице трансляций такие же ещё остались. Лишние редиректы расходуют краулинговый бюджет. Эффект небольшой, зато настоящий.</p>
+    <p>Доказать эффект для пользователей можно только с прода: RUM у нас уже собирает INP, и после выкладки сравним значения до и после у тех, кто открывал чат поддержки. Это будет во второй части.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Защита от регрессии</span>
+    <h2>expectRenders и тест, который проходил впустую</h2>
+<pre><code>it('за минуту каждая карточка перерисовывается один раз', async () => {
+  mountList(10)
+  await tick(1)
+
+  await expectRenders('card').toBe(10, () => tick(60))
+})</code></pre>
+    <p>На старом коде тест падает с понятным текстом:</p>
+    <div class="trace">[vue-why-render] expected WatchPredictions to re-render 0 time(s),
+but it re-rendered <b>60</b> time(s)</div>
+    <p>Подвох вылез на карточке. Сначала цель была задана самим компонентом: <code>expectRenders(Card)</code>. Файл называется <code>card/index.vue</code>, поэтому <code>__name</code> у компонента — <code>index</code>, а сканер называет экземпляр по папке — <code>card</code>. Совпадений ноль, и проверка <code>toBe(0)</code> зелёная при любом поведении.</p>
+    <p>Во втором проходе ловушка сработала снова, уже по-другому. Тест «ввод не перерисовывает <code>TicketChatHistory</code>» прошёл и на старом коде, где такого компонента ещё не было: нет экземпляров — ноль перерисовок — зелёный. Теперь каждый тест на <code>toBe(0)</code> сначала проверяет, что цель существует, и каждый новый тест мы прогоняем на старом коде. Если он там зелёный, он ничего не защищает.</p>
+<pre><code>expect(wrapper.findComponent({ name: 'TicketChatHistory' }).exists()).toBe(true)
+await expectRenders('TicketChatHistory').toBe(0, () => type(wrapper, 'Здравствуйте, где приз'))</code></pre>
+  </section>
+
+  <section>
+    <span class="eyebrow">Фидбек для vue-why-render</span>
+    <h2>Чего не хватило на живом аудите</h2>
+    <ol>
+      <li><b>Цель в expectRenders.</b> Если цель не совпала ни с одним экземпляром, проверка должна падать, а не считать ноль. Мы наступили на это дважды. Ещё лучше, если имя для <code>index.vue</code> разрешается так же, как в реестре.</li>
+      <li><b>Реф в слоте.</b> Перерисовку отчёт приписывает компоненту, который рисует слот, и называет реф безымянным <code>ref</code>. Нужны имя переменной и компонент-владелец: «<code>readingProgress</code> из <code>News/[slug]</code>, прочитан в слоте <code>NewsLayout</code>».</li>
+      <li><b>Причина «computed» шире, чем нужно.</b> В список попадают все computed, ставшие «грязными», включая вернувшие прежнее значение (<code>isTimeFinished</code> рядом с <code>timeBlocks</code>). У layout причиной записан <code>computed:showFooter</code>, хотя рендер пришёл от родителя.</li>
+      <li><b>useRoute из nuxt/app.</b> В layout маршрут опознан как безымянный <code>setup:ref</code>, а в компонентах с <code>vue-router</code> — как <code>route:query.*</code>.</li>
+      <li><b>Перемонтирование невидимо.</b> При <code>includeMounts: false</code> пересозданный компонент просто исчезает из отчёта. У нас так пропала шапка при переходе на страницу с другим layout, хотя перемонтирование дороже перерисовки. Нужен счётчик «mounted again» и подсказка.</li>
+      <li><b>Self time.</b> <code>totalDuration</code> родителя включает детей, и сумма по отчёту завышена в разы.</li>
+      <li><b>Метки сценариев.</b> Хочется <code>mark('вкладка «Сетка»')</code> внутри одной сессии вместо ручных reset и сохранения на каждый шаг.</li>
+      <li><b>Пути в отчёте.</b> Абсолютные пути с именем пользователя перед коммитом приходится вырезать. Пригодилась бы опция <code>root</code>.</li>
+      <li><b>Сохранение в проект.</b> Модуль Nuxt мог бы поднять dev-эндпоинт, который пишет отчёт прямо в репозиторий. Для серии из пятнадцати отчётов мы написали свой приёмник.</li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="eyebrow">Итог</span>
+    <h2>Все находки</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Компонент</th><th>Сценарий</th><th>Причина</th><th>До</th><th>После</th><th>Уровень</th><th>Статус</th></tr></thead>
+        <tbody>
+          <tr><td><code>applications/card</code></td><td>10 карточек, 60 с</td><td>новый массив на каждый тик</td><td class="num">×600 · 1347 мс</td><td class="num">×10 · 27 мс</td><td><span class="lvl crit">Критично</span></td><td>Исправлено</td></tr>
+          <tr><td><code>NewsLayout</code> (статья)</td><td>60 кадров прокрутки</td><td>реф прогресса в слоте layout</td><td class="num">×59 · 150 мс</td><td class="num">×0 · полоса 11 мс</td><td><span class="lvl crit">Критично</span></td><td>Исправлено, прод</td></tr>
+          <tr><td><code>GlobalTicketChat</code></td><td>ввод 22 букв, 100 сообщений</td><td><code>v-model</code> рядом с историей</td><td class="num">×22 · 180 мс</td><td class="num">история ×0 · 19 мс</td><td><span class="lvl crit">Критично</span></td><td>Исправлено</td></tr>
+          <tr><td><code>ExChanges</code>, <code>SubmitAgent</code></td><td>загрузка БигМэтча</td><td>неверное начальное состояние, игра через template ref</td><td class="num">×4 · ~96 мс</td><td class="num">×2 · ~30 мс</td><td><span class="lvl imp">Важно</span></td><td>Исправлено, прод</td></tr>
+          <tr><td><code>FinishOfRegistrationTimer</code></td><td>2 экз., 60 с</td><td>новый массив на каждый тик</td><td class="num">×120 · 9 мс</td><td class="num">×2 · 0,4 мс</td><td><span class="lvl crit">Критично</span></td><td>Исправлено, прод</td></tr>
+          <tr><td><code>navbar</code></td><td>10 смен query</td><td><code>route.path</code> в шаблоне</td><td class="num">×10 · 101 мс</td><td class="num">×0</td><td><span class="lvl crit">Критично</span></td><td>Исправлено</td></tr>
+          <tr><td><code>WatchPredictions</code>, <code>WatchVoting</code></td><td>60 с</td><td>секундный реф в большом компоненте</td><td class="num">×60</td><td class="num">×0</td><td><span class="lvl imp">Важно</span></td><td>Исправлено, не проверено вживую</td></tr>
+          <tr><td><code>ui-logo</code></td><td>10 смен query</td><td><code>localePath()</code> в шаблоне</td><td class="num">×20 · 30 мс</td><td class="num">×0</td><td><span class="lvl imp">Важно</span></td><td>Исправлено</td></tr>
+          <tr><td><code>footer</code></td><td>10 смен query</td><td><code>route.name</code> в шаблоне</td><td class="num">×10 · 20 мс</td><td class="num">×0</td><td><span class="lvl imp">Важно</span></td><td>Исправлено</td></tr>
+          <tr><td>layout <code>default</code></td><td>10 смен query</td><td><code>route.path</code> + <code>layoutProps</code> от Nuxt</td><td class="num">×10 · 101 мс</td><td class="num">×10 · 27 мс</td><td><span class="lvl imp">Важно</span></td><td>Частично</td></tr>
+          <tr><td><code>useCountdownTimer</code>, карточка заявки</td><td>турнир, заявки</td><td>интервал без очистки</td><td class="num">—</td><td class="num">—</td><td><span class="lvl imp">Важно</span></td><td>Исправлено</td></tr>
+          <tr><td>шапка, сайдбары, футер</td><td>список турниров ↔ другие</td><td>отдельный layout, каркас перемонтируется</td><td class="num">не видно</td><td class="num">—</td><td><span class="lvl imp">Важно</span></td><td>Задача</td></tr>
+          <tr><td><code>LayoutRating</code></td><td>мобилка, открыта подсказка</td><td>позиция подсказки пишется на каждый scroll</td><td class="num">не замерено</td><td class="num">—</td><td><span class="lvl imp">Важно</span></td><td>Задача</td></tr>
+          <tr><td>ссылки шапки</td><td>любая страница на ru</td><td><code>/ru/</code> в ссылке: нет подсветки, лишний 302</td><td class="num">—</td><td class="num">—</td><td><span class="lvl imp">Баг</span></td><td>Исправлено</td></tr>
+          <tr><td><code>LayoutLoader</code></td><td>любая навигация</td><td>внутренности Nuxt</td><td class="num">×10 · 27 мс</td><td class="num">—</td><td><span class="lvl min">Мелочь</span></td><td>Оставлено</td></tr>
+          <tr><td><code>UiLoader</code></td><td>любой лоадер</td><td>анимация на <code>setInterval</code></td><td class="num">5 в секунду</td><td class="num">—</td><td><span class="lvl min">Мелочь</span></td><td>Оставлено</td></tr>
+          <tr><td><code>GiveawayGiftTeaser</code></td><td>загрузка главной</td><td>computed после гидрации</td><td class="num">×2 · 15 мс</td><td class="num">—</td><td><span class="lvl min">Мелочь</span></td><td>Оставлено</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Время за сценарий, в браузере (dev-сборка) или в happy-dom для таймеров и чата. Время родителя включает детей. Не пройдены, потому что нужен аккаунт: профиль, страница команды, live-обновления Watch, login и WebSocket. Их, вместе с INP с прода, стоит снять для второй части статьи.</p>
+  </section>
+  <footer class="site-foot">
+    <a href="https://github.com/dadashi44/vue-why-render">GitHub</a> ·
+    <a href="https://www.npmjs.com/package/vue-why-render">npm</a> ·
+    <a href="../../">vue-why-render.js.org</a>
+  </footer>
+</main>
+        <script type="module" src="./main.ts"></script>
+    </body>
+</html>

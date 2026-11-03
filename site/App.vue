@@ -233,6 +233,7 @@ export default defineNuxtConfig({
 
         <footer class="site-foot">
             {{ t.footer }} ·
+            <a href="cases/bigplay/">{{ t.caseLink }}</a> ·
             <a href="https://github.com/dadashi44/vue-why-render">{{ t.sources }}</a> ·
             <a href="https://github.com/dadashi44/vue-why-render/issues">issues</a>
         </footer>
