@@ -188,6 +188,12 @@ export interface VueWhyRenderOptions {
      * `true` — порт 7710, или объект `{ port, host }`.
      */
     vscode?: boolean | { port?: number, host?: string }
+    /**
+     * Подключиться к MCP-серверу vue-why-render по WebSocket, чтобы ИИ-агент
+     * мог спрашивать у страницы отчёты и подсказки.
+     * `true` — порт 7711, или объект `{ port, host }`.
+     */
+    mcp?: boolean | { port?: number, host?: string }
     /** Колбэк на первое превышение бюджета каждым компонентом. */
     onBudgetExceeded?: (violation: BudgetViolation) => void
     /** Колбэк на каждое событие рендера. */

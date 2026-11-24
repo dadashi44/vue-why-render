@@ -109,3 +109,10 @@ describe('enabled по умолчанию', () => {
         expect(resolveOptions({ enabled: true }).enabled).toBe(true)
     })
 })
+
+describe('mcp по умолчанию', () => {
+    it('выключен, пока не включён явно', () => {
+        expect(resolveOptions().mcp).toBe(false)
+        expect(resolveOptions({ mcp: true }).mcp).toBe(true)
+    })
+})

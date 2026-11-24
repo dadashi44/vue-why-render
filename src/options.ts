@@ -37,6 +37,7 @@ export const defaultOptions: Omit<ResolvedOptions, 'enabled'> = {
     pinia: true,
     router: true,
     vscode: false,
+    mcp: false,
 }
 
 export function resolveOptions(options: VueWhyRenderOptions = {}): ResolvedOptions {
