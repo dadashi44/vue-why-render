@@ -72,6 +72,32 @@ export function describeRouteChange(before: RouteLike | null | undefined, after:
     return { key: parts.length ? parts.join(', ') : 'route', from, to }
 }
 
+/** Зависит ли computed от dep — напрямую или через цепочку computed не глубже depth. */
+function dependsOn(computed: ComputedLike, dep: unknown, depth: number): boolean {
+    let link = computed.deps
+    for (let guard = 0; link && guard < 256; guard++) {
+        if (link.dep === dep) return true
+        const inner = link.dep?.computed
+        if (inner && depth > 1 && dependsOn(inner, dep, depth - 1)) return true
+        link = link.nextDep
+    }
+    return false
+}
+
+/** Внутренности Vue 3.5: связи эффекта с зависимостями и флаг устаревшего computed. */
+const COMPUTED_DIRTY = 16
+
+interface ComputedLike {
+    flags?: number
+    _value?: unknown
+    deps?: DepLink
+}
+
+interface DepLink {
+    dep?: { computed?: ComputedLike }
+    nextDep?: DepLink
+}
+
 export class RouterTracker {
     private currentRoute: object | null = null
 
@@ -88,6 +114,38 @@ export class RouterTracker {
     /** Это событие на текущем маршруте? Сравнение по ссылке — реф у роутера один. */
     owns(target: unknown): boolean {
         return this.currentRoute !== null && target === this.currentRoute
+    }
+
+    /**
+     * Навигация, пришедшая через computed.
+     *
+     * С vue-router 5.5 компонент страницы читает маршрут не из `currentRoute`,
+     * а через computed внутри RouterView (`createReactiveRoute(routeToDisplay)`).
+     * Vue 3.5 для триггера computed не отдаёт ни target, ни значений, и смена
+     * маршрута выглядела как безымянный «computed». Ищем среди устаревших
+     * computed рендера тот, что (сам или через цепочку) зависит от `currentRoute`:
+     * пока он не пересчитан, в нём лежит старый маршрут, а в `currentRoute` — новый.
+     * Любой сбой во внутренностях Vue — null, а не падение.
+     */
+    changeThroughComputed(instance: unknown): RouteChange | null {
+        const routeDep = (this.currentRoute as { dep?: unknown } | null)?.dep
+        if (!routeDep) return null
+        try {
+            let link = (instance as { effect?: { deps?: DepLink } } | null)?.effect?.deps
+            for (let guard = 0; link && guard < 256; guard++) {
+                const computed = link.dep?.computed
+                if (computed && typeof computed.flags === 'number' && (computed.flags & COMPUTED_DIRTY)
+                    && dependsOn(computed, routeDep, 4)) {
+                    const after = (this.currentRoute as { value?: RouteLike }).value
+                    return describeRouteChange(computed._value as RouteLike | undefined, after)
+                }
+                link = link.nextDep
+            }
+        }
+        catch {
+            return null
+        }
+        return null
     }
 
     dispose(): void {

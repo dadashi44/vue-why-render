@@ -163,7 +163,17 @@ export function describeTrigger(
     // информации). Раньше здесь всё падало на `target.$id`, причина терялась,
     // и подсказка ошибочно советовала v-memo: «свои данные не менялись».
     if (!target || typeof target !== 'object') {
-        return { type: 'computed', key: describeComputed(instance), source: 'computed' }
+        const key = describeComputed(instance)
+        // Свой именованный computed — это и есть причина: подсказка «оберни поле
+        // в computed» обещает ровно такую строку. Безымянный же может оказаться
+        // computed роутера: vue-router 5.5+ отдаёт маршрут странице через него.
+        if (key === 'computed') {
+            const routed = router?.changeThroughComputed(instance)
+            if (routed) {
+                return { type: 'set', key: routed.key, source: 'route', oldValue: formatValue(routed.from), newValue: formatValue(routed.to) }
+            }
+        }
+        return { type: 'computed', key, source: 'computed' }
     }
 
     // Навигация — раньше остального: currentRoute это реф, и без этой ветки
