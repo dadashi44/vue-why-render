@@ -580,6 +580,26 @@ wasmVersion()           // → "0.1.0" | null
 If WASM fails to load, a single `console.warn` is emitted and every call silently
 uses the JS fallback. No user code needs to change.
 
+## AI agents (MCP)
+
+`vue-why-render-mcp` lets an AI agent (Claude Code, Cursor, ...) ask your running app which components re-render and why, take a baseline and diff it after a change. Turn it on in the app (dev only), then register the server:
+
+```ts
+app.use(VueWhyRender, { mcp: true })  // Nuxt: whyRender: { mcp: true }
+```
+
+```bash
+claude mcp add vue-why-render -- npx -y vue-why-render-mcp
+```
+
+Cursor, `.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "vue-why-render": { "command": "npx", "args": ["-y", "vue-why-render-mcp"] } } }
+```
+
+Details, tools and ports: [packages/mcp/README.md](packages/mcp/README.md).
+
 ## Opening files in your editor
 
 Clicking a row in the panel asks the dev server to open the file. The package does

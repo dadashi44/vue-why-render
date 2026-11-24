@@ -5,6 +5,11 @@ import type { RenderEvent } from '../types'
 export interface BridgeOptions {
     port: number
     host: string
+    /**
+     * 'stream' — шлёт снапшоты/события/deps (VS Code).
+     * 'requests' — ничего не стримит, только отвечает на запросы (MCP).
+     */
+    mode?: 'stream' | 'requests'
 }
 
 export const BRIDGE_DEFAULTS: BridgeOptions = {
@@ -12,9 +17,18 @@ export const BRIDGE_DEFAULTS: BridgeOptions = {
     host: 'localhost',
 }
 
+/** Мост для MCP-сервера: другой порт, только запросы. */
+export const MCP_BRIDGE_DEFAULTS: BridgeOptions = {
+    port: 7711,
+    host: 'localhost',
+}
+
+export type BridgeRequestHandler = (method: string, params: unknown) => unknown | Promise<unknown>
+
 interface BridgeMessage {
     type: string
-    payload: unknown
+    payload?: unknown
+    id?: string
 }
 
 /**
@@ -31,13 +45,17 @@ export class Bridge {
     private unsubscribeDeps: (() => void) | null = null
     private reconnectTimer: ReturnType<typeof setTimeout> | null = null
     private disposed = false
+    private readonly mode: 'stream' | 'requests'
 
     constructor(
         private readonly registry: Registry,
         private readonly depsGraph: DepsGraph,
         private readonly options: BridgeOptions,
         private readonly onCommand?: (cmd: string) => void,
-    ) {}
+        private readonly onRequest?: BridgeRequestHandler,
+    ) {
+        this.mode = options.mode ?? 'stream'
+    }
 
     connect(): void {
         if (this.disposed) return
@@ -50,6 +68,11 @@ export class Bridge {
         }
 
         this.ws.onopen = () => {
+            if (this.mode === 'requests') {
+                this.send({ type: 'hello' })
+                return
+            }
+
             this.sendSnapshot()
             this.sendDepsSnapshot()
 
@@ -63,6 +86,8 @@ export class Bridge {
                 const msg = JSON.parse(String(e.data)) as BridgeMessage
                 if (msg.type === 'command' && typeof msg.payload === 'string') {
                     this.onCommand?.(msg.payload)
+                } else if (msg.type === 'request' && typeof msg.id === 'string') {
+                    void this.handleRequest(msg.id, msg.payload)
                 }
             } catch { /* ignore malformed */ }
         }
@@ -83,6 +108,18 @@ export class Bridge {
         this.cleanup()
         this.ws?.close()
         this.ws = null
+    }
+
+    private async handleRequest(id: string, payload: unknown): Promise<void> {
+        const { method, params } = (payload ?? {}) as { method?: string, params?: unknown }
+        try {
+            if (!this.onRequest) throw new Error('requests are not supported')
+            const result = await this.onRequest(String(method), params)
+            this.send({ type: 'response', id, payload: { ok: true, result } })
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            this.send({ type: 'response', id, payload: { ok: false, error: message } })
+        }
     }
 
     private send(msg: BridgeMessage): void {

@@ -514,6 +514,26 @@ if (import.meta.env.DEV) {
 **На Nuxt используйте модуль** — `modules: ['vue-why-render/nuxt']`. Он делает это за вас:
 в прод-сборке плагин не регистрируется вовсе, вырезать нечего. Ради этого он и написан.
 
+## ИИ-агенты (MCP)
+
+`vue-why-render-mcp` позволяет ИИ-агенту (Claude Code, Cursor и др.) спросить у запущенного приложения, какие компоненты перерисовываются и почему, снять базовый отчёт и сравнить после правки. Включите опцию в приложении (только dev), затем подключите сервер:
+
+```ts
+app.use(VueWhyRender, { mcp: true })  // Nuxt: whyRender: { mcp: true }
+```
+
+```bash
+claude mcp add vue-why-render -- npx -y vue-why-render-mcp
+```
+
+Cursor, `.cursor/mcp.json`:
+
+```json
+{ "mcpServers": { "vue-why-render": { "command": "npx", "args": ["-y", "vue-why-render-mcp"] } } }
+```
+
+Подробности, инструменты и порты: [packages/mcp/README.md](../packages/mcp/README.md).
+
 ## Открытие файлов в редакторе
 
 Клик по строке в панели просит дев-сервер открыть файл. Редактор выбирает не

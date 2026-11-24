@@ -67,6 +67,7 @@
         "build": "node scripts/build-wasm.mjs && vite build && node scripts/ascii-bundle.mjs && node scripts/build-nuxt.mjs && node scripts/build-test.mjs && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
         "test": "vitest run",
         "test:watch": "vitest",
+        "test:mcp": "npm --prefix packages/mcp test",
         "test:coverage": "vitest run --coverage",
         "test:e2e": "playwright test",
         "typecheck": "vue-tsc --noEmit",

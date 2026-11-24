@@ -11,7 +11,8 @@ import { setupDevtools } from './devtools/plugin'
 import { bindHotkey } from './utils/hotkey'
 import { VERSION } from './version'
 import { loadWasm } from './core/wasm'
-import { Bridge, BRIDGE_DEFAULTS } from './core/bridge'
+import { Bridge, BRIDGE_DEFAULTS, MCP_BRIDGE_DEFAULTS } from './core/bridge'
+import { createMcpRequestHandler } from './core/mcp-requests'
 
 export type {
     BudgetKind,
@@ -165,6 +166,19 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
         bridge.connect()
     }
 
+    let mcpBridge: Bridge | null = null
+    if (options.mcp) {
+        const mcpOpts = typeof options.mcp === 'object' ? options.mcp : {}
+        mcpBridge = new Bridge(
+            scanner.registry,
+            scanner.depsGraph,
+            { ...MCP_BRIDGE_DEFAULTS, ...mcpOpts, mode: 'requests' },
+            undefined,
+            createMcpRequestHandler(scanner, resolved, () => handle.getReport()),
+        )
+        mcpBridge.connect()
+    }
+
     const handle: ScanHandle = {
         scanner,
         stop() {
@@ -172,6 +186,7 @@ export function scan(app: App, options: VueWhyRenderOptions = {}): ScanHandle | 
             stopDevtools?.()
             unbindHotkey?.()
             bridge?.dispose()
+            mcpBridge?.dispose()
             unexpose()
             scanner.dispose()
             if (activeHandle === handle) activeHandle = null
