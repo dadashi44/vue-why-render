@@ -482,6 +482,26 @@ if (import.meta.env.DEV) {
 **在 Nuxt 中请使用模块** —— `modules: ['vue-why-render/nuxt']`。它替你完成了这件事：
 生产构建中根本不会注册插件，也就没有什么需要剔除的。模块存在的意义正在于此。
 
+## AI 代理 (MCP)
+
+`vue-why-render-mcp` 让 AI 代理（Claude Code、Cursor 等）可以向正在运行的应用询问哪些组件在重新渲染以及原因，保存基线并在修改后对比。先在应用中开启该选项（仅开发环境），再注册服务器：
+
+```ts
+app.use(VueWhyRender, { mcp: true })  // Nuxt: whyRender: { mcp: true }
+```
+
+```bash
+claude mcp add vue-why-render -- npx -y vue-why-render-mcp
+```
+
+Cursor，`.cursor/mcp.json`：
+
+```json
+{ "mcpServers": { "vue-why-render": { "command": "npx", "args": ["-y", "vue-why-render-mcp"] } } }
+```
+
+详情、工具与端口：[packages/mcp/README.md](../packages/mcp/README.md)。
+
 ## 在编辑器中打开文件
 
 点击面板中的一行，会请求开发服务器打开对应文件。选择哪个编辑器不由本包决定 ——

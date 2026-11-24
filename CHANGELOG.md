@@ -5,6 +5,12 @@
 
 ## [Unreleased]
 
+### Добавлено
+
+- Опция `mcp: true | { port?, host? }` (по умолчанию `false`; Nuxt: `whyRender: { mcp: true }`) — мост к MCP-серверу на порту 7711. Порт VS Code (7710) и его поведение не изменились.
+- Протокол запросов моста: приложение отвечает на `info`, `report`, `component`, `reset`, `pause`, `resume`.
+- Пакет `vue-why-render-mcp` 0.1.0 — MCP-сервер по stdio для ИИ-агентов (Claude Code, Cursor): инструменты `status`, `report`, `component`, `reset`, `baseline`, `diff`. Принимает только локальные `Origin`, остальные — через `--allow-origin` или `VWR_MCP_ALLOW_ORIGIN`; текст со страницы отдаётся агенту как данные, а не инструкции.
+
 ### Изменено
 
 - Сайт проекта переехал на <https://vue-why-render.js.org/>. Старый адрес на github.io редиректит на новый.
