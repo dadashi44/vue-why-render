@@ -87,6 +87,32 @@ jobs:
                   path: playwright-report
                   retention-days: 7
 
+    docs:
+        name: docs site
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+                  cache: npm
+
+            - run: npm ci
+
+            # Документация собирается поверх лендинга, поэтому лендинг первым.
+            - name: Build landing
+              run: npm run build:site
+
+            - name: Install docs dependencies
+              run: npm ci --prefix docs-site
+
+            - name: Build docs
+              run: npm run docs:build
+
+            - name: Test docs build
+              run: npm run docs:test
+
     package-managers:
         name: ${{ matrix.manager }}
         runs-on: ubuntu-latest

@@ -26,7 +26,7 @@ jobs:
 
             - uses: actions/setup-node@v7
               with:
-                  node-version: 22
+                  node-version: 24
                   cache: npm
 
             - run: npm ci
@@ -38,6 +38,21 @@ jobs:
             # а на своём домене — корень. Хардкод здесь ломался бы при переезде.
             - name: Build
               run: npm run build:site
+              env:
+                  SITE_BASE: ${{ steps.pages.outputs.base_path }}/
+
+            # Документация собирается в dist-site/docs поверх лендинга,
+            # с тем же base. Тесты сборки проверяют, что лендинг не стёрт.
+            - name: Install docs dependencies
+              run: npm ci --prefix docs-site
+
+            - name: Build docs
+              run: npm run docs:build
+              env:
+                  SITE_BASE: ${{ steps.pages.outputs.base_path }}/
+
+            - name: Test docs build
+              run: npm run docs:test
               env:
                   SITE_BASE: ${{ steps.pages.outputs.base_path }}/
 
