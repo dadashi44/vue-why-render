@@ -62,6 +62,8 @@ onBeforeUnmount(() => clearTimeout(timer))
                         <path d="M5 15V5a1 1 0 0 1 1-1h10" />
                     </svg>
                 </button>
+                <!-- aria-label меняется на кнопке в фокусе, но читалки этого не объявляют. -->
+                <span class="visually-hidden" role="status" aria-live="polite">{{ copied ? t.copied : '' }}</span>
             </div>
         </div>
 

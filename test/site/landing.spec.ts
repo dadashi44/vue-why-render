@@ -52,6 +52,8 @@ describe('landing', () => {
         expect(hrefOf(site.ru.nav.caseStudy)).toBe('cases/bigplay/')
         expect(hrefOf('GitHub')).toBe('https://github.com/dadashi44/vue-why-render')
 
+        expect(wrapper.find('nav').attributes('aria-label')).toBe(site.ru.navLabel)
+
         await wrapper.find('select').setValue('en')
         expect(wrapper.emitted('switch-locale')).toEqual([['en']])
     })
@@ -63,17 +65,22 @@ describe('landing', () => {
 
         const wrapper = mount(SiteHero, { props: { t: site.en } })
         const button = wrapper.find('button.hero-install__copy')
+        const status = wrapper.find('[role="status"]')
         expect(button.attributes('aria-label')).toBe(site.en.copyInstall)
+        expect(status.attributes('aria-live')).toBe('polite')
+        expect(status.text()).toBe('')
 
         await button.trigger('click')
         await flushPromises()
         expect(writeText).toHaveBeenCalledWith('npm i -D vue-why-render')
         expect(button.attributes('aria-label')).toBe(site.en.copied)
         expect(button.text()).toContain(site.en.copied)
+        expect(status.text()).toBe(site.en.copied)
 
         vi.advanceTimersByTime(1500)
         await flushPromises()
         expect(button.attributes('aria-label')).toBe(site.en.copyInstall)
+        expect(status.text()).toBe('')
     })
 
     it('hero links', () => {
@@ -98,5 +105,11 @@ describe('landing', () => {
 
     it('en case-study link says the case is in Russian', () => {
         expect(site.en.readCase).toBe('Read the case study (ru)')
+    })
+
+    it('hero caption describes the panel truthfully, en title never breaks at the hyphen', () => {
+        for (const locale of ['en', 'ru', 'zh-CN'] as const) expect(site[locale].heroCaption).not.toContain('Alt+R')
+        expect(site.en.title.join(' ')).toContain('re\u2011render')
+        expect(site.en.title.join(' ')).not.toContain('re-render')
     })
 })

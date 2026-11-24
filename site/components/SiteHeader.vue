@@ -23,7 +23,7 @@ function onChange(event: Event): void {
                 vue-why-render
             </a>
 
-            <nav class="site-header__nav" aria-label="Main">
+            <nav class="site-header__nav" :aria-label="t.navLabel">
                 <a :href="t.docsHref">{{ t.nav.docs }}</a>
                 <a href="#demo">{{ t.nav.playground }}</a>
                 <!-- Кейс есть только на русском: в других языках помечаем ссылку. -->

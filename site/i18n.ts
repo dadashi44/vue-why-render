@@ -46,6 +46,8 @@ export interface SiteMessages {
     /** Шапка. */
     nav: { docs: string, playground: string, caseStudy: string, changelog: string }
     languageLabel: string
+    /** aria-label навигации в шапке. */
+    navLabel: string
     /** Герой: строка над заголовком, кнопки, подпись окна. */
     heroNews: string
     readDocs: string
@@ -87,7 +89,7 @@ export const site: Record<Locale, SiteMessages> = {
     'en': {
         name: 'English',
         tag: 'Vue 3.3+ · no runtime dependencies',
-        title: ['See which components', 're-render — and why'],
+        title: ['See which components', 're‑render — and why'],
         lead: 'Other tools flash a border around a component that just updated. That is enough to notice a problem, but not to fix it — you are still left asking what actually changed. vue-why-render answers that: it names the exact reactive dependency that triggered the render.',
         sampleReason: 'new reference, same value',
         sampleNote: 'prop badge',
@@ -151,12 +153,13 @@ export const site: Record<Locale, SiteMessages> = {
         caseLink: 'case study (ru)',
         nav: { docs: 'Docs', playground: 'Playground', caseStudy: 'Case study', changelog: 'Changelog' },
         languageLabel: 'Language',
+        navLabel: 'Main',
         heroNews: 'v0.9.0 — now talks to AI agents over MCP',
         readDocs: 'Read the docs',
         tryHere: 'Try it on this page',
         copyInstall: 'Copy the install command',
         copied: 'Copied',
-        heroCaption: 'The real panel runs on this page. Press Alt+R to open it.',
+        heroCaption: 'The real panel runs on this page, in the bottom-right corner. You can collapse it or drag it aside.',
         chainHeading: 'Every re-render has a cause. Read it.',
         chainLead: 'vue-why-render follows the change from the line that made it to the component that redrew, and prints the whole path.',
         chainLabels: ['your code', 'store', 'computed', 'rendered'],
@@ -251,12 +254,13 @@ export const site: Record<Locale, SiteMessages> = {
         caseLink: 'кейс: аудит Nuxt-фронта',
         nav: { docs: 'Документация', playground: 'Песочница', caseStudy: 'Кейс', changelog: 'Список изменений' },
         languageLabel: 'Язык',
+        navLabel: 'Основное меню',
         heroNews: 'v0.9.0 — теперь общается с ИИ-агентами по MCP',
         readDocs: 'Читать документацию',
         tryHere: 'Попробовать на этой странице',
         copyInstall: 'Скопировать команду установки',
         copied: 'Скопировано',
-        heroCaption: 'На этой странице работает настоящая панель. Alt+R — открыть.',
+        heroCaption: 'На этой странице работает настоящая панель — она в правом нижнем углу. Её можно свернуть или перетащить в сторону.',
         chainHeading: 'У каждой перерисовки есть причина. Прочитайте её.',
         chainLead: 'vue-why-render прослеживает изменение от строки кода, которая его вызвала, до компонента, который перерисовался, и выводит весь путь.',
         chainLabels: ['ваш код', 'стор', 'computed', 'отрисован'],
@@ -351,12 +355,13 @@ export const site: Record<Locale, SiteMessages> = {
         caseLink: '案例（俄语）',
         nav: { docs: '文档', playground: '试玩', caseStudy: '案例', changelog: '更新日志' },
         languageLabel: '语言',
+        navLabel: '主导航',
         heroNews: 'v0.9.0 —— 现已通过 MCP 对接 AI 智能体',
         readDocs: '阅读文档',
         tryHere: '在本页体验',
         copyInstall: '复制安装命令',
         copied: '已复制',
-        heroCaption: '本页运行的是真实的面板，按 Alt+R 打开。',
+        heroCaption: '本页运行的是真实的面板，就在右下角。可以把它折叠起来，或拖到一旁。',
         chainHeading: '每一次重新渲染都有原因，直接读出来。',
         chainLead: 'vue-why-render 会顺着变化追踪：从引发它的那行代码，到重新绘制的组件，并打印出完整路径。',
         chainLabels: ['你的代码', 'store', 'computed', '已渲染'],
