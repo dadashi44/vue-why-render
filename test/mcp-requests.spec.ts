@@ -58,19 +58,19 @@ describe('mcp request handler', () => {
         const { Root } = twoCards()
         const hd = start(Root)
         const call = handlerFor(hd)
-        const info = await call('info', {}) as any
+        const info = await call('info', {}) as { vue: string, version: string, paused: boolean }
         expect(info.vue).toMatch(/^\d/)
         expect(info.version).toBeTruthy()
         expect(info.paused).toBe(false)
         await call('pause', {})
-        expect((await call('info', {}) as any).paused).toBe(true)
+        expect((await call('info', {}) as { paused: boolean }).paused).toBe(true)
         await call('resume', {})
-        expect((await call('info', {}) as any).paused).toBe(false)
+        expect((await call('info', {}) as { paused: boolean }).paused).toBe(false)
     })
 
     it('report returns the same shape as getReport', async () => {
         const hd = start(twoCards().Root)
-        const report = await handlerFor(hd)('report', {}) as any
+        const report = await handlerFor(hd)('report', {}) as { meta: { format: string }, components: unknown[] }
         expect(report.meta.format).toBe(REPORT_FORMAT)
         expect(Array.isArray(report.components)).toBe(true)
     })
@@ -80,7 +80,7 @@ describe('mcp request handler', () => {
         const hd = start(Root)
         n.value++
         await nextTick()
-        const res = await handlerFor(hd)('component', { name: 'Card' }) as any
+        const res = await handlerFor(hd)('component', { name: 'Card' }) as { name: string, instances: { uid: number, lastReasons: unknown[], hints: unknown[] }[] }
         expect(res.name).toBe('Card')
         expect(res.instances.length).toBe(2)
         for (const inst of res.instances) {
@@ -92,7 +92,7 @@ describe('mcp request handler', () => {
 
     it('unknown component lists similar names', async () => {
         const hd = start(twoCards('ProductCard').Root)
-        const res = await handlerFor(hd)('component', { name: 'card' }) as any
+        const res = await handlerFor(hd)('component', { name: 'card' }) as { instances: unknown[], known: string[] }
         expect(res.instances).toEqual([])
         expect(res.known).toContain('ProductCard')
     })
@@ -104,7 +104,7 @@ describe('mcp request handler', () => {
         await nextTick()
         const call = handlerFor(hd)
         expect(await call('reset', {})).toEqual({ ok: true })
-        expect((await call('report', {}) as any).totals.renders).toBe(0)
+        expect((await call('report', {}) as { totals: { renders: number } }).totals.renders).toBe(0)
     })
 
     it('unknown method throws', () => {
