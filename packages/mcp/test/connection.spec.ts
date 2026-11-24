@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createServer } from 'node:net'
 import WebSocket from 'ws'
-import { AppConnection } from '../src/connection.js'
+import { AppConnection, PageError } from '../src/connection.js'
 
 const NOT_CONNECTED =
     'No app connected. Enable `mcp: true` in the vue-why-render plugin (Nuxt: `whyRender: { mcp: true }`) and open the page in dev mode.'
@@ -113,7 +113,7 @@ describe('AppConnection', () => {
     })
 
     it('port in use', async () => {
-        const { conn, port } = await setup()
+        const { port } = await setup()
         const second = new AppConnection({ port, host: 'localhost', allowOrigins: [], timeoutMs: 100 })
         conns.push(second)
         expect(await second.start()).toBe('port-in-use')
@@ -131,16 +131,75 @@ describe('AppConnection', () => {
             ws.send(JSON.stringify({ type: 'response', id: msg.id, payload: { ok: false, error: 'boom' } }))
         })
         await until(() => conn.connected)
-        await expect(conn.request('report')).rejects.toThrow('boom')
+        const err: unknown = await conn.request('report').catch(e => e)
+        expect(err).toBeInstanceOf(PageError)
+        expect((err as Error).message).toBe('boom')
     })
 
-    it('ignores a response with a stale id and replaces the old connection', async () => {
+    it('local errors are not PageError', async () => {
+        const { conn } = await setup()
+        const err = await conn.request('info').catch(e => e)
+        expect(err).not.toBeInstanceOf(PageError)
+    })
+
+    it('port in use recovers once the other process releases the port', async () => {
+        const { conn, port } = await setup()
+        const second = new AppConnection({ port, host: 'localhost', allowOrigins: [], timeoutMs: 500 })
+        conns.push(second)
+        expect(await second.start()).toBe('port-in-use')
+        expect(await second.ensureListening()).toBe('port-in-use')
+        await conn.close()
+        expect(await second.ensureListening()).toBe('listening')
+        expect(second.status).toBe('listening')
+        await expect(second.request('info')).rejects.toThrow(NOT_CONNECTED)
+    })
+
+    it('request retries the port and then reaches the app', async () => {
+        const { conn, port } = await setup()
+        const second = new AppConnection({ port, host: 'localhost', allowOrigins: [], timeoutMs: 500 })
+        conns.push(second)
+        await second.start()
+        await conn.close()
+        // The request itself retries the bind; with no page yet it fails as "not connected", not "port in use".
+        await expect(second.request('info')).rejects.toThrow(NOT_CONNECTED)
+        expect(second.status).toBe('listening')
+        const ws = await client(port)
+        ws.on('message', raw => {
+            const msg = JSON.parse(String(raw))
+            ws.send(JSON.stringify({ type: 'response', id: msg.id, payload: { ok: true, result: 'hi' } }))
+        })
+        await until(() => second.connected)
+        await expect(second.request('info')).resolves.toBe('hi')
+    })
+
+    it('remembers the last rejected origin and logs it', async () => {
+        const { conn, port } = await setup()
+        const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+        await client(port, 'https://evil.example')
+        expect(conn.lastRejectedOrigin).toBe('https://evil.example')
+        expect(log).toHaveBeenCalledTimes(1)
+        expect(String(log.mock.calls[0][0])).toContain('https://evil.example')
+        log.mockRestore()
+    })
+
+    it('counts open tabs and keeps the older ones', async () => {
         const { conn, port } = await setup()
         const first = await client(port)
+        await until(() => conn.clientCount === 1)
+        const second = await client(port)
+        await until(() => conn.clientCount === 2)
+        expect(first.readyState).toBe(WebSocket.OPEN)
+        second.terminate()
+        await until(() => conn.clientCount === 1)
+        expect(conn.connected).toBe(true)
+    })
+
+    it('ignores a response with a stale id and answers through the newest connection', async () => {
+        const { conn, port } = await setup()
+        await client(port)
         await until(() => conn.connected)
         const second = await client(port)
         await sleep(30)
-        expect(first.readyState).not.toBe(WebSocket.OPEN)
         second.on('message', raw => {
             const msg = JSON.parse(String(raw))
             second.send(JSON.stringify({ type: 'response', id: 'stale', payload: { ok: true, result: 0 } }))

@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { existsSync, readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
 import { spawn, execFileSync, type ChildProcessWithoutNullStreams } from 'node:child_process'
 import { createServer } from 'node:net'
 import { fileURLToPath } from 'node:url'
@@ -41,13 +43,24 @@ const report = {
     events: [],
 }
 
+// Rebuild only when dist is missing or older than the sources.
+function needsBuild(): boolean {
+    const cli = join(root, 'dist/cli.js')
+    if (!existsSync(cli)) return true
+    const built = statSync(cli).mtimeMs
+    return readdirSync(join(root, 'src'), { recursive: true })
+        .some(f => statSync(join(root, 'src', String(f))).isFile() && statSync(join(root, 'src', String(f))).mtimeMs > built)
+}
+
+type RpcMessage = { id?: number, result: { serverInfo: { name: string }, content: { text: string }[] } }
+
 let child: ChildProcessWithoutNullStreams
 let ws: WebSocket
 const lines: string[] = []
-const waiters = new Map<number, (msg: any) => void>()
+const waiters = new Map<number, (msg: RpcMessage) => void>()
 let buffer = ''
 
-function rpc(id: number, method: string, params: unknown): Promise<any> {
+function rpc(id: number, method: string, params: unknown): Promise<RpcMessage> {
     return new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error(`no answer to ${method}`)), 10000)
         waiters.set(id, (msg) => { clearTimeout(timer); resolve(msg) })
@@ -56,7 +69,7 @@ function rpc(id: number, method: string, params: unknown): Promise<any> {
 }
 
 beforeAll(async () => {
-    execFileSync('npm', ['run', 'build'], { cwd: root, stdio: 'pipe' })
+    if (needsBuild()) execFileSync('npm', ['run', 'build'], { cwd: root, stdio: 'pipe' })
     const port = await freePort()
     child = spawn('node', ['dist/cli.js'], {
         cwd: root,

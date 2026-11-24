@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { createServer, parseConfig } from '../src/server'
-import type { Tools } from '../src/tools'
+import { createTools, type Tools } from '../src/tools'
 
 function fakeTools(over: Partial<Tools> = {}): Tools {
     const ok = async () => 'ok'
@@ -20,6 +20,18 @@ async function connect(tools: Tools) {
 describe('parseConfig', () => {
     it('defaults', () => {
         expect(parseConfig([], {})).toEqual({ port: 7711, host: 'localhost', allowOrigins: [], timeoutMs: 5000 })
+    })
+
+    it('rejects an invalid port with a clear message', () => {
+        expect(() => parseConfig(['--port', 'abc'], {})).toThrow('Invalid port "abc" (from --port). Expected an integer 1–65535.')
+        expect(() => parseConfig([], { VWR_MCP_PORT: 'abc' })).toThrow('Invalid port "abc" (from VWR_MCP_PORT)')
+        expect(() => parseConfig(['--port', '70000'], {})).toThrow('Invalid port "70000"')
+    })
+
+    it('rejects a flag without a value and unknown flags', () => {
+        expect(() => parseConfig(['--port'], {})).toThrow('Flag --port needs a value.')
+        expect(() => parseConfig(['--host'], {})).toThrow('Flag --host needs a value.')
+        expect(() => parseConfig(['--nope'], {})).toThrow('Unknown argument "--nope". Supported flags: --port, --host, --allow-origin.')
     })
 
     it('env and flags', () => {
@@ -49,5 +61,23 @@ describe('createServer', () => {
         const res = await client.callTool({ name: 'report', arguments: {} })
         expect(res.isError).toBe(true)
         expect(res.content).toEqual([{ type: 'text', text: 'boom' }])
+    })
+
+    it('real tools report a missing app as isError with readable text', async () => {
+        const tools = createTools({
+            port: 7711,
+            status: 'listening',
+            connected: false,
+            clientCount: 0,
+            lastRejectedOrigin: null,
+            ensureListening: async () => 'listening',
+            request: (async () => { throw new Error('No app connected. x') }) as never,
+        })
+        const client = await connect(tools)
+        for (const name of ['status', 'report', 'reset']) {
+            const res = await client.callTool({ name, arguments: {} })
+            expect(res.isError).toBe(true)
+            expect((res.content as { text: string }[])[0].text).toContain('No app connected')
+        }
     })
 })

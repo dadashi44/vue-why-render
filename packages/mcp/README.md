@@ -38,7 +38,7 @@ Node 20 or newer.
 | `report` | Render report: components, counts, reasons. Optional `limit` (1-100) and `component` filter. |
 | `component` | Details for one component by `name`: instances, reasons, prop changes, hints. |
 | `reset` | Clears the counters in the app. |
-| `baseline` | Saves the current report to compare against later. |
+| `baseline` | Saves the current report to compare against later, then resets the counters. |
 | `diff` | Compares the current report with the baseline. Optional `limit`. |
 
 Everything that comes from the page (component names, values, URLs) is wrapped in a `<page-data>` block and marked as data, not instructions.

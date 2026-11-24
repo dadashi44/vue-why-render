@@ -10,28 +10,32 @@ export interface ServerConfig {
     timeoutMs: number
 }
 
+const FLAGS = ['--port', '--host', '--allow-origin']
+
+function parsePort(value: string, source: string): number {
+    const port = Number(value)
+    if (value.trim() === '' || !Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new Error(`Invalid port "${value}" (from ${source}). Expected an integer 1–65535.`)
+    }
+    return port
+}
+
 export function parseConfig(argv: string[], env: Record<string, string | undefined>): ServerConfig {
-    let port = env.VWR_MCP_PORT ? Number(env.VWR_MCP_PORT) : 7711
+    let port = env.VWR_MCP_PORT ? parsePort(env.VWR_MCP_PORT, 'VWR_MCP_PORT') : 7711
     let host = env.VWR_MCP_HOST || 'localhost'
     const allowOrigins = (env.VWR_MCP_ALLOW_ORIGIN ?? '')
         .split(',').map(s => s.trim()).filter(Boolean)
 
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i]
-        const next = argv[i + 1]
-        if (arg === '--port' && next !== undefined) {
-            port = Number(next)
-            i++
-        } else if (arg === '--host' && next !== undefined) {
-            host = next
-            i++
-        } else if (arg === '--allow-origin' && next !== undefined) {
-            allowOrigins.push(next)
-            i++
+        if (!FLAGS.includes(arg)) {
+            throw new Error(`Unknown argument "${arg}". Supported flags: ${FLAGS.join(', ')}.`)
         }
-    }
-    if (!Number.isInteger(port) || port < 1 || port > 65535) {
-        throw new Error(`Invalid port: ${port}`)
+        const next = argv[++i]
+        if (next === undefined) throw new Error(`Flag ${arg} needs a value.`)
+        if (arg === '--port') port = parsePort(next, '--port')
+        else if (arg === '--host') host = next
+        else allowOrigins.push(next)
     }
     return { port, host, allowOrigins, timeoutMs: 5000 }
 }
@@ -74,7 +78,7 @@ export function createServer(tools: Tools): McpServer {
     }, () => run(() => tools.reset()))
 
     server.registerTool('baseline', {
-        description: 'Save the current report as a baseline for a later diff. Call it before making a change or reproducing an interaction.',
+        description: 'Save the current report as a baseline for a later diff, then reset the render counters so the diff only covers what happens afterwards. Call it before making a change or reproducing an interaction.',
     }, () => run(() => tools.baseline()))
 
     server.registerTool('diff', {
