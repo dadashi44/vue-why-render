@@ -149,11 +149,14 @@ study». Данные не выдумываются: только эти стр�
 
 ### GoatCounter
 
-- Код сайта: `vue-why-render` (`https://vue-why-render.goatcounter.com`). Аккаунт создаёт
-  пользователь.
-- Скрипт: `<script data-goatcounter="https://vue-why-render.goatcounter.com/count" async
-  src="//gc.zgo.at/count.js"></script>` — в `site/index.html`, `site/cases/bigplay/index.html`
-  и в `head` Starlight (`docs-site/astro.config.mjs`).
+- Аккаунт пользователя: код `dadashi44`, счёт уходит на
+  `https://dadashi44.goatcounter.com/count`.
+- `count.js` не грузится с `gc.zgo.at`, а лежит в репозитории (`site/public/count.js`, копия
+  официального файла с пометкой версии в комментарии) и подключается со своего домена:
+  `<script data-goatcounter="https://dadashi44.goatcounter.com/count" async src="/count.js">`
+  (с учётом `base`). Так чужой код не исполняется на сайте и не может поменяться без PR.
+  Подключение — в `site/index.html`, `site/cases/bigplay/index.html` и в `head` Starlight
+  (`docs-site/astro.config.mjs`).
 - Один сайт GoatCounter на всё: главная, кейс, документация.
 - Считаются только визиты на `vue-why-render.js.org`: localhost, github.io и превью не считаются
   (скрипт не подключается или не отправляет счёт, если `location.hostname` другой).
