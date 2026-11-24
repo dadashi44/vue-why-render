@@ -39,6 +39,7 @@ export default defineConfig({
             social: [
                 { icon: 'github', label: 'GitHub', href: 'https://github.com/dadashi44/vue-why-render' },
             ],
+            head: [{ tag: 'script', attrs: { src: `${process.env.SITE_BASE ?? '/'}count.js`, async: true } }],
             sidebar,
             customCss: ['./src/styles/theme.css'],
             components: {
