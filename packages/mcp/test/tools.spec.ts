@@ -70,11 +70,16 @@ describe('tools', () => {
     })
 
     it('status when connected', async () => {
-        const tools = createTools(link({ respond: () => ({ url: 'http://x/', title: 'T', vue: '3.5.0', version: '1.4.0', paused: false }) }))
+        const tools = createTools(link({ respond: () => ({ url: 'http://x/', title: 'T', vue: '3.5.9', version: '1.4.2', paused: false }) }))
         const text = await tools.status()
-        expect(text).toContain('Connected:')
-        expect(text).toContain('paused: no')
-        expect(text).toContain('<page-data>')
+        expect(text.split('\n')[0]).toBe('Connected. paused: no')
+        expect(text.match(/<page-data>/g)).toHaveLength(1)
+        expect(text.match(/<\/page-data>/g)).toHaveLength(1)
+        const inner = text.slice(text.indexOf('<page-data>'), text.indexOf('</page-data>'))
+        for (const s of ['http://x/', 'T', '3.5.9', '1.4.2']) expect(inner).toContain(s)
+        const outside = text.replace(inner, '')
+        expect(outside).toContain('paused:')
+        expect(inner).not.toContain('paused:')
     })
 
     it('report wraps page data', async () => {

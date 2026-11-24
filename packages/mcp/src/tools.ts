@@ -61,8 +61,13 @@ export function createTools(app: AppLink): Tools {
             }
             if (!app.connected) return NOT_CONNECTED
             const info = await app.request<AppInfo>('info')
-            const where = untrusted(`${info.title ?? ''} (${info.url ?? ''})`)
-            return `Connected: ${where} · vue ${info.vue} · vue-why-render ${info.version} · paused: ${info.paused ? 'yes' : 'no'}`
+            const fields = [
+                `title: ${info.title ?? ''}`,
+                `url: ${info.url ?? ''}`,
+                `vue: ${String(info.vue)}`,
+                `vue-why-render: ${String(info.version)}`,
+            ]
+            return `Connected. paused: ${info.paused === true ? 'yes' : 'no'}\n${untrusted(fields.join('\n'))}`
         }),
 
         report: ({ limit, component }) => guarded(async () => {
