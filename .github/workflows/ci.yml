@@ -97,6 +97,9 @@ jobs:
               with:
                   node-version: 24
                   cache: npm
+                  cache-dependency-path: |
+                      package-lock.json
+                      docs-site/package-lock.json
 
             - run: npm ci
 
@@ -112,6 +115,23 @@ jobs:
 
             - name: Test docs build
               run: npm run docs:test
+
+            # Тот же набор под base github.io: ссылки в содержимом должны
+            # получить префикс, иначе валидатор ссылок валит сборку.
+            - name: Build landing (github.io base)
+              run: npm run build:site
+              env:
+                  SITE_BASE: /vue-why-render/
+
+            - name: Build docs (github.io base)
+              run: npm run docs:build
+              env:
+                  SITE_BASE: /vue-why-render/
+
+            - name: Test docs build (github.io base)
+              run: npm run docs:test
+              env:
+                  SITE_BASE: /vue-why-render/
 
     package-managers:
         name: ${{ matrix.manager }}

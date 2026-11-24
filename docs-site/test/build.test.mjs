@@ -41,7 +41,14 @@ test('landing and case page survive', () => {
 
 test('respects SITE_BASE', () => {
     const html = readFileSync(resolve(dist, 'docs/index.html'), 'utf8')
-    const expected =
-        process.env.SITE_BASE === '/vue-why-render/' ? 'href="/vue-why-render/docs/' : 'href="/docs/'
-    assert.ok(html.includes(expected), `expected ${expected}`)
+    const base = process.env.SITE_BASE === '/vue-why-render/' ? '/vue-why-render' : ''
+    assert.ok(html.includes(`href="${base}/docs/`), `expected href="${base}/docs/`)
+
+    // Ссылки в содержимом страниц пишутся как /docs/…, а на выходе должны получить base.
+    const page = readFileSync(resolve(dist, 'docs/start/installation/index.html'), 'utf8')
+    const content = page.slice(page.indexOf('<main'), page.indexOf('</main>'))
+    assert.ok(content.includes(`href="${base}/docs/start/vue/"`), 'cross-link lost its base')
+    if (base) {
+        assert.ok(!/href="\/docs\//.test(content), 'content link points outside the base')
+    }
 })

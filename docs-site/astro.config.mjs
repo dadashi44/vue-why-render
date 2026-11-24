@@ -3,6 +3,8 @@ import starlight from '@astrojs/starlight'
 import vue from '@astrojs/vue'
 import starlightLinksValidator from 'starlight-links-validator'
 import { sections } from './src/pages-list.mjs'
+import { satteri } from '@astrojs/markdown-satteri'
+import { docsBasePlugin } from './src/docs-base-plugin.mjs'
 
 const base = `${process.env.SITE_BASE ?? '/'}docs`.replace(/\/{2,}/g, '/')
 
@@ -21,6 +23,7 @@ export default defineConfig({
     site: 'https://vue-why-render.js.org',
     base,
     outDir: '../dist-site/docs',
+    markdown: { processor: satteri({ mdastPlugins: [docsBasePlugin(base)] }) },
     integrations: [
         vue(),
         starlight({

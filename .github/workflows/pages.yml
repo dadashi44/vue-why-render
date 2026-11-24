@@ -28,6 +28,9 @@ jobs:
               with:
                   node-version: 24
                   cache: npm
+                  cache-dependency-path: |
+                      package-lock.json
+                      docs-site/package-lock.json
 
             - run: npm ci
 
