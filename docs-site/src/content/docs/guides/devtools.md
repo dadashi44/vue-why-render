@@ -42,7 +42,7 @@ package still has zero runtime dependencies.
 
 ## Nuxt DevTools
 
-The Nuxt module adds a **Why render** tab to Nuxt DevTools — the same panel, live, filling the
+The [Nuxt module](/docs/start/nuxt/) adds a **Why render** tab to Nuxt DevTools — the same panel, live, filling the
 whole tab, next to the other tools. Checked with DevTools 3.4; DevTools 4.0 (in beta) still collects module tabs through
 the same hook. It adds no dependency: the tab is a page the dev server serves, and the panel inside it is
 drawn by your app's own Vue through `window.__VUE_WHY_RENDER__`.

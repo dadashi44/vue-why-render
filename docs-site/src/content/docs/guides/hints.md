@@ -30,4 +30,4 @@ never printed when it cannot be derived honestly:
 
 Hints are also attached to every component in a saved report, under `hints`.
 
-The route hint is explained in Vue Router.
+The route hint is explained in [Vue Router](/docs/guides/router/).

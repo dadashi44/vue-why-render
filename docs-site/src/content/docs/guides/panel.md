@@ -8,5 +8,5 @@ description: The overlay, the panel, jumping to your editor, and pause, reset an
 - **Jump to your editor**: clicking a row opens the SFC in your IDE through the dev server.
 - **Pause, reset and filter** by component name or file path; `Alt+Shift+P` pauses from the keyboard. The panel can be dragged anywhere, follows the system light or dark theme, and copies a reason in one click.
 
-Next to each reason the panel also prints hints. The same panel lives inside
-Vue DevTools and Nuxt DevTools; if the floating panel is in the way, keep only the DevTools tab.
+Next to each reason the panel also prints [hints](/docs/guides/hints/). The same panel lives inside
+[Vue DevTools and Nuxt DevTools](/docs/guides/devtools/); if the floating panel is in the way, keep only the DevTools tab.

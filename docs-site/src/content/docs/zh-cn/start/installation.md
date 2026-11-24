@@ -21,4 +21,4 @@ bun add -d vue-why-render
 npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.6.0/vue-why-render-0.6.0.tgz
 ```
 
-接下来：在 Vue 应用或 Nuxt 项目中接入。
+接下来：在 [Vue 应用](/docs/zh-cn/start/vue/)或 [Nuxt 项目](/docs/zh-cn/start/nuxt/)中接入。

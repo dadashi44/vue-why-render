@@ -24,7 +24,7 @@ plugin. If you need one, register the plugin by hand (below). Functions passed t
 regular expressions and strings survive.
 
 The module also adds a **Why render** tab to Nuxt DevTools — see
-Vue DevTools and Nuxt DevTools.
+[Vue DevTools and Nuxt DevTools](/docs/guides/devtools/).
 
 ## By hand, without the module
 

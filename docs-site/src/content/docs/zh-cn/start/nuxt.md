@@ -22,7 +22,7 @@ export default defineNuxtConfig({
 `include` 和 `exclude` 中的函数会被丢弃并在终端给出提示；正则和字符串则完整保留。
 
 模块还会在 Nuxt DevTools 中添加一个 **Why render** 标签页 —— 见
-Vue DevTools 与 Nuxt DevTools。
+[Vue DevTools 与 Nuxt DevTools](/docs/zh-cn/guides/devtools/)。
 
 ## 手动注册，不使用模块
 

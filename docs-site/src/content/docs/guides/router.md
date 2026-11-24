@@ -23,6 +23,6 @@ any field of the route re-renders on **every** navigation — a header that only
 path re-renders when the query changes. The panel says so, and suggests the fix: if one
 field is enough, `computed(() => route.params.id)` re-renders only when that field
 changes. Which fields a component reads is not visible at runtime, so the wording is a
-suggestion, not a verdict. See also Hints.
+suggestion, not a verdict. See also [Hints](/docs/guides/hints/).
 
 Works with Vue Router 4 and 5 without depending on either. `router: false` turns it off.

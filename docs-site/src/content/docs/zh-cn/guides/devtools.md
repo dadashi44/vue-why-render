@@ -35,7 +35,7 @@ WebView。面板在没有 DevTools 的地方工作，而 DevTools 在它存在�
 
 ## Nuxt DevTools
 
-Nuxt 模块会在 Nuxt DevTools 中添加一个 **Why render** 标签页 —— 同一个面板，实时更新，铺满整个标签页，
+[Nuxt 模块](/docs/zh-cn/start/nuxt/)会在 Nuxt DevTools 中添加一个 **Why render** 标签页 —— 同一个面板，实时更新，铺满整个标签页，
 与其他工具并列。已在 DevTools 3.4 上验证；DevTools 4.0（仍在 beta）通过同一个 hook 收集模块标签页。不增加任何依赖：标签页是开发服务器提供的一个页面，
 其中的面板由应用自己的 Vue 通过 `window.__VUE_WHY_RENDER__` 绘制。
 

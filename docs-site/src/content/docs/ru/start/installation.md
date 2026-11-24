@@ -21,4 +21,4 @@ bun add -d vue-why-render
 npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.6.0/vue-why-render-0.6.0.tgz
 ```
 
-Дальше: подключение в приложении на Vue или в проекте на Nuxt.
+Дальше: подключение в [приложении на Vue](/docs/ru/start/vue/) или в [проекте на Nuxt](/docs/ru/start/nuxt/).

@@ -8,5 +8,5 @@ description: 高亮层、面板、跳转到编辑器，以及暂停、重置和�
 - **跳转到编辑器**：点击一行即可通过开发服务器在 IDE 中打开对应的 SFC。
 - **暂停、重置与过滤**：按组件名或文件路径；`Alt+Shift+P` 可用键盘暂停。面板可拖到任意位置，跟随系统的浅色或深色主题，一键复制原因。
 
-面板会在每条原因旁边给出提示。同一个面板也在
-Vue DevTools 与 Nuxt DevTools 中；如果浮动面板碍事，可以只保留 DevTools 标签页。
+面板会在每条原因旁边给出[提示](/docs/zh-cn/guides/hints/)。同一个面板也在
+[Vue DevTools 与 Nuxt DevTools](/docs/zh-cn/guides/devtools/) 中；如果浮动面板碍事，可以只保留 DevTools 标签页。

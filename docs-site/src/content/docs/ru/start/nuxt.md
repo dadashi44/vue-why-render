@@ -23,7 +23,7 @@ export default defineNuxtConfig({
 причине, и модуль говорит об этом в терминале; регулярки и строки доезжают целиком.
 
 Ещё модуль добавляет вкладку **Why render** в Nuxt DevTools — см.
-Vue DevTools и Nuxt DevTools.
+[Vue DevTools и Nuxt DevTools](/docs/ru/guides/devtools/).
 
 ## Вручную, без модуля
 

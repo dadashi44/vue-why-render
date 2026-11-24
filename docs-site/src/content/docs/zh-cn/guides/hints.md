@@ -29,4 +29,4 @@ prop badge: { text } → { text } — 新引用，值未变
 
 在保存的报告里，提示位于每个组件的 `hints` 字段中。
 
-路由提示在 Vue Router 页面中有详细说明。
+路由提示在 [Vue Router](/docs/zh-cn/guides/router/) 页面中有详细说明。

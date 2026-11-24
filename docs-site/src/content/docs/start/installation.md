@@ -22,4 +22,4 @@ link and needs no authentication:
 npm i -D https://github.com/dadashi44/vue-why-render/releases/download/v0.6.0/vue-why-render-0.6.0.tgz
 ```
 
-Next: set it up in a Vue app or a Nuxt project.
+Next: set it up in a [Vue app](/docs/start/vue/) or a [Nuxt project](/docs/start/nuxt/).

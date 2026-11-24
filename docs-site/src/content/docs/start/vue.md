@@ -19,5 +19,5 @@ app.use(VueWhyRender, {
 app.mount('#app')
 ```
 
-Using Nuxt? See Nuxt. Want to start and stop it yourself, with no plugin?
-See Manually, without the plugin.
+Using Nuxt? See [Nuxt](/docs/start/nuxt/). Want to start and stop it yourself, with no plugin?
+See [Manually, without the plugin](/docs/start/manual/).
