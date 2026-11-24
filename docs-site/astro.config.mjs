@@ -41,7 +41,7 @@ export default defineConfig({
             components: {
                 ThemeProvider: './src/components/ThemeProvider.astro',
             },
-            plugins: [starlightLinksValidator()],
+            plugins: [starlightLinksValidator({ exclude: ['../', '../../'] })],
         }),
     ],
 })

@@ -18,7 +18,7 @@ ProductCard ×7 · 2.4ms · badge
 In React you have to guess this by diffing props. Vue hands you the reason itself,
 through the `renderTriggered` hook — this package is built around it.
 
-[Try the live sandbox](https://vue-why-render.js.org/) · [GitHub](https://github.com/dadashi44/vue-why-render)
+[Try the live sandbox](../) · [GitHub](https://github.com/dadashi44/vue-why-render)
 
 ## Features
 

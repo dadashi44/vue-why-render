@@ -1,8 +1,24 @@
-{/* Как штатный ThemeProvider Starlight, но без сохранённого выбора тема тёмная. */}
+{/*
+	Как штатный ThemeProvider Starlight, но по умолчанию тема тёмная.
+	ThemeSelect хранит выбор «Auto» как пустую строку, а «ничего не выбрано»
+	(null) трактует как Auto и после загрузки сам переключает на тему ОС.
+	Поэтому при null записываем 'dark': селект покажет «Dark», а явный выбор
+	пользователя (light / dark / Auto = '') после этого уважается.
+*/}
 <script is:inline>
 	(() => {
-		const storedTheme =
-			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
-		document.documentElement.dataset.theme = storedTheme === 'light' ? 'light' : 'dark';
+		let stored = null;
+		try {
+			stored = localStorage.getItem('starlight-theme');
+			if (stored === null) {
+				localStorage.setItem('starlight-theme', 'dark');
+				stored = 'dark';
+			}
+		} catch (e) {}
+		let theme = 'dark';
+		if (stored === 'light' || stored === 'dark') theme = stored;
+		else if (stored === '' || stored === 'auto')
+			theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+		document.documentElement.dataset.theme = theme;
 	})();
 </script>

@@ -17,7 +17,7 @@ ProductCard ×7 · 2.4ms · badge
 在 React 里这只能靠逐个比对 props 去猜。而 Vue 通过 `renderTriggered` 钩子直接把原因
 交给你 —— 本包正是围绕它构建的。
 
-[在线沙盒](https://vue-why-render.js.org/) · [GitHub](https://github.com/dadashi44/vue-why-render)
+[在线沙盒](../../) · [GitHub](https://github.com/dadashi44/vue-why-render)
 
 ## 功能
 

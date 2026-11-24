@@ -18,7 +18,7 @@ ProductCard ×7 · 2.4ms · badge
 В React такое приходится угадывать диффом пропсов. Vue отдаёт причину сам, через
 хук `renderTriggered` — пакет построен вокруг него.
 
-[Живая песочница](https://vue-why-render.js.org/) · [GitHub](https://github.com/dadashi44/vue-why-render)
+[Живая песочница](../../) · [GitHub](https://github.com/dadashi44/vue-why-render)
 
 ## Возможности
 

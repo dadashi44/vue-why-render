@@ -3,7 +3,6 @@
     --sl-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-:root,
 :root[data-theme='dark'] {
     --sl-color-bg: #0d0f13;
     --sl-color-bg-nav: #0d0f13;
