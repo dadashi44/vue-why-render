@@ -115,25 +115,6 @@ p {
     font-size: 18px;
 }
 
-.features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.feature {
-    padding: 18px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-}
-
-.feature p {
-    margin: 0;
-    color: var(--fg-dim);
-    font-size: 14px;
-}
-
 .hint {
     display: flex;
     gap: 10px;
@@ -248,43 +229,11 @@ p {
     border-top: 1px solid var(--line);
 }
 
-.steps {
-    margin: 22px 0 0;
-    padding-left: 20px;
-    color: var(--fg-dim);
-    font-size: 14px;
-}
-
-.steps li {
-    margin-bottom: 6px;
-}
-
-.site-foot {
-    padding: 36px 0 120px;
-    color: var(--fg-dim);
-    font-size: 14px;
-    border-top: 1px solid var(--line);
-}
-
 @media (width <= 760px) {
     h1 {
         font-size: 30px;
     }
 
-    /* Панель на мобильном занимает низ экрана — освобождаем место. */
-    .site-foot {
-        padding-bottom: 160px;
-    }
-}
-
-/* Подпись над сниппетом подключения: Vite / Nuxt. */
-.usage__label {
-    margin: 0 0 10px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #8b93a4;
 }
 
 .visually-hidden {
@@ -626,6 +575,235 @@ p {
 
     .site-hero__lead {
         font-size: 17px;
+    }
+}
+
+/* Секции под героем: контент 1200 px, поля 24 px. */
+.site-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    border-top: 1px solid var(--line);
+}
+
+.site-h2 {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.site-sub {
+    max-width: 52ch;
+    margin: 16px 0 0;
+    color: var(--fg-dim);
+    font-size: 18px;
+}
+
+/* Цепочка причины: четыре узла, между ними соединения с бегущим сигналом. */
+.chain {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin: 48px 0 0;
+    padding: 36px;
+    list-style: none;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    font-family: var(--mono);
+}
+
+.chain__node {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.chain__wire {
+    flex: 1 1 24px;
+    align-self: center;
+    margin-top: 28px;
+}
+
+.chain__label,
+.chain__detail {
+    color: var(--fg-dim);
+    font-size: 13px;
+}
+
+.chain__name {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+}
+
+.chain__name--last {
+    color: var(--accent);
+}
+
+/* Пять причин: слева заголовок, справа строки «вид — компонент — значение». */
+.site-causes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 64px;
+}
+
+.site-causes__intro {
+    flex: 1 1 300px;
+}
+
+.causes {
+    flex: 2 1 520px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.causes__row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 14px 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.causes__row:last-child {
+    border-bottom: none;
+}
+
+.causes__kind {
+    color: var(--fg-dim);
+}
+
+.causes__text {
+    overflow-wrap: anywhere;
+}
+
+.causes__text b {
+    font-weight: 500;
+    color: var(--accent);
+}
+
+/* Путь: нумерованный список из четырёх шагов, номера видны. */
+.path {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 32px;
+    margin: 40px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.path__step {
+    padding-top: 18px;
+    border-top: 2px solid var(--line);
+}
+
+.path__step--first {
+    border-top-color: var(--accent);
+}
+
+.path__num {
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.path__step--first .path__num {
+    color: var(--accent);
+}
+
+.path__title {
+    margin: 8px 0;
+    font-size: 20px;
+}
+
+.path__text {
+    margin: 0;
+    color: var(--fg-dim);
+}
+
+.path__text code {
+    color: var(--fg);
+    overflow-wrap: anywhere;
+}
+
+/* ИИ-агенты: текст и пример диалога рядом. */
+.site-agents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 48px;
+    align-items: center;
+}
+
+.site-agents__text {
+    flex: 1 1 360px;
+}
+
+.site-agents__link {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.site-agents__dialog {
+    flex: 1 1 460px;
+    min-width: 0;
+    padding: 22px;
+    line-height: 1.7;
+}
+
+.site-agents__dim {
+    color: var(--fg-dim);
+}
+
+.site-footer {
+    border-top: 1px solid var(--line);
+    color: var(--fg-dim);
+    font-size: 14px;
+}
+
+.site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Панель пакета закрывает низ экрана — оставляем под ней место. */
+    padding: 36px 24px 140px;
+}
+
+.site-footer a {
+    color: var(--fg-dim);
+}
+
+.site-footer a:hover {
+    color: var(--accent);
+}
+
+@media (width <= 760px) {
+    .site-section {
+        padding: 56px 24px;
+    }
+
+    .site-h2 {
+        font-size: 28px;
+    }
+
+    .chain {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px 20px;
+        padding: 24px;
+    }
+
+    /* В сетке 2×2 соединения негде нарисовать; узлы по-прежнему загораются по очереди. */
+    .chain__wire {
+        display: none;
     }
 }
 

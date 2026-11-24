@@ -7,6 +7,9 @@ import { createPinia } from 'pinia'
 import { flushPromises, mount } from '@vue/test-utils'
 import VueWhyRender, { getScanHandle } from '../../src/index'
 import App from '../../site/App.vue'
+import SiteAgents from '../../site/components/SiteAgents.vue'
+import SitePath from '../../site/components/SitePath.vue'
+import SiteFooter from '../../site/components/SiteFooter.vue'
 import SiteHeader from '../../site/components/SiteHeader.vue'
 import SiteHero from '../../site/components/SiteHero.vue'
 import { site } from '../../site/i18n'
@@ -111,5 +114,38 @@ describe('landing', () => {
         for (const locale of ['en', 'ru', 'zh-CN'] as const) expect(site[locale].heroCaption).not.toContain('Alt+R')
         expect(site.en.title.join(' ')).toContain('re\u2011render')
         expect(site.en.title.join(' ')).not.toContain('re-render')
+    })
+
+    it('MCP link follows the locale', () => {
+        const wrapper = mount(SiteAgents, { props: { t: site['zh-CN'] } })
+        const hrefs = wrapper.findAll('a').map(link => link.attributes('href'))
+        expect(hrefs).toContain('docs/zh-cn/guides/mcp/')
+    })
+
+    it('path is an ordered list of four steps, test call in code', () => {
+        for (const locale of ['en', 'ru', 'zh-CN'] as const) {
+            const wrapper = mount(SitePath, { props: { t: site[locale] } })
+            expect(wrapper.find('ol').findAll('li')).toHaveLength(4)
+            expect(wrapper.find('ol').findAll('li')[2]?.find('code').text()).toBe('expectRenders(Card).toBe(1)')
+        }
+    })
+
+    it('footer links to every destination', () => {
+        const wrapper = mount(SiteFooter, { props: { t: site.ru } })
+        const hrefs = wrapper.findAll('a').map(link => link.attributes('href'))
+        expect(hrefs).toEqual([
+            'docs/ru/',
+            'https://github.com/dadashi44/vue-why-render',
+            'https://www.npmjs.com/package/vue-why-render',
+            'docs/ru/guides/vscode/',
+            'cases/bigplay/',
+        ])
+    })
+
+    it('old install section is gone', () => {
+        const wrapper = mount(App, { global: { plugins: [createPinia()] } })
+        expect(wrapper.text()).not.toContain('defineNuxtConfig')
+        expect(wrapper.find('.steps').exists()).toBe(false)
+        wrapper.unmount()
     })
 })
