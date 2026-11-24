@@ -19,5 +19,8 @@ app.use(VueWhyRender, {
 app.mount('#app')
 ```
 
+This is a dev-only tool: wrap `app.use(...)` in `if (import.meta.env.DEV)`, as described on
+the [Cost](/docs/concepts/cost/) page.
+
 Using Nuxt? See [Nuxt](/docs/start/nuxt/). Want to start and stop it yourself, with no plugin?
 See [Manually, without the plugin](/docs/start/manual/).

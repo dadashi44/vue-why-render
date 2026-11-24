@@ -19,5 +19,8 @@ app.use(VueWhyRender, {
 app.mount('#app')
 ```
 
+Это инструмент только для разработки: оберните `app.use(...)` в `if (import.meta.env.DEV)`,
+как описано на странице [Стоимость](/docs/ru/concepts/cost/).
+
 Используете Nuxt? См. [Nuxt](/docs/ru/start/nuxt/). Хотите сами запускать и останавливать
 отслеживание, без плагина? См. [Вручную, без плагина](/docs/ru/start/manual/).

@@ -45,6 +45,8 @@ import App from './App.vue'
 createApp(App).use(VueWhyRender).mount('#app')
 ```
 
+Плагин предназначен для разработки: оберните `app.use(...)` в `if (import.meta.env.DEV)`, см. [Стоимость](https://vue-why-render.js.org/docs/ru/concepts/cost/).
+
 ```ts
 // Nuxt: nuxt.config.ts
 export default defineNuxtConfig({

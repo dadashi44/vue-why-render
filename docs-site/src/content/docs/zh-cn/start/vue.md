@@ -19,4 +19,7 @@ app.use(VueWhyRender, {
 app.mount('#app')
 ```
 
+这是仅用于开发环境的工具：请将 `app.use(...)` 包在 `if (import.meta.env.DEV)` 中，
+详见[开销](/docs/zh-cn/concepts/cost/)页面。
+
 使用 Nuxt？见 [Nuxt](/docs/zh-cn/start/nuxt/)。想自己启动和停止、不使用插件？见[手动调用，不使用插件](/docs/zh-cn/start/manual/)。
