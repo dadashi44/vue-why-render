@@ -52,3 +52,17 @@ test('respects SITE_BASE', () => {
         assert.ok(!/href="\/docs\//.test(content), 'content link points outside the base')
     }
 })
+
+test('page view counter is wired in', () => {
+    // Без SITE_BASE лендинг (vite) собирается под /vue-why-render/, документация (astro) — под /.
+    const pages = {
+        'index.html': process.env.SITE_BASE ?? '/vue-why-render/',
+        'cases/bigplay/index.html': process.env.SITE_BASE ?? '/vue-why-render/',
+        'docs/index.html': process.env.SITE_BASE ?? '/',
+    }
+    assert.ok(existsSync(resolve(dist, 'count.js')), 'count.js missing')
+    for (const [page, base] of Object.entries(pages)) {
+        const html = readFileSync(resolve(dist, page), 'utf8')
+        assert.ok(html.includes(`src="${base}count.js"`), `${page} does not load ${base}count.js`)
+    }
+})

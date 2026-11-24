@@ -3,13 +3,6 @@
  * Палитра — токены из styles.css: «до» тёплым --warn, «после» — --accent.
  */
 
-/* Панели пакета здесь нет, отступ под неё справа не нужен. */
-@media (width >= 1080px) {
-    body {
-        padding-right: 0;
-    }
-}
-
 .case-page {
     max-width: 760px;
     padding-top: 48px;

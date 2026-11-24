@@ -11,7 +11,15 @@
     --accent: #6ee7a8;
     --accent-dim: #2f6f4e;
     --warn: #f0a868;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: Onest, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* Оттенки существующих цветов, не новые цвета. */
+    --header-bg: rgb(13 15 19 / 88%);
+    --fg-soft: rgb(230 232 236 / 78%);
+    --accent-glow: rgb(110 231 168 / 90%);
+    --accent-fade: rgb(110 231 168 / 25%);
+    --warn-glow: rgb(240 168 104 / 95%);
+    --warn-fade: rgb(240 168 104 / 30%);
 }
 
 * {
@@ -26,7 +34,7 @@ body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--sans);
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -57,15 +65,6 @@ pre {
     max-width: 860px;
     margin: 0 auto;
     padding: 0 24px;
-}
-
-/* Панель пакета висит справа снизу и занимает 420px. Без этого отступа
-   она на ноутбучных ширинах накрывает правый край песочницы вместе
-   с кнопками — то есть ровно то, что посетитель должен нажать. */
-@media (width >= 1080px) {
-    body {
-        padding-right: 452px;
-    }
 }
 
 section {
@@ -103,99 +102,6 @@ p {
     max-width: 62ch;
     color: var(--fg-dim);
     font-size: 18px;
-}
-
-.langs {
-    display: flex;
-    gap: 6px;
-    padding-top: 20px;
-}
-
-.langs__item {
-    padding: 4px 10px;
-    color: var(--fg-dim);
-    font-size: 13px;
-    font-family: inherit;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.langs__item:hover {
-    color: var(--fg);
-}
-
-.langs__item--active {
-    color: var(--fg);
-    border-color: var(--line);
-}
-
-.hero {
-    padding: 44px 0 56px;
-}
-
-.hero__tag {
-    display: inline-block;
-    margin-bottom: 18px;
-    padding: 3px 10px;
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 12px;
-    background: rgb(110 231 168 / 10%);
-    border: 1px solid var(--accent-dim);
-    border-radius: 999px;
-}
-
-.hero__sample {
-    margin-top: 28px;
-}
-
-.hero__sample b {
-    color: var(--accent);
-    font-weight: 600;
-}
-
-.buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 28px;
-}
-
-.btn {
-    padding: 10px 18px;
-    color: var(--bg);
-    font-weight: 600;
-    font-size: 14px;
-    text-decoration: none;
-    background: var(--accent);
-    border-radius: 8px;
-}
-
-.btn--ghost {
-    color: var(--fg);
-    background: transparent;
-    border: 1px solid var(--line);
-}
-
-.features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-}
-
-.feature {
-    padding: 18px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-}
-
-.feature p {
-    margin: 0;
-    color: var(--fg-dim);
-    font-size: 14px;
 }
 
 .hint {
@@ -312,45 +218,947 @@ p {
     border-top: 1px solid var(--line);
 }
 
-.steps {
-    margin: 22px 0 0;
-    padding-left: 20px;
-    color: var(--fg-dim);
-    font-size: 14px;
-}
-
-.steps li {
-    margin-bottom: 6px;
-}
-
-.site-foot {
-    padding: 36px 0 120px;
-    color: var(--fg-dim);
-    font-size: 14px;
-    border-top: 1px solid var(--line);
-}
-
 @media (width <= 760px) {
     h1 {
         font-size: 30px;
     }
 
-    .hero {
-        padding: 48px 0 40px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* Шапка: липкая, полупрозрачная, на узком экране переносится в строки. */
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+}
+
+.site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 24px;
+}
+
+.site-header a {
+    color: var(--fg);
+    text-decoration: none;
+}
+
+.site-header a:hover {
+    color: var(--accent);
+}
+
+.site-header__logo {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.site-header__nav {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 4px 22px;
+    font-size: 15px;
+}
+
+.site-header__mark {
+    color: var(--fg-dim);
+}
+
+.site-header__tools {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+}
+
+.site-header__lang {
+    min-height: 40px;
+    padding: 8px 10px;
+    color: var(--fg);
+    font: inherit;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.site-header__github {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.site-header a:focus-visible,
+.site-header__lang:focus-visible,
+.site-hero a:focus-visible,
+.hero-install__copy:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Герой */
+
+.site-hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 56px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 88px 24px 72px;
+    font-size: 17px;
+    line-height: 1.55;
+    border-top: none;
+}
+
+.site-hero__text {
+    flex: 1 1 520px;
+    min-width: 0;
+}
+
+.site-hero__news {
+    margin: 0 0 20px;
+    font-size: 14px;
+}
+
+.site-hero__news a {
+    color: var(--fg-dim);
+    text-decoration: none;
+}
+
+.site-hero__news b {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.site-hero__news a:hover {
+    color: var(--fg);
+}
+
+.site-hero__title {
+    margin: 0;
+    font-weight: 700;
+    /* Верх подобран под самое длинное слово, «перерисовываются»: оно должно
+       влезать в колонку целиком, без переноса посреди слова. */
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    overflow-wrap: break-word;
+}
+
+.site-hero__lead {
+    max-width: 46ch;
+    margin: 24px 0 0;
+    color: var(--fg-soft);
+    font-size: 19px;
+}
+
+.site-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 36px;
+}
+
+.site-btn {
+    padding: 13px 20px;
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+}
+
+.site-btn--ghost {
+    color: var(--fg);
+    background: transparent;
+    border-color: var(--line);
+}
+
+.site-btn--ghost:hover {
+    color: var(--accent);
+}
+
+.hero-install {
+    display: inline-flex;
+    gap: 14px;
+    align-items: center;
+    max-width: 100%;
+    margin-top: 28px;
+    padding: 6px 6px 6px 16px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.hero-install code {
+    min-width: 0;
+    overflow-x: auto;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.hero-install__prompt {
+    color: var(--fg-dim);
+}
+
+.hero-install__copy {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 0 10px;
+    color: var(--fg);
+    font: inherit;
+    font-size: 13px;
+    background: var(--line);
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.hero-install__done {
+    color: var(--accent);
+}
+
+.site-hero__shot {
+    flex: 1 1 480px;
+    min-width: 0;
+    margin: 0;
+}
+
+.site-hero__caption {
+    margin: 12px 0 0;
+    color: var(--fg-dim);
+    font-size: 13px;
+}
+
+/* Окно магазина — иллюстрация из разметки. */
+
+.shop {
+    overflow: hidden;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+.shop__bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 12px 16px;
+    color: var(--fg-dim);
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+}
+
+.shop__dot {
+    width: 10px;
+    height: 10px;
+    background: var(--line);
+    border-radius: 50%;
+}
+
+.shop__url {
+    margin-left: 10px;
+    font-family: var(--mono);
+}
+
+.shop__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+}
+
+.shop__box {
+    min-width: 0;
+    padding: 12px;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+}
+
+.shop__box--wide {
+    display: flex;
+    grid-column: span 3;
+    justify-content: space-between;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.shop__box--card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 86px;
+}
+
+.shop__box--two {
+    grid-column: span 2;
+}
+
+.shop__count {
+    color: var(--accent);
+    font-family: var(--mono);
+}
+
+.shop__count--hot,
+.shop__hot {
+    color: var(--warn);
+}
+
+.shop__log {
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    white-space: nowrap;
+    border-top: 1px solid var(--line);
+}
+
+.shop__name {
+    color: var(--accent);
+}
+
+.shop__kind {
+    color: var(--fg-dim);
+}
+
+@media (width <= 760px) {
+    .site-hero {
+        gap: 40px;
+        padding: 48px 24px 56px;
     }
 
-    /* Панель на мобильном занимает низ экрана — освобождаем место. */
-    .site-foot {
-        padding-bottom: 160px;
+    .site-hero__lead {
+        font-size: 17px;
     }
 }
 
-/* Подпись над сниппетом подключения: Vite / Nuxt. */
-.usage__label {
-    margin: 0 0 10px;
+/* Секции под героем: контент 1200 px, поля 24 px. */
+.site-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 24px;
+    border-top: 1px solid var(--line);
+}
+
+.site-h2 {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+.site-sub {
+    max-width: 52ch;
+    margin: 16px 0 0;
+    color: var(--fg-dim);
+    font-size: 18px;
+}
+
+/* Панель пакета висит справа снизу и занимает 420px. Чтобы она на ноутбучных
+   ширинах не накрывала кнопки песочницы, блок песочницы отступает от правого
+   края. Шапка, герой и остальные секции отступа не имеют: панель может
+   перекрывать их правый край. Страница кейса панели не использует. */
+@media (width >= 1080px) {
+    .site-demo {
+        padding-right: calc(24px + 452px);
+    }
+}
+
+.site-demo .site-sub,
+.site-demo .hint {
+    margin-top: 16px;
+}
+
+.site-demo .demo {
+    margin-top: 24px;
+}
+
+/* Цепочка причины: четыре узла, между ними соединения с бегущим сигналом. */
+.chain {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin: 48px 0 0;
+    padding: 36px;
+    list-style: none;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    font-family: var(--mono);
+}
+
+.chain__node {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.chain__wire {
+    flex: 1 1 24px;
+    align-self: center;
+    margin-top: 28px;
+}
+
+.chain__label,
+.chain__detail {
+    color: var(--fg-dim);
     font-size: 13px;
+}
+
+.chain__name {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+}
+
+.chain__name--last {
+    color: var(--accent);
+}
+
+/* Пять причин: слева заголовок, справа строки «вид — компонент — значение». */
+.site-causes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 64px;
+}
+
+.site-causes__intro {
+    flex: 1 1 300px;
+}
+
+.causes {
+    flex: 2 1 520px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.causes__row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 14px 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.causes__row:last-child {
+    border-bottom: none;
+}
+
+.causes__kind {
+    color: var(--fg-dim);
+}
+
+.causes__text {
+    overflow-wrap: anywhere;
+}
+
+.causes__text b {
+    font-weight: 500;
+    color: var(--accent);
+}
+
+/* Таймлайн до/после: дорожки с отметками рендеров, полоса wr-play бежит поверх. */
+.timeline {
+    margin: 40px 0 0;
+    padding: 24px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+}
+
+.timeline__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.timeline__switch {
+    display: flex;
+    padding: 4px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.timeline__switch button {
+    min-height: 40px;
+    padding: 0 16px;
+    color: var(--fg-dim);
+    font: inherit;
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #8b93a4;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.timeline__switch button[aria-pressed='true'] {
+    color: var(--bg);
+    background: var(--fg);
+}
+
+.timeline__switch button:focus-visible,
+.timeline__case:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.timeline__total {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--fg-dim);
+}
+
+.timeline__total b {
+    font-size: 18px;
+    color: var(--warn);
+}
+
+.timeline__total--ok b {
+    color: var(--accent);
+}
+
+.timeline__head {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 20px 0 6px;
+}
+
+.timeline__scenario {
+    margin: 0;
+    color: var(--fg-dim);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.timeline__row {
+    display: grid;
+    grid-template-columns: minmax(70px, 190px) minmax(0, 1fr) 56px;
+    gap: 16px;
+    align-items: center;
+    padding: 5px 0;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.timeline__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline__lane {
+    position: relative;
+    height: 30px;
+    overflow: hidden;
+    background: var(--bg);
+    border-radius: 6px;
+}
+
+.timeline__tick {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    margin-left: -1px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0;
+    transform: scaleY(0.3);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.timeline__tick--on {
+    opacity: 1;
+    transform: none;
+}
+
+.timeline__tick--hot {
+    background: var(--warn);
+}
+
+.timeline__count {
+    text-align: right;
+    color: var(--accent);
+}
+
+.timeline__count--hot {
+    color: var(--warn);
+}
+
+.timeline__note {
+    margin: 18px 0 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--fg-dim);
+}
+
+.timeline__case {
+    display: inline-block;
+    margin-top: 24px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .timeline {
+        padding: 16px;
+    }
+
+    .timeline__row {
+        grid-template-columns: minmax(0, 1fr) 48px;
+        gap: 4px 12px;
+    }
+
+    .timeline__lane {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
+/* Путь: нумерованный список из четырёх шагов, номера видны. */
+.path {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 32px;
+    margin: 40px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.path__step {
+    padding-top: 18px;
+    border-top: 2px solid var(--line);
+}
+
+.path__step--first {
+    border-top-color: var(--accent);
+}
+
+.path__num {
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.path__step--first .path__num {
+    color: var(--accent);
+}
+
+.path__title {
+    margin: 8px 0;
+    font-size: 20px;
+}
+
+.path__text {
+    margin: 0;
+    color: var(--fg-dim);
+}
+
+.path__text code {
+    color: var(--fg);
+    overflow-wrap: anywhere;
+}
+
+/* ИИ-агенты: текст и пример диалога рядом. */
+.site-agents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 48px;
+    align-items: center;
+}
+
+.site-agents__text {
+    flex: 1 1 360px;
+}
+
+.site-agents__link {
+    display: inline-block;
+    margin-top: 20px;
+}
+
+.site-agents__dialog {
+    flex: 1 1 460px;
+    min-width: 0;
+    padding: 22px;
+    line-height: 1.7;
+}
+
+.site-agents__dim {
+    color: var(--fg-dim);
+}
+
+.site-footer {
+    border-top: 1px solid var(--line);
+    color: var(--fg-dim);
+    font-size: 14px;
+}
+
+.site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Панель пакета закрывает низ экрана — оставляем под ней место. */
+    padding: 36px 24px 140px;
+}
+
+.site-footer a {
+    color: var(--fg-dim);
+}
+
+.site-footer a:hover {
+    color: var(--accent);
+}
+
+@media (width <= 760px) {
+    .site-section {
+        padding: 56px 24px;
+    }
+
+    .site-h2 {
+        font-size: 28px;
+    }
+
+    .chain {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px 20px;
+        padding: 24px;
+    }
+
+    /* В сетке 2×2 соединения негде нарисовать; узлы по-прежнему загораются по очереди. */
+    .chain__wire {
+        display: none;
+    }
+}
+
+/*
+ * Анимации. Их три: вспышки в окне героя (wr-flash, wr-hot, wr-line),
+ * сигнал по цепочке причины (wr-node, wr-wire) и полоса таймлайна (wr-play).
+ * Задержка — через --wr-delay на элементе, чтобы не плодить классы.
+ */
+
+/* Обычный компонент перерисовался: зелёный контур, цикл 4.8 с. */
+.wr-flash {
+    animation: wr-flash 4.8s ease-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-flash {
+    0% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+
+    4% {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    22% {
+        border-color: var(--accent-fade);
+        box-shadow: 0 0 0 3px transparent;
+    }
+
+    100% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* Горячий компонент: оранжевый контур, частый цикл 2.4 с. */
+.wr-hot {
+    animation: wr-hot 2.4s ease-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-hot {
+    0% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+
+    6% {
+        border-color: var(--warn);
+        box-shadow: 0 0 0 3px var(--warn-glow);
+    }
+
+    30% {
+        border-color: var(--warn-fade);
+        box-shadow: 0 0 0 3px transparent;
+    }
+
+    100% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* Строка причины появляется один раз при загрузке. */
+.wr-line {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: wr-line 0.5s ease-out forwards;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-line {
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Узел цепочки загорается по очереди, цикл 6 с; задержки 0 / .9 / 1.8 / 2.7 с. */
+.wr-node {
+    opacity: 0.35;
+    animation: wr-node 6s ease-in-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-node {
+    0%,
+    70%,
+    100% {
+        opacity: 0.35;
+    }
+
+    6%,
+    55% {
+        opacity: 1;
+    }
+}
+
+/* Соединение цепочки: по нему пробегает сигнал; задержки .3 / 1.2 / 2.1 с. */
+.wr-wire {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: var(--line);
+}
+
+.wr-wire::after {
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: var(--accent);
+    transform: translateX(-110%);
+    animation: wr-wire 6s linear infinite;
+    animation-delay: var(--wr-delay, 0s);
+    content: "";
+}
+
+@keyframes wr-wire {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    10%,
+    100% {
+        transform: translateX(260%);
+    }
+}
+
+/* Полоса таймлайна бежит слева направо. Родитель — position: relative. */
+.wr-play {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--fg);
+    opacity: 0.55;
+    animation: wr-play 5s linear infinite;
+}
+
+@keyframes wr-play {
+    from {
+        left: 0%;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+/* «Уменьшить движение»: циклов нет, всё в конечном состоянии. */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .wr-flash,
+    .wr-hot,
+    .wr-node {
+        opacity: 1;
+        animation: none;
+    }
+
+    .wr-line {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .wr-wire::after {
+        width: 100%;
+        transform: none;
+        animation: none;
+    }
+
+    .wr-play {
+        display: none;
+        animation: none;
+    }
+
+    .timeline__tick {
+        transition: none;
+    }
 }
