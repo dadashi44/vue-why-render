@@ -24,7 +24,7 @@ import { scan } from 'vue-why-render'
 
 scan(app, {
     vscode: true,        // 连接到端口 7710 上的 VS Code
-    // vscode: { port: 8080 }  // 自定义端口
+    // vscode: { port: 8080, host: 'localhost' }  // 自定义端口和主机
 })
 ```
 

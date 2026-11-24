@@ -25,7 +25,7 @@ import { scan } from 'vue-why-render'
 
 scan(app, {
     vscode: true,        // подключиться к VS Code на порту 7710
-    // vscode: { port: 8080 }  // свой порт
+    // vscode: { port: 8080, host: 'localhost' }  // свой порт и хост
 })
 ```
 
