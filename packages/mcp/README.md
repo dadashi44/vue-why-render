@@ -2,6 +2,8 @@
 
 MCP server that lets AI agents (Claude Code, Cursor, ...) ask a running Vue app which components re-render and why. It talks to the page through [vue-why-render](https://github.com/dadashi44/vue-why-render) over a local WebSocket.
 
+Documentation: <https://vue-why-render.js.org/docs/guides/mcp/>
+
 ## Setup
 
 1. Enable the bridge in the app (dev only):

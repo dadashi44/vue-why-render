@@ -36,6 +36,9 @@ export interface SiteMessages {
     viteLabel: string
     footer: string
     sources: string
+    /** Подпись и адрес документации (относительный: работает и на github.io, и на домене). */
+    docs: string
+    docsHref: string
     /** Ссылка на страницу кейса (сам кейс пока только на русском). */
     caseLink: string
     /** Подпись языка в переключателе. */
@@ -107,6 +110,8 @@ export const site: Record<Locale, SiteMessages> = {
         nuxtNote: 'On Nuxt use the module: it registers a client-only plugin in development and leaves nothing behind in a production build — not even the import. No <code>import.meta.dev</code> check, no <code>.client</code> suffix to remember.',
         footer: 'MIT',
         sources: 'source',
+        docs: 'Docs',
+        docsHref: 'docs/',
         caseLink: 'case study (ru)',
     },
 
@@ -172,6 +177,8 @@ export const site: Record<Locale, SiteMessages> = {
         nuxtNote: 'На Nuxt используйте модуль: он сам регистрирует клиентский плагин в деве, а в прод-сборке не оставляет ничего — даже импорта. Ни проверки <code>import.meta.dev</code>, ни суффикса <code>.client</code> помнить не нужно.',
         footer: 'MIT',
         sources: 'исходники',
+        docs: 'Документация',
+        docsHref: 'docs/ru/',
         caseLink: 'кейс: аудит Nuxt-фронта',
     },
 
@@ -237,6 +244,8 @@ export const site: Record<Locale, SiteMessages> = {
         nuxtNote: '在 Nuxt 中请使用模块：它会在开发模式下注册仅客户端插件，而在生产构建中不留下任何痕迹 —— 连 import 都没有。既不用写 <code>import.meta.dev</code> 判断，也不用记住 <code>.client</code> 后缀。',
         footer: 'MIT',
         sources: '源码',
+        docs: '文档',
+        docsHref: 'docs/zh-cn/',
         caseLink: '案例（俄语）',
     },
 }
