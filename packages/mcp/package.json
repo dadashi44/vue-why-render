@@ -1,0 +1,25 @@
+{
+    "name": "vue-why-render-mcp",
+    "version": "0.1.0",
+    "description": "MCP server that lets AI agents ask a running Vue app why components re-render",
+    "type": "module",
+    "bin": { "vue-why-render-mcp": "dist/cli.js" },
+    "files": ["dist"],
+    "engines": { "node": ">=20" },
+    "scripts": {
+        "build": "node build.mjs",
+        "test": "vitest run"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.32.2",
+        "ws": "^8.16.0",
+        "zod": "^3.25.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.0",
+        "@types/ws": "^8.5.10",
+        "esbuild": "^0.25.0",
+        "typescript": "^5.4.0",
+        "vitest": "^2.1.0"
+    }
+}
