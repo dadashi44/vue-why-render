@@ -1,0 +1,8 @@
+{/* Как штатный ThemeProvider Starlight, но без сохранённого выбора тема тёмная. */}
+<script is:inline>
+	(() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		document.documentElement.dataset.theme = storedTheme === 'light' ? 'light' : 'dark';
+	})();
+</script>
