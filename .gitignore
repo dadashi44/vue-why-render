@@ -31,3 +31,7 @@ crates/wasm-engine/target
 # Документация (Astro)
 docs-site/node_modules
 docs-site/.astro
+
+# Рабочие заметки (спеки, планы, макеты) — только локально
+docs/superpowers/
+.superpowers/
