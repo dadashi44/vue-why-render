@@ -11,6 +11,7 @@ import SiteCauses from './components/SiteCauses.vue'
 import SiteChain from './components/SiteChain.vue'
 import SiteFooter from './components/SiteFooter.vue'
 import SiteHero from './components/SiteHero.vue'
+import SiteTimeline from './components/SiteTimeline.vue'
 import SitePath from './components/SitePath.vue'
 import { useCart } from './stores/cart'
 import { detectLocale, site } from './i18n'
@@ -137,7 +138,7 @@ function raisePrice(id: number): void {
 
         <SiteCauses :t="t" />
 
-        <!-- Сюда Task 4 вставляет таймлайн «до/после». -->
+        <SiteTimeline :t="t" />
 
         <SitePath :t="t" />
         <SiteAgents :t="t" />

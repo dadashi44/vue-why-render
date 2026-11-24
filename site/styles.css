@@ -689,6 +689,163 @@ p {
     color: var(--accent);
 }
 
+/* Таймлайн до/после: дорожки с отметками рендеров, полоса wr-play бежит поверх. */
+.timeline {
+    margin: 40px 0 0;
+    padding: 24px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+}
+
+.timeline__bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.timeline__switch {
+    display: flex;
+    padding: 4px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.timeline__switch button {
+    min-height: 40px;
+    padding: 0 16px;
+    color: var(--fg-dim);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.timeline__switch button[aria-pressed='true'] {
+    color: var(--bg);
+    background: var(--fg);
+}
+
+.timeline__switch button:focus-visible,
+.timeline__case:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.timeline__total {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--fg-dim);
+}
+
+.timeline__total b {
+    font-size: 22px;
+    color: var(--warn);
+}
+
+.timeline__total--ok b {
+    color: var(--accent);
+}
+
+.timeline__scenario {
+    margin: 20px 0 6px;
+    color: var(--fg-dim);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.timeline__row {
+    display: grid;
+    grid-template-columns: minmax(70px, 190px) minmax(0, 1fr) 56px;
+    gap: 16px;
+    align-items: center;
+    padding: 5px 0;
+    font-family: var(--mono);
+    font-size: 14px;
+}
+
+.timeline__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline__lane {
+    position: relative;
+    height: 30px;
+    overflow: hidden;
+    background: var(--bg);
+    border-radius: 6px;
+}
+
+.timeline__tick {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    margin-left: -1px;
+    background: var(--accent);
+    border-radius: 2px;
+    opacity: 0;
+    transform: scaleY(0.3);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.timeline__tick--on {
+    opacity: 1;
+    transform: none;
+}
+
+.timeline__tick--hot {
+    background: var(--warn);
+}
+
+.timeline__count {
+    text-align: right;
+    color: var(--accent);
+}
+
+.timeline__count--hot {
+    color: var(--warn);
+}
+
+.timeline__note {
+    margin: 18px 0 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--fg-dim);
+}
+
+.timeline__case {
+    display: inline-block;
+    margin-top: 24px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .timeline {
+        padding: 16px;
+    }
+
+    .timeline__row {
+        grid-template-columns: minmax(0, 1fr) 48px;
+        gap: 4px 12px;
+    }
+
+    .timeline__lane {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+}
+
 /* Путь: нумерованный список из четырёх шагов, номера видны. */
 .path {
     display: grid;
@@ -983,5 +1140,9 @@ p {
     .wr-play {
         display: none;
         animation: none;
+    }
+
+    .timeline__tick {
+        transition: none;
     }
 }
