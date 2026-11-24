@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 })
 ```
 
-插件的所有选项都可以写在 `whyRender` 键下，只有 `onRender` 除外：回调函数无法从
+插件的所有[配置项](/docs/zh-cn/reference/options/)都可以写在 `whyRender` 键下，只有 `onRender` 除外：回调函数无法从
 `nuxt.config` 搬进生成的插件。如果需要回调，请按下面的方式手动注册。出于同样的原因，
 `include` 和 `exclude` 中的函数会被丢弃并在终端给出提示；正则和字符串则完整保留。
 
@@ -35,5 +35,5 @@ export default defineNuxtPlugin((nuxtApp) => {
 })
 ```
 
-请注意：除非自己手动剔除，这种写法会进入生产构建 —— 见「开销」。
+请注意：除非自己手动剔除，这种写法会进入生产构建 —— 见[开销](/docs/zh-cn/concepts/cost/)。
 模块的存在正是为了让人无法忘记这件事。

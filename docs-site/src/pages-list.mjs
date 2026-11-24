@@ -27,4 +27,30 @@ export const sections = [
             { slug: 'guides/vscode', label: { en: 'VS Code extension', ru: 'Расширение для VS Code', 'zh-CN': 'VS Code 扩展' } },
         ],
     },
+    {
+        label: { en: 'How it works', ru: 'Как это работает', 'zh-CN': '工作原理' },
+        items: [
+            { slug: 'concepts/reason', label: { en: 'How the reason is determined', ru: 'Как определяется причина', 'zh-CN': '原因是如何判定的' } },
+            { slug: 'concepts/cost', label: { en: 'Cost', ru: 'Стоимость', 'zh-CN': '开销' } },
+            { slug: 'concepts/wasm', label: { en: 'WASM engine', ru: 'WASM-движок', 'zh-CN': 'WASM 引擎' } },
+        ],
+    },
+    {
+        label: { en: 'Reference', ru: 'Справочник', 'zh-CN': '参考' },
+        items: [
+            { slug: 'reference/options', label: { en: 'Options', ru: 'Опции', 'zh-CN': '配置项' } },
+            { slug: 'reference/api', label: { en: 'API', ru: 'API', 'zh-CN': 'API' } },
+            { slug: 'reference/test-api', label: { en: 'Test API', ru: 'API для тестов', 'zh-CN': '测试 API' } },
+        ],
+    },
+    {
+        label: { en: 'More', ru: 'Ещё', 'zh-CN': '更多' },
+        items: [
+            { slug: 'more/comparison', label: { en: 'Compared to other tools', ru: 'Сравнение с другими инструментами', 'zh-CN': '与其他工具的比较' } },
+            { slug: 'more/faq', label: { en: 'FAQ', ru: 'Частые вопросы', 'zh-CN': '常见问题' } },
+            { slug: 'more/limitations', label: { en: 'What this package does not do', ru: 'Чего пакет не делает', 'zh-CN': '本包不做什么' } },
+            { slug: 'more/cases', label: { en: 'Case study', ru: 'Кейс', 'zh-CN': '案例' } },
+            { slug: 'more/contributing', label: { en: 'Development and contributing', ru: 'Разработка и участие', 'zh-CN': '开发与参与贡献' } },
+        ],
+    },
 ]

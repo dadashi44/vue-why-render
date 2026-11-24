@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 })
 ```
 
-Every plugin option works under the `whyRender` key, except
+Every plugin [option](/docs/reference/options/) works under the `whyRender` key, except
 `onRender` — a callback cannot be carried from `nuxt.config` into the generated
 plugin. If you need one, register the plugin by hand (below). Functions passed to
 `include` or `exclude` are dropped for the same reason and reported in the terminal;
@@ -38,4 +38,4 @@ export default defineNuxtPlugin((nuxtApp) => {
 ```
 
 Note that this variant ships in the production bundle unless you strip it yourself —
-see Cost. The module exists precisely to make that impossible to forget.
+see [Cost](/docs/concepts/cost/). The module exists precisely to make that impossible to forget.
