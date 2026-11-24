@@ -11,7 +11,15 @@
     --accent: #6ee7a8;
     --accent-dim: #2f6f4e;
     --warn: #f0a868;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: Onest, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* Оттенки существующих цветов, не новые цвета. */
+    --header-bg: rgb(13 15 19 / 88%);
+    --fg-soft: rgb(230 232 236 / 78%);
+    --accent-glow: rgb(110 231 168 / 90%);
+    --accent-fade: rgb(110 231 168 / 25%);
+    --warn-glow: rgb(240 168 104 / 95%);
+    --warn-fade: rgb(240 168 104 / 30%);
 }
 
 * {
@@ -26,7 +34,7 @@ body {
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--sans);
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -61,10 +69,12 @@ pre {
 
 /* Панель пакета висит справа снизу и занимает 420px. Без этого отступа
    она на ноутбучных ширинах накрывает правый край песочницы вместе
-   с кнопками — то есть ровно то, что посетитель должен нажать. */
+   с кнопками — то есть ровно то, что посетитель должен нажать.
+   Шапка и герой шире и идут выше панели, их отступ не касается. */
 @media (width >= 1080px) {
-    body {
-        padding-right: 452px;
+    .wrap {
+        max-width: calc(860px + 452px);
+        padding-right: calc(24px + 452px);
     }
 }
 
@@ -103,80 +113,6 @@ p {
     max-width: 62ch;
     color: var(--fg-dim);
     font-size: 18px;
-}
-
-.langs {
-    display: flex;
-    gap: 6px;
-    padding-top: 20px;
-}
-
-.langs__item {
-    padding: 4px 10px;
-    color: var(--fg-dim);
-    font-size: 13px;
-    font-family: inherit;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.langs__item:hover {
-    color: var(--fg);
-}
-
-.langs__item--active {
-    color: var(--fg);
-    border-color: var(--line);
-}
-
-.hero {
-    padding: 44px 0 56px;
-}
-
-.hero__tag {
-    display: inline-block;
-    margin-bottom: 18px;
-    padding: 3px 10px;
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 12px;
-    background: rgb(110 231 168 / 10%);
-    border: 1px solid var(--accent-dim);
-    border-radius: 999px;
-}
-
-.hero__sample {
-    margin-top: 28px;
-}
-
-.hero__sample b {
-    color: var(--accent);
-    font-weight: 600;
-}
-
-.buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 28px;
-}
-
-.btn {
-    padding: 10px 18px;
-    color: var(--bg);
-    font-weight: 600;
-    font-size: 14px;
-    text-decoration: none;
-    background: var(--accent);
-    border-radius: 8px;
-}
-
-.btn--ghost {
-    color: var(--fg);
-    background: transparent;
-    border: 1px solid var(--line);
 }
 
 .features {
@@ -335,10 +271,6 @@ p {
         font-size: 30px;
     }
 
-    .hero {
-        padding: 48px 0 40px;
-    }
-
     /* Панель на мобильном занимает низ экрана — освобождаем место. */
     .site-foot {
         padding-bottom: 160px;
@@ -353,4 +285,525 @@ p {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #8b93a4;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* Шапка: липкая, полупрозрачная, на узком экране переносится в строки. */
+
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+}
+
+.site-header__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 14px 24px;
+}
+
+.site-header a {
+    color: var(--fg);
+    text-decoration: none;
+}
+
+.site-header a:hover {
+    color: var(--accent);
+}
+
+.site-header__logo {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.site-header__nav {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: 4px 22px;
+    font-size: 15px;
+}
+
+.site-header__mark {
+    color: var(--fg-dim);
+}
+
+.site-header__tools {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+}
+
+.site-header__lang {
+    min-height: 40px;
+    padding: 8px 10px;
+    color: var(--fg);
+    font: inherit;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.site-header__github {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+
+.site-header a:focus-visible,
+.site-header__lang:focus-visible,
+.site-hero a:focus-visible,
+.hero-install__copy:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Герой */
+
+.site-hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 56px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 88px 24px 72px;
+    font-size: 17px;
+    line-height: 1.55;
+    border-top: none;
+}
+
+.site-hero__text {
+    flex: 1 1 520px;
+    min-width: 0;
+}
+
+.site-hero__news {
+    margin: 0 0 20px;
+    font-size: 14px;
+}
+
+.site-hero__news a {
+    color: var(--fg-dim);
+    text-decoration: none;
+}
+
+.site-hero__news b {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.site-hero__news a:hover {
+    color: var(--fg);
+}
+
+.site-hero__title {
+    margin: 0;
+    font-weight: 700;
+    /* Верх подобран под самое длинное слово, «перерисовываются»: оно должно
+       влезать в колонку целиком, без переноса посреди слова. */
+    font-size: clamp(32px, 4vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    overflow-wrap: break-word;
+}
+
+.site-hero__lead {
+    max-width: 46ch;
+    margin: 24px 0 0;
+    color: var(--fg-soft);
+    font-size: 19px;
+}
+
+.site-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-top: 36px;
+}
+
+.site-btn {
+    padding: 13px 20px;
+    color: var(--bg);
+    font-weight: 600;
+    font-size: 16px;
+    text-decoration: none;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+}
+
+.site-btn--ghost {
+    color: var(--fg);
+    background: transparent;
+    border-color: var(--line);
+}
+
+.site-btn--ghost:hover {
+    color: var(--accent);
+}
+
+.hero-install {
+    display: inline-flex;
+    gap: 14px;
+    align-items: center;
+    max-width: 100%;
+    margin-top: 28px;
+    padding: 6px 6px 6px 16px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.hero-install code {
+    min-width: 0;
+    overflow-x: auto;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.hero-install__prompt {
+    color: var(--fg-dim);
+}
+
+.hero-install__copy {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 36px;
+    padding: 0 10px;
+    color: var(--fg);
+    font: inherit;
+    font-size: 13px;
+    background: var(--line);
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+.hero-install__done {
+    color: var(--accent);
+}
+
+.site-hero__shot {
+    flex: 1 1 480px;
+    min-width: 0;
+    margin: 0;
+}
+
+.site-hero__caption {
+    margin: 12px 0 0;
+    color: var(--fg-dim);
+    font-size: 13px;
+}
+
+/* Окно магазина — иллюстрация из разметки. */
+
+.shop {
+    overflow: hidden;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+.shop__bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 12px 16px;
+    color: var(--fg-dim);
+    font-size: 13px;
+    border-bottom: 1px solid var(--line);
+}
+
+.shop__dot {
+    width: 10px;
+    height: 10px;
+    background: var(--line);
+    border-radius: 50%;
+}
+
+.shop__url {
+    margin-left: 10px;
+    font-family: var(--mono);
+}
+
+.shop__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 18px;
+}
+
+.shop__box {
+    min-width: 0;
+    padding: 12px;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+}
+
+.shop__box--wide {
+    display: flex;
+    grid-column: span 3;
+    justify-content: space-between;
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+.shop__box--card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 86px;
+}
+
+.shop__box--two {
+    grid-column: span 2;
+}
+
+.shop__count {
+    color: var(--accent);
+    font-family: var(--mono);
+}
+
+.shop__count--hot,
+.shop__hot {
+    color: var(--warn);
+}
+
+.shop__log {
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    white-space: nowrap;
+    border-top: 1px solid var(--line);
+}
+
+.shop__name {
+    color: var(--accent);
+}
+
+.shop__kind {
+    color: var(--fg-dim);
+}
+
+@media (width <= 760px) {
+    .site-hero {
+        gap: 40px;
+        padding: 48px 24px 56px;
+    }
+
+    .site-hero__lead {
+        font-size: 17px;
+    }
+}
+
+/*
+ * Анимации. Их три: вспышки в окне героя (wr-flash, wr-hot, wr-line),
+ * сигнал по цепочке причины (wr-node, wr-wire) и полоса таймлайна (wr-play).
+ * Задержка — через --wr-delay на элементе, чтобы не плодить классы.
+ */
+
+/* Обычный компонент перерисовался: зелёный контур, цикл 4.8 с. */
+.wr-flash {
+    animation: wr-flash 4.8s ease-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-flash {
+    0% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+
+    4% {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    22% {
+        border-color: var(--accent-fade);
+        box-shadow: 0 0 0 3px transparent;
+    }
+
+    100% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* Горячий компонент: оранжевый контур, частый цикл 2.4 с. */
+.wr-hot {
+    animation: wr-hot 2.4s ease-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-hot {
+    0% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+
+    6% {
+        border-color: var(--warn);
+        box-shadow: 0 0 0 3px var(--warn-glow);
+    }
+
+    30% {
+        border-color: var(--warn-fade);
+        box-shadow: 0 0 0 3px transparent;
+    }
+
+    100% {
+        border-color: var(--line);
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* Строка причины появляется один раз при загрузке. */
+.wr-line {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: wr-line 0.5s ease-out forwards;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-line {
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* Узел цепочки загорается по очереди, цикл 6 с; задержки 0 / .9 / 1.8 / 2.7 с. */
+.wr-node {
+    opacity: 0.35;
+    animation: wr-node 6s ease-in-out infinite;
+    animation-delay: var(--wr-delay, 0s);
+}
+
+@keyframes wr-node {
+    0%,
+    70%,
+    100% {
+        opacity: 0.35;
+    }
+
+    6%,
+    55% {
+        opacity: 1;
+    }
+}
+
+/* Соединение цепочки: по нему пробегает сигнал; задержки .3 / 1.2 / 2.1 с. */
+.wr-wire {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: var(--line);
+}
+
+.wr-wire::after {
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: var(--accent);
+    transform: translateX(-110%);
+    animation: wr-wire 6s linear infinite;
+    animation-delay: var(--wr-delay, 0s);
+    content: "";
+}
+
+@keyframes wr-wire {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    10%,
+    100% {
+        transform: translateX(260%);
+    }
+}
+
+/* Полоса таймлайна бежит слева направо. Родитель — position: relative. */
+.wr-play {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--fg);
+    opacity: 0.55;
+    animation: wr-play 5s linear infinite;
+}
+
+@keyframes wr-play {
+    from {
+        left: 0%;
+    }
+
+    to {
+        left: 100%;
+    }
+}
+
+/* «Уменьшить движение»: циклов нет, всё в конечном состоянии. */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .wr-flash,
+    .wr-hot,
+    .wr-node {
+        opacity: 1;
+        animation: none;
+    }
+
+    .wr-line {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .wr-wire::after {
+        width: 100%;
+        transform: none;
+        animation: none;
+    }
+
+    .wr-play {
+        display: none;
+        animation: none;
+    }
 }

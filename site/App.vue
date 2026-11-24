@@ -5,8 +5,10 @@ import LiveClock from '../playground/components/LiveClock.vue'
 import ProductCard from '../playground/components/ProductCard.vue'
 import StaticNote from '../playground/components/StaticNote.vue'
 import CartSummary from './CartSummary.vue'
+import SiteHeader from './components/SiteHeader.vue'
+import SiteHero from './components/SiteHero.vue'
 import { useCart } from './stores/cart'
-import { detectLocale, site, siteLocales } from './i18n'
+import { detectLocale, site } from './i18n'
 
 const locale = detectLocale()
 const t = site[locale]
@@ -79,133 +81,108 @@ function raisePrice(id: number): void {
 </script>
 
 <template>
-    <div class="wrap">
-        <nav class="langs">
-            <button
-                v-for="code in siteLocales"
-                :key="code"
-                class="langs__item"
-                :class="{ 'langs__item--active': code === locale }"
-                type="button"
-                @click="switchTo(code)"
-            >
-                {{ site[code].name }}
-            </button>
-        </nav>
+    <SiteHeader :t="t" :locale="locale" @switch-locale="switchTo" />
 
-        <header class="hero">
-            <span class="hero__tag">{{ t.tag }}</span>
+    <main>
+        <SiteHero :t="t" />
 
-            <h1>{{ t.title[0] }}<br>{{ t.title[1] }}</h1>
+        <!-- Здесь будет цепочка причины (Task 3). -->
 
-            <p class="lead">
-                {{ t.lead }}
-            </p>
+        <div class="wrap">
+            <section id="demo">
+                <h2>{{ t.demoHeading }}</h2>
 
-            <pre class="hero__sample">ProductCard ×7 · 2.4ms · <b>badge</b>
-└─ {{ t.sampleNote }}: { text } → { text } — <b>{{ t.sampleReason }}</b></pre>
+                <p class="lead">
+                    {{ t.demoLead }}
+                </p>
 
-            <div class="buttons">
-                <a class="btn" href="#demo">{{ t.tryIt }}</a>
-                <a class="btn btn--ghost" :href="t.docsHref">{{ t.docs }}</a>
-                <a class="btn btn--ghost" href="https://github.com/dadashi44/vue-why-render">GitHub</a>
-            </div>
-        </header>
-
-        <section id="demo">
-            <h2>{{ t.demoHeading }}</h2>
-
-            <p class="lead">
-                {{ t.demoLead }}
-            </p>
-
-            <div class="hint">
-                <span><b>{{ t.hintLabel }}</b> {{ t.hint }}</span>
-            </div>
-
-            <div class="demo">
-                <div class="demo__row">
-                    <input v-model="query" :placeholder="t.filterPlaceholder">
-                    <span class="demo__meta">{{ t.clock }} <LiveClock /></span>
-                    <span class="demo__meta">{{ t.tick }} {{ tick }}</span>
+                <div class="hint">
+                    <span><b>{{ t.hintLabel }}</b> {{ t.hint }}</span>
                 </div>
 
-                <ul>
-                    <ProductCard
-                        v-for="product in filtered"
-                        :key="product.id"
-                        :product="product"
-                        :badge="makeBadge()"
-                        :currency="currency"
-                        @raise="raisePrice(product.id)"
-                    />
-                </ul>
+                <div class="demo">
+                    <div class="demo__row">
+                        <input v-model="query" :placeholder="t.filterPlaceholder">
+                        <span class="demo__meta">{{ t.clock }} <LiveClock /></span>
+                        <span class="demo__meta">{{ t.tick }} {{ tick }}</span>
+                    </div>
 
-                <div class="demo__row">
-                    <button type="button" @click="addToCart()">
-                        {{ t.addToCart }}
-                    </button>
+                    <ul>
+                        <ProductCard
+                            v-for="product in filtered"
+                            :key="product.id"
+                            :product="product"
+                            :badge="makeBadge()"
+                            :currency="currency"
+                            @raise="raisePrice(product.id)"
+                        />
+                    </ul>
+
+                    <div class="demo__row">
+                        <button type="button" @click="addToCart()">
+                            {{ t.addToCart }}
+                        </button>
+                    </div>
+                    <CartSummary :label="t.cartLabel" :clear-label="t.clearCart" :currency="currency" />
+
+                    <StaticNote>{{ t.staticNote }}</StaticNote>
                 </div>
-                <CartSummary :label="t.cartLabel" :clear-label="t.clearCart" :currency="currency" />
 
-                <StaticNote>{{ t.staticNote }}</StaticNote>
-            </div>
+                <ol class="steps">
+                    <li v-for="(step, index) in t.steps" :key="index">
+                        {{ step }}
+                    </li>
+                </ol>
+            </section>
 
-            <ol class="steps">
-                <li v-for="(step, index) in t.steps" :key="index">
-                    {{ step }}
-                </li>
-            </ol>
-        </section>
+            <section>
+                <h2>{{ t.reportsHeading }}</h2>
 
-        <section>
-            <h2>{{ t.reportsHeading }}</h2>
+                <p class="lead">
+                    {{ t.reportsLead }}
+                </p>
 
-            <p class="lead">
-                {{ t.reportsLead }}
-            </p>
-
-            <pre>total ×19 → ×11  -42%
+                <pre>total ×19 → ×11  -42%
 
 ProductCard  ×9 → ×1    <b>-89%</b>   reason gone: props:badge</pre>
 
-            <p class="lead" style="margin-top: 14px">
-                {{ t.reportsNote }}
-            </p>
-        </section>
+                <p class="lead" style="margin-top: 14px">
+                    {{ t.reportsNote }}
+                </p>
+            </section>
 
-        <section>
-            <h2>{{ t.featuresHeading }}</h2>
+            <section>
+                <h2>{{ t.featuresHeading }}</h2>
 
-            <div class="features">
-                <div v-for="feature in t.features" :key="feature.title" class="feature">
-                    <h3>{{ feature.title }}</h3>
-                    <!-- eslint-disable-next-line vue/no-v-html -- строки свои, из словаря рядом -->
-                    <p v-html="feature.text" />
+                <div class="features">
+                    <div v-for="feature in t.features" :key="feature.title" class="feature">
+                        <h3>{{ feature.title }}</h3>
+                        <!-- eslint-disable-next-line vue/no-v-html -- строки свои, из словаря рядом -->
+                        <p v-html="feature.text" />
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section>
-            <h2>{{ t.installHeading }}</h2>
+            <section>
+                <h2>{{ t.installHeading }}</h2>
 
-            <pre>npm i -D vue-why-render</pre>
+                <pre>npm i -D vue-why-render</pre>
 
-            <p class="lead" style="margin-top: 14px">
-                {{ t.installNote[0] }}
-                <a href="https://www.npmjs.com/package/vue-why-render">{{ t.installNote[1] }}</a>
-                {{ t.installNote[2] }}
-            </p>
+                <p class="lead" style="margin-top: 14px">
+                    {{ t.installNote[0] }}
+                    <a href="https://www.npmjs.com/package/vue-why-render">{{ t.installNote[1] }}</a>
+                    {{ t.installNote[2] }}
+                </p>
 
-            <h2 style="margin-top: 36px">
-                {{ t.usageHeading }}
-            </h2>
+                <h2 style="margin-top: 36px">
+                    {{ t.usageHeading }}
+                </h2>
 
-            <h3 class="usage__label">
-                {{ t.viteLabel }}
-            </h3>
+                <h3 class="usage__label">
+                    {{ t.viteLabel }}
+                </h3>
 
-            <pre>import { createApp } from 'vue'
+                <pre>import { createApp } from 'vue'
 import VueWhyRender from 'vue-why-render'
 import App from './App.vue'
 
@@ -215,29 +192,30 @@ if (import.meta.env.DEV) app.use(VueWhyRender, { locale: '{{ locale }}' })
 
 app.mount('#app')</pre>
 
-            <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
-            <p class="lead" style="margin-top: 14px" v-html="t.usageNote" />
+                <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
+                <p class="lead" style="margin-top: 14px" v-html="t.usageNote" />
 
-            <h3 class="usage__label" style="margin-top: 30px">
-                {{ t.nuxtLabel }}
-            </h3>
+                <h3 class="usage__label" style="margin-top: 30px">
+                    {{ t.nuxtLabel }}
+                </h3>
 
-            <pre>// nuxt.config.ts
+                <pre>// nuxt.config.ts
 export default defineNuxtConfig({
     modules: ['vue-why-render/nuxt'],
     whyRender: { locale: '{{ locale }}' },
 })</pre>
 
-            <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
-            <p class="lead" style="margin-top: 14px" v-html="t.nuxtNote" />
-        </section>
+                <!-- eslint-disable-next-line vue/no-v-html -- строка своя, из словаря рядом -->
+                <p class="lead" style="margin-top: 14px" v-html="t.nuxtNote" />
+            </section>
 
-        <footer class="site-foot">
-            {{ t.footer }} ·
-            <a :href="t.docsHref">{{ t.docs }}</a> ·
-            <a href="cases/bigplay/">{{ t.caseLink }}</a> ·
-            <a href="https://github.com/dadashi44/vue-why-render">{{ t.sources }}</a> ·
-            <a href="https://github.com/dadashi44/vue-why-render/issues">issues</a>
-        </footer>
-    </div>
+            <footer class="site-foot">
+                {{ t.footer }} ·
+                <a :href="t.docsHref">{{ t.docs }}</a> ·
+                <a href="cases/bigplay/">{{ t.caseLink }}</a> ·
+                <a href="https://github.com/dadashi44/vue-why-render">{{ t.sources }}</a> ·
+                <a href="https://github.com/dadashi44/vue-why-render/issues">issues</a>
+            </footer>
+        </div>
+    </main>
 </template>

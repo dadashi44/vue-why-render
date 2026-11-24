@@ -171,7 +171,7 @@ export const site: Record<Locale, SiteMessages> = {
         scenarioQuery: '10 query changes',
         noteBefore: '−98% renders, −98% time. Cause: route query.utm_campaign.',
         noteAfter: 'navbar, ui-logo, footer: ×40 → ×0',
-        readCase: 'Read the case study',
+        readCase: 'Read the case study (ru)',
         pathHeading: 'From a hunch to a number your CI checks',
         path: [
             { title: 'Spot it', text: 'Outlines and counters on the page. Hot components turn orange.' },
