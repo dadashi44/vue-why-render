@@ -19,6 +19,12 @@ export const sections = [
             { slug: 'guides/pinia', label: { en: 'Pinia', ru: 'Pinia', 'zh-CN': 'Pinia' } },
             { slug: 'guides/router', label: { en: 'Vue Router', ru: 'Vue Router', 'zh-CN': 'Vue Router' } },
             { slug: 'guides/hints', label: { en: 'Hints', ru: 'Подсказки', 'zh-CN': '提示' } },
+            { slug: 'guides/reports', label: { en: 'Reports', ru: 'Отчёты', 'zh-CN': '报告' } },
+            { slug: 'guides/tests', label: { en: 'Render assertions in tests', ru: 'Проверки в тестах', 'zh-CN': '测试中的渲染断言' } },
+            { slug: 'guides/budgets', label: { en: 'Budgets', ru: 'Бюджеты', 'zh-CN': '预算' } },
+            { slug: 'guides/editor', label: { en: 'Opening files in your editor', ru: 'Открытие файлов в редакторе', 'zh-CN': '在编辑器中打开文件' } },
+            { slug: 'guides/mcp', label: { en: 'AI agents (MCP)', ru: 'ИИ-агенты (MCP)', 'zh-CN': 'AI 代理 (MCP)' } },
+            { slug: 'guides/vscode', label: { en: 'VS Code extension', ru: 'Расширение для VS Code', 'zh-CN': 'VS Code 扩展' } },
         ],
     },
 ]
