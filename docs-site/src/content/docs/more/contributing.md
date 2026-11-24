@@ -34,6 +34,15 @@ Releases go to npm on a `v*` tag through trusted publishing: there are no tokens
 repository secrets — npm exchanges the Actions OIDC token for one-time credentials and
 attaches provenance itself.
 
+## Working on the docs
+
+The documentation site lives in `docs-site/` (Astro + Starlight) and needs Node 22.23.4 or
+newer (`nvm use 22.23.4`). `npm run docs:dev` starts it locally. To check it the way CI does:
+
+```sh
+npm run build:site && npm run docs:build && npm run docs:test
+```
+
 ## Contributing
 
 Bug reports, ideas and pull requests are welcome — see

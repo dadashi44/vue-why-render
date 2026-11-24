@@ -31,6 +31,15 @@ CJS 两个入口。
 发布由 `v*` 标签触发，走 npm 的可信发布（trusted publishing）：仓库 secrets 中没有任何
 token —— npm 用 Actions 的 OIDC token 换取一次性凭据，并自动附上 provenance。
 
+## 编写文档
+
+文档站点位于 `docs-site/`（Astro + Starlight），需要 Node 22.23.4 或更高版本
+（`nvm use 22.23.4`）。`npm run docs:dev` 在本地启动它。按 CI 的方式检查：
+
+```sh
+npm run build:site && npm run docs:build && npm run docs:test
+```
+
 ## 参与贡献
 
 欢迎提交 bug 报告、想法和 pull request —— 开发环境的搭建方式以及 pull request 需要包含的内容，

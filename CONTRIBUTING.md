@@ -39,6 +39,16 @@ npm run test:e2e   # needs Playwright browsers: npx playwright install chromium
 npm run build
 ```
 
+### Working on the docs
+
+The documentation site lives in `docs-site/` (Astro + Starlight) and needs Node 22.23.4
+or newer (`nvm use 22.23.4`). `npm run docs:dev` starts it locally; to check it the way
+CI does, run:
+
+```sh
+npm run build:site && npm run docs:build && npm run docs:test
+```
+
 ## Pull requests
 
 - Keep a pull request focused on one change; split unrelated fixes into separate ones.
