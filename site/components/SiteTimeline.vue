@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { SiteMessages } from '../i18n'
-import { bigplayRows, isHot, MAX_TICKS, ticks } from '../timeline'
+import { bigplayRows, isHot, MAX_TICKS, scenarioTotal, ticks } from '../timeline'
 import type { Scenario } from '../timeline'
 
 defineProps<{ t: SiteMessages }>()
 
 const after = ref(false)
-
-const total = computed(() => bigplayRows.reduce((sum, row) => sum + (after.value ? row.after : row.before), 0))
 
 // Отметки рисуем всегда по числу «до»; в состоянии «после» остаются
 // равномерно распределённые `after` штук, остальные гаснут.
@@ -31,7 +29,7 @@ const rows = computed(() => bigplayRows.map((row) => {
 const groups = computed(() => [
     { scenario: 'home' as Scenario, label: 'scenarioHome' as const },
     { scenario: 'query' as Scenario, label: 'scenarioQuery' as const },
-].map(group => ({ ...group, rows: rows.value.filter(row => row.scenario === group.scenario) })))
+].map(group => ({ ...group, total: scenarioTotal(group.scenario, after.value), rows: rows.value.filter(row => row.scenario === group.scenario) })))
 </script>
 
 <template>
@@ -53,15 +51,17 @@ const groups = computed(() => [
                         {{ t.after }}
                     </button>
                 </div>
-                <p class="timeline__total" :class="{ 'timeline__total--ok': after }">
-                    <span>{{ t.rendersLabel }}</span> <b>{{ total }}</b>
-                </p>
             </div>
 
             <div v-for="group in groups" :key="group.scenario" class="timeline__group">
-                <h3 class="timeline__scenario">
-                    {{ t[group.label] }}
-                </h3>
+                <div class="timeline__head">
+                    <h3 class="timeline__scenario">
+                        {{ t[group.label] }}
+                    </h3>
+                    <p class="timeline__total" :class="{ 'timeline__total--ok': after }">
+                        <span>{{ t.rendersLabel }}</span> <b>{{ group.total }}</b>
+                    </p>
+                </div>
                 <div v-for="row in group.rows" :key="row.name" class="timeline__row">
                     <span class="timeline__name">{{ row.name }}</span>
                     <div class="timeline__lane">

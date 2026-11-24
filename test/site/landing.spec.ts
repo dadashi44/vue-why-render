@@ -148,4 +148,17 @@ describe('landing', () => {
         expect(wrapper.find('.steps').exists()).toBe(false)
         wrapper.unmount()
     })
+
+    it('panel offset stays off the shared .wrap used by the case page', () => {
+        const css = readFileSync(resolve(__dirname, '../../site/styles.css'), 'utf8')
+        const caseHtml = readFileSync(resolve(__dirname, '../../site/cases/bigplay/index.html'), 'utf8')
+        expect(caseHtml).toContain('class="wrap case-page"')
+        // Без снятия комментариев: правила .wrap и body не должны нести отступ под панель.
+        const rules = css.replace(/\/\*[\s\S]*?\*\//g, '')
+        for (const match of rules.matchAll(/(^|[\s,}{])(\.wrap|body)\s*[,{][^}]*\}/g)) {
+            expect(match[0]).not.toMatch(/padding-right|max-width:\s*calc/)
+        }
+        // Отступ — только у песочницы лендинга.
+        expect(rules).toMatch(/\.site-demo\s*\{\s*padding-right/)
+    })
 })

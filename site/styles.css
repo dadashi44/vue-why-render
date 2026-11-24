@@ -67,17 +67,6 @@ pre {
     padding: 0 24px;
 }
 
-/* Панель пакета висит справа снизу и занимает 420px. Без этого отступа
-   она на ноутбучных ширинах накрывает правый край песочницы вместе
-   с кнопками — то есть ровно то, что посетитель должен нажать.
-   Шапка и герой шире и идут выше панели, их отступ не касается. */
-@media (width >= 1080px) {
-    .wrap {
-        max-width: calc(860px + 452px);
-        padding-right: calc(24px + 452px);
-    }
-}
-
 section {
     padding: 56px 0;
     border-top: 1px solid var(--line);
@@ -600,6 +589,25 @@ p {
     font-size: 18px;
 }
 
+/* Панель пакета висит справа снизу и занимает 420px. Чтобы она на ноутбучных
+   ширинах не накрывала кнопки песочницы, блок песочницы отступает от правого
+   края. Шапка, герой и остальные секции отступа не имеют: панель может
+   перекрывать их правый край. Страница кейса панели не использует. */
+@media (width >= 1080px) {
+    .site-demo {
+        padding-right: calc(24px + 452px);
+    }
+}
+
+.site-demo .site-sub,
+.site-demo .hint {
+    margin-top: 16px;
+}
+
+.site-demo .demo {
+    margin-top: 24px;
+}
+
 /* Цепочка причины: четыре узла, между ними соединения с бегущим сигналом. */
 .chain {
     display: flex;
@@ -747,7 +755,7 @@ p {
 }
 
 .timeline__total b {
-    font-size: 22px;
+    font-size: 18px;
     color: var(--warn);
 }
 
@@ -755,8 +763,16 @@ p {
     color: var(--accent);
 }
 
-.timeline__scenario {
+.timeline__head {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    justify-content: space-between;
     margin: 20px 0 6px;
+}
+
+.timeline__scenario {
+    margin: 0;
     color: var(--fg-dim);
     font-size: 13px;
     font-weight: 500;

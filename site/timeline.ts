@@ -28,3 +28,10 @@ export function ticks(count: number): number[] {
 export function isHot(count: number): boolean {
     return count > 10
 }
+
+/** Сумма рендеров по сценарию до или после исправления. */
+export function scenarioTotal(scenario: Scenario, after: boolean): number {
+    return bigplayRows
+        .filter(row => row.scenario === scenario)
+        .reduce((sum, row) => sum + (after ? row.after : row.before), 0)
+}

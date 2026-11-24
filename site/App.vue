@@ -94,47 +94,47 @@ function raisePrice(id: number): void {
 
         <SiteChain :t="t" />
 
-        <div class="wrap">
-            <section id="demo">
-                <h2>{{ t.demoHeading }}</h2>
+        <section id="demo" class="site-section site-demo">
+            <h2 class="site-h2">
+                {{ t.demoHeading }}
+            </h2>
 
-                <p class="lead">
-                    {{ t.demoLead }}
-                </p>
+            <p class="site-sub">
+                {{ t.demoLead }}
+            </p>
 
-                <div class="hint">
-                    <span><b>{{ t.hintLabel }}</b> {{ t.hint }}</span>
+            <div class="hint">
+                <span><b>{{ t.hintLabel }}</b> {{ t.hint }}</span>
+            </div>
+
+            <div class="demo">
+                <div class="demo__row">
+                    <input v-model="query" :placeholder="t.filterPlaceholder">
+                    <span class="demo__meta">{{ t.clock }} <LiveClock /></span>
+                    <span class="demo__meta">{{ t.tick }} {{ tick }}</span>
                 </div>
 
-                <div class="demo">
-                    <div class="demo__row">
-                        <input v-model="query" :placeholder="t.filterPlaceholder">
-                        <span class="demo__meta">{{ t.clock }} <LiveClock /></span>
-                        <span class="demo__meta">{{ t.tick }} {{ tick }}</span>
-                    </div>
+                <ul>
+                    <ProductCard
+                        v-for="product in filtered"
+                        :key="product.id"
+                        :product="product"
+                        :badge="makeBadge()"
+                        :currency="currency"
+                        @raise="raisePrice(product.id)"
+                    />
+                </ul>
 
-                    <ul>
-                        <ProductCard
-                            v-for="product in filtered"
-                            :key="product.id"
-                            :product="product"
-                            :badge="makeBadge()"
-                            :currency="currency"
-                            @raise="raisePrice(product.id)"
-                        />
-                    </ul>
-
-                    <div class="demo__row">
-                        <button type="button" @click="addToCart()">
-                            {{ t.addToCart }}
-                        </button>
-                    </div>
-                    <CartSummary :label="t.cartLabel" :clear-label="t.clearCart" :currency="currency" />
-
-                    <StaticNote>{{ t.staticNote }}</StaticNote>
+                <div class="demo__row">
+                    <button type="button" @click="addToCart()">
+                        {{ t.addToCart }}
+                    </button>
                 </div>
-            </section>
-        </div>
+                <CartSummary :label="t.cartLabel" :clear-label="t.clearCart" :currency="currency" />
+
+                <StaticNote>{{ t.staticNote }}</StaticNote>
+            </div>
+        </section>
 
         <SiteCauses :t="t" />
 

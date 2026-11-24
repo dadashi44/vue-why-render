@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import SiteTimeline from '../../site/components/SiteTimeline.vue'
 import { site } from '../../site/i18n'
-import { bigplayRows, isHot, MAX_TICKS, ticks } from '../../site/timeline'
+import { bigplayRows, isHot, MAX_TICKS, scenarioTotal, ticks } from '../../site/timeline'
 
 describe('timeline data', () => {
     it('has the BIGPLAY rows', () => {
@@ -20,6 +20,11 @@ describe('timeline data', () => {
         expect(ticks(40).every(p => p >= 0 && p <= 100)).toBe(true)
     })
 
+    it('sums per scenario, never across scenarios', () => {
+        expect([scenarioTotal('home', false), scenarioTotal('home', true)]).toEqual([720, 12])
+        expect([scenarioTotal('query', false), scenarioTotal('query', true)]).toEqual([40, 0])
+    })
+
     it('hot above 10', () => {
         expect(isHot(11)).toBe(true)
         expect(isHot(10)).toBe(false)
@@ -32,7 +37,10 @@ describe('SiteTimeline', () => {
         const buttons = wrapper.findAll('button')
         expect(buttons[0]!.attributes('aria-pressed')).toBe('true')
         expect(buttons[1]!.attributes('aria-pressed')).toBe('false')
-        expect(wrapper.find('.timeline__total').text()).toContain('760')
+        const totals = () => wrapper.findAll('.timeline__total').map(w => w.find('b').text())
+        expect(totals()).toEqual(['720', '40'])
+        expect(wrapper.findAll('.timeline__group')).toHaveLength(2)
+        expect(wrapper.text()).not.toContain('760')
         for (const lane of wrapper.findAll('.timeline__lane')) {
             expect(lane.findAll('.timeline__tick').length).toBeLessThanOrEqual(40)
         }
@@ -40,8 +48,7 @@ describe('SiteTimeline', () => {
         await buttons[1]!.trigger('click')
         expect(buttons[0]!.attributes('aria-pressed')).toBe('false')
         expect(buttons[1]!.attributes('aria-pressed')).toBe('true')
-        expect(wrapper.find('.timeline__total').text()).toContain('12')
-        expect(wrapper.find('.timeline__total').text()).not.toContain('760')
+        expect(totals()).toEqual(['12', '0'])
 
         const rows = wrapper.findAll('.timeline__row')
         expect(rows[0]!.findAll('.timeline__tick--on')).toHaveLength(10)
