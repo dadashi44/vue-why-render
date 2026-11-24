@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint'
 import vueParser from 'vue-eslint-parser'
 
 export default tseslint.config(
-    { ignores: ['**/dist', 'dist-site', 'coverage', 'node_modules', 'src/wasm/pkg', 'src/wasm/inline.ts'] },
+    { ignores: ['**/dist', 'dist-site', 'coverage', 'node_modules', 'src/wasm/pkg', 'src/wasm/inline.ts', 'docs-site/.astro'] },
     js.configs.recommended,
     ...tseslint.configs.recommended,
     ...vue.configs['flat/recommended'],
@@ -18,6 +18,11 @@ export default tseslint.config(
                 sourceType: 'module',
             },
         },
+    },
+    {
+        // Сборка и тесты документации — Node-скрипты.
+        files: ['docs-site/**/*.mjs'],
+        languageOptions: { globals: { process: 'readonly' } },
     },
     {
         // В тестах компоненты-заглушки удобнее держать рядом с проверками.

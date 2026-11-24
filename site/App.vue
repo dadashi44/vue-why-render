@@ -107,6 +107,7 @@ function raisePrice(id: number): void {
 
             <div class="buttons">
                 <a class="btn" href="#demo">{{ t.tryIt }}</a>
+                <a class="btn btn--ghost" :href="t.docsHref">{{ t.docs }}</a>
                 <a class="btn btn--ghost" href="https://github.com/dadashi44/vue-why-render">GitHub</a>
             </div>
         </header>
@@ -233,6 +234,7 @@ export default defineNuxtConfig({
 
         <footer class="site-foot">
             {{ t.footer }} ·
+            <a :href="t.docsHref">{{ t.docs }}</a> ·
             <a href="cases/bigplay/">{{ t.caseLink }}</a> ·
             <a href="https://github.com/dadashi44/vue-why-render">{{ t.sources }}</a> ·
             <a href="https://github.com/dadashi44/vue-why-render/issues">issues</a>

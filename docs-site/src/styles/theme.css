@@ -1,0 +1,40 @@
+:root {
+    --sl-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --sl-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root[data-theme='dark'] {
+    --sl-color-bg: #0d0f13;
+    --sl-color-bg-nav: #0d0f13;
+    --sl-color-bg-sidebar: #0d0f13;
+    --sl-color-bg-inline-code: #161a21;
+    --sl-color-hairline: #22262e;
+    --sl-color-hairline-light: #22262e;
+    --sl-color-hairline-shade: #181b21;
+    --sl-color-text: #e6e8ec;
+    --sl-color-white: #e6e8ec;
+    --sl-color-gray-1: #e6e8ec;
+    --sl-color-gray-2: #c4c8d0;
+    --sl-color-gray-3: #949aa6;
+    --sl-color-gray-4: #5d6370;
+    --sl-color-gray-5: #22262e;
+    --sl-color-gray-6: #161a21;
+    --sl-color-gray-7: #11141a;
+    --sl-color-black: #0d0f13;
+    --sl-color-text-accent: #6ee7a8;
+    --sl-color-accent: #2f9e6c;
+    --sl-color-accent-high: #6ee7a8;
+    --sl-color-accent-low: #123324;
+}
+
+:root[data-theme='light'] {
+    --sl-color-text-accent: #1a7f51;
+    --sl-color-accent: #1a7f51;
+    --sl-color-accent-high: #11603c;
+    --sl-color-accent-low: #d6f3e5;
+}
+
+.site-title {
+    font-family: var(--sl-font-mono);
+    font-weight: 600;
+}

@@ -27,3 +27,7 @@ test-results
 src/wasm/pkg
 src/wasm/inline.ts
 crates/wasm-engine/target
+
+# Документация (Astro)
+docs-site/node_modules
+docs-site/.astro
